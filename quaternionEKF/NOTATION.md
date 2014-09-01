@@ -27,3 +27,4 @@ uused to write this code.
 |\hat{b}_{k+1,k+1}      | b_hat_1_1        | Updated bias |
 |\hat{\omega}_{k+1,k+1} | omega_1_1        | Updated turn rate |
 |\omega_{m_{k+1}}       | omega_m_1        | Turn rate measurement |                 
+|P_{k+1,k+1}            | P_1_1            | Updated covariance matrix |
