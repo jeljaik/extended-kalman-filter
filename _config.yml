@@ -1,5 +1,5 @@
 title:            Extended Kalman Filter
-description:      "My personal blog about the application of the Extended Kalman Filter on iCub and its final implementation for the estimation of the Foot Rotation Indicator."
+description:      "A blog explaining in detail how to deal with the problem of estimating dynamic quantities for a single rigid body with distributed force/torque measurements and distributed gyro/accelerometers measurements."
 logo:             icub-logo.png 
 disqus_shotname:  ekficub
 # Assign a default image for your site's header and footer
