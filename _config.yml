@@ -1,6 +1,6 @@
 title:            Extended Kalman Filter
 description:      "My personal blog about the application of the Extended Kalman Filter on iCub and its final implementation for the estimation of the Foot Rotation Indicator."
-logo:             omikron.png 
+logo:             icub-logo.png 
 disqus_shotname:  ekficub
 # Assign a default image for your site's header and footer
 default_bg:       step.png
