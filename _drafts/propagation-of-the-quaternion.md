@@ -34,6 +34,18 @@ $$\begin{align}
 \dot{b}&=n_W
 \end{align}$$
 
+The previous equations will be integrated in order to get the *state equations*, which are then defined as a seven-element vector composed of the quaternion and the gyro bias:
+
+$$
+x(t)=\begin{bmatrix}
+\bar{q}\\
+b(t)
+\end{bmatrix}$$
+
+>&quot;**NOTE TO SELF** In MATLAB code this is equivalent to the integrateForwardDynamics() function in /positionFilter_toolbox/main.m. For this I will have to create a model struct with the right variables and use ODE for the integration. Should I use the first order quaternion integrator instead?.&quot;
+><small><cite title="Jorhabib">Jorhabib</cite></small>
+
+
 # Discrete Time State Transition Matrix
 
 # Noise Covariance Matrices
