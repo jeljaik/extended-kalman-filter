@@ -20,13 +20,35 @@ fin_color:        "255,255,255"
 # whether working locally or remotely. Start Jekyll with: jekyll serve --baseurl ''
 url: /extended-kalman-filter
 
+# Owner/author information
+owner:
+  name:           Jorhabib Eljaik Gomez
+  avatar:         profilepic.jpg
+  email:          jorhabib.eljaik@iit.it
+  # Use the coder's toolbox at http://coderstoolbox.net/string/#!encoding=xml&action=encode&charset=us_ascii to encode your description into XML string
+  description:    Ph.D. Candidate at Istituto Italiano di Tecnologia. Genoa, Italy.
+  # Social networking links used in footer. Update and remove as you like.
+  # To register at HMFAYSAL SOCIAL, visit http://social.hmfaysal.tk
+  twitter:
+  facebook:       "jorhabib.eljaik"
+  github:         "jeljaik"
+  linkedin:
+  instagram:      "jorhabib"
+  tumblr:
+  # For Google Authorship https://plus.google.com/authorship
+  google_plus:    "http://google.com/+JorhabibEljaik"
+
+
 # Links to include in top navigation
 # For external links add external: true
 links:
-  - title: Home
+  - title: <i class="icon-home"></i> Home
     url: /
     external: false
-    icon: home
+    icon:     home
+  - title:    <i class="icon-superscript"></i> Notation
+    url:      /notation
+    external: false
   # - title: <i class="icon-book"></i> Documentation
   #   url: /documentation
   # - title: Categories
@@ -37,7 +59,7 @@ links:
   #   url: /hossain-mohd-faysal
 
 # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-timezone:       America/New_York
+timezone:       Europe/Rome
 future:         true
 highlighter:    true
 markdown:       kramdown
