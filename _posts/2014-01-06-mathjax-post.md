@@ -1,8 +1,10 @@
 ---
 layout: post
 title:  "The Algebra of Quaternions"
-imagefeature: picture-26.jpg
+imagefeature: 4dquaternion.jpg
 mathjax: true
+share: true
+comments: true
 ---
 
 **The basic quaternion**
