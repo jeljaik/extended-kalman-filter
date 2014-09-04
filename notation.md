@@ -14,9 +14,10 @@ $$
 \hline
  \bar{q}                  &  q\_bar               & \text{Regular 4-Dimensional quaternion}                                          \\
  \hat{x}_{k+1,k}          &  x\_hat\_1            & \text{Estimate of the state x at time k+1}                                       \\
- \hat{x}_{k, k}           &  x\_hat               & \text{Estimate of the state x at time k}                                         \\
+ \hat{x}_{k, k}           &  x\_hat_k             & \text{Estimate of the state x at time k}                                         \\
  \hat{b}_{k+1, k}         &  b\_hat\_1            & \text{Estimate of the gyroscope bias at time k+1}                                \\
- \hat{\bar{q}}_{k+1, k}   &  q\_bar\_hat\_1       & \text{Propagated quaternion at time k+1}                                         \\
+ \hat{b}_{k, k}           &  b\_hat\_k            & \text{Estimate of the gyroscope bias at time k}
+ \hat{\bar{q}}_{k+1, k}   &  q\_bar\_hat\_1       & \text{Estimate of the quaternion at time k+1}                                         \\
  \Phi                     &  Phi                  & \text{State transition matrix}                                                   \\
  Q_d                      &  Q\_d                 & \text{Discrete time noise covariance matrix}                                     \\
  P_{k+1, k}               &  P\_1                 & \text{State covariance matrix at time k+1}                                       \\
