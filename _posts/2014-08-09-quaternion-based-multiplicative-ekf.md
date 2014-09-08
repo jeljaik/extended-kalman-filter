@@ -26,30 +26,58 @@ modified: 		2014-09-07
 
 # Propagation of the Quaternion
 
-Trawny and Roumoliotis use the data from an inertial measurement unit (IMU) as a dynamic model replacement, since it provides measurements of the translational accelerations and rotational velocities. 
+Trawny and Roumoliotis use the data from an inertial measurement unit (IMU) as a dynamic model replacement, since it provides measurements of the translational accelerations and rotational velocities. In particular, the simplified gyro noise model relating turn rate $\omega_m$ and real angular velocity $\omega$ as:
 
-The rotational dynamics of a body whose rotation is expressed in quaternions and for which we have an Intertial Measurement Unit (IMU) can be expressed using the definition of the quaternion derivative in conjunction with the gyro noise model. 
+$$\mathbf{\omega_m} = \mathbf{\omega} + \mathbf{b} + \mathbf{n}_r \label{gyromodel}$$
+
+Where $\mathbf{n}_r$ stands for the rate noise, assumed to be Gaussian with distribution:
 
 $$\begin{align}
-\hat{\bar{q}}&=\frac{1}{2} \Omega(\omega_m - b - n_r)\bar{q}(t)\\
-\dot{b}&=n_W
+E[\mathbf{n}_r]&=\mathbf{0}_{3 \times 1}\\
+E[\mathbf{n}_r(t+\tau)\mathbf{n}^T_r(t)] &= \mathbf{N}_r \delta(\tau)\\
 \end{align}$$
 
-The previous equations will be integrated in order to get the *state equations*, which are then defined as a seven-element vector composed of the quaternion and the gyro bias:
 
-$$
-x(t)=\begin{bmatrix}
-\bar{q}\\
-b(t)
-\end{bmatrix}$$
+Where $\mathbf{N}_r=\sigma^2_r \cdot \mathbf{I}_3$
 
->&quot;**NOTE TO SELF** In MATLAB code this is equivalent to the integrateForwardDynamics() function in /positionFilter_toolbox/main.m. For this I will have to create a model struct with the right variables and use ODE for the integration. Should I use the first order quaternion integrator instead?.&quot;
+While the gyro bias is simulated as a random walk process, such that:
+$$\begin{align}
+\dot{\mathbf{b}}&=\mathbf{n}_w\\
+E[\mathbf{n}_w]&=\mathbf{0}_{3\times1}\\
+E[\mathbf{n}_w(t+\tau)\mathbf{n}^T_w(t)]&=\mathbf{N}_w \delta(\tau)
+\end{align}$$
+
+Where $\mathbf{N}_{\omega}=\sigma^2_w \cdot \mathbf{I}_3$
+
+The bias **needs to be estimated along with the quaternion**! Thus, our state vector will be:
+
+$$\begin{equation}
+	\mathbf{x}= \left[\begin{array}{c}
+	\mathbf{q}(t)\\
+	\mathbf{b}(t)
+	\end{array}\right]
+\end{equation}$$
+
+
+The rotational dynamics of a body whose rotation is expressed in quaternions and for which we have an Inertial Measurement Unit (IMU) can be expressed using the definition of the quaternion derivative in conjunction with the gyro noise model, whose expectation yields the prediction equations for the state in the EKF.
+
+$$\begin{align}
+\dot{\hat{\mathbf{q}}}&=\frac{1}{2} \Omega(\hat{\omega})\mathbf{q}(t)\\
+\dot{\mathbf{b}}&=\mathbf{n}_W
+\end{align}$$
+
+Where $\hat{\mathbf{\omega}} = \mathbf{\omega}_m - \hat{\mathbf{b}}$
+
+The previous equations will be integrated with a first order integrator using $\hat{\mathbf{\omega}}$ instead of $\mathbf{\omega}$ in order to get the *state equations*.
+
+
+>&quot;**NOTE TO SELF** In MATLAB code this is equivalent to the integrateForwardDynamics() function in /positionFilter_toolbox/main.m.&quot;
 ><small><cite title="Jorhabib">Jorhabib</cite></small>
 
 
-# Discrete Time State Transition Matrix
+## Discrete Time State Transition Matrix
 
-# Noise Covariance Matrices
+## Noise Covariance Matrices
 
 # Extended Kalman Filter
 
