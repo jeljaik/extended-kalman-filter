@@ -1,7 +1,7 @@
-title:            Extended Kalman Filter
-description:      "A blog explaining in detail how to deal with the problem of estimating dynamic quantities for a single rigid body with distributed force/torque measurements and distributed gyro/accelerometers measurements."
+title:            Research Blog
+description:      "Paving the path towards torque controlled bipedal humanoid walking. From estimates to final implementation."
 logo:             icub-logo.png 
-disqus_shotname:  ekficub
+disqus_shotname:  researchicub
 # Assign a default image for your site's header and footer
 default_bg:       step.png
 search:           true
@@ -51,8 +51,8 @@ links:
     external: false
   # - title: <i class="icon-book"></i> Documentation
   #   url: /documentation
-  # - title: Categories
-  #   url: /categories
+  - title: Categories
+    url: /categories
   # - title: Tags
   #   url: /tags
   # - title: Faysal who?
