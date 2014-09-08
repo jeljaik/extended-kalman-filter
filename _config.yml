@@ -1,7 +1,7 @@
 title:            Research Blog
 description:      "Paving the path towards torque controlled bipedal humanoid walking. From estimates to final implementation."
 logo:             icub-logo.png 
-disqus_shotname:  researchicub
+disqus_shortname:  jorhabibeljaik
 # Assign a default image for your site's header and footer
 default_bg:       step.png
 search:           true
@@ -18,7 +18,7 @@ fin_color:        "255,255,255"
 # Change url to your domain. Leave localhost server or blank when working locally.
 # or use the hint from http://jekyllrb.com/docs/github-pages/ to keep this the same 
 # whether working locally or remotely. Start Jekyll with: jekyll serve --baseurl ''
-url: /extended-kalman-filter
+# url: /extended-kalman-filter
 
 # Owner/author information
 owner:
