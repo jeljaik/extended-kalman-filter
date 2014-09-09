@@ -211,8 +211,8 @@ Which finally gives us:
 $$\begin{equation}
 \tilde{z} = 
 \left[\begin{array}{cc}
-S(C^{\hat{L}}_G(\hat{\mathbf{q}}))\mathbf{g} & 0\\
-S(C^{\hat{L}}_G(\hat{\mathbf{q}}))\mathbf{h} & 0
+S(C^{\hat{L}}_G(\hat{\mathbf{q}})\mathbf{g}) & 0\\
+S(C^{\hat{L}}_G(\hat{\mathbf{q}})\mathbf{h}) & 0
 \end{array}\right]
 \left[\begin{array}{c}
 \delta\mathbf{\theta}\\
