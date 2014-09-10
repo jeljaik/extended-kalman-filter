@@ -38,7 +38,7 @@ owner:
   # For Google Authorship https://plus.google.com/authorship
   google_plus:    "http://google.com/+JorhabibEljaik"
 
-
+google_analytics: UA-54660851-1
 # Links to include in top navigation
 # For external links add external: true
 links:
