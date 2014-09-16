@@ -32,6 +32,10 @@ clear all
 close all
 clc
 
+utils    = genpath('./utils');
+symbolic = genpath('./symbolic');
+addpath(utils, symbolic)
+
 % Measurement model and it's derivative
 f_func     = @forwardDynamics;
 b_func     = @backwardDynamics;
