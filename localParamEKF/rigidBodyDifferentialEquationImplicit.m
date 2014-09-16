@@ -32,9 +32,6 @@ v_t    = v_t  - omega_B * v;
 
 %% Rotation represented by phi
 % phi = [alpha upsilon psi]'
-alpha = phi(1);
-upsilon=phi(2);
-psi=phi(3);
 R = euler2dcm(phi);
 
 %% State equations
