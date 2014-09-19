@@ -19,15 +19,19 @@ function [ phi ] = dcm2euler( R )
 %    psi     = atan2(r32,-r31);
 
 
-r13 = R(1,3);
-r23 = R(2,3);
+r21 = R(2,1);
+r11 = R(1,1);
 r33 = R(3,3);
 r32 = R(3,2);
 r31 = R(3,1);
 
-alpha   = atan2(r23,r13);
-upsilon = atan2(sqrt(r13^2 + r23^2),r33);
-psi     = atan2(r32,-r31);
+% alpha   = atan2(r23,r13);
+% upsilon = atan2(sqrt(r13^2 + r23^2),r33);
+% psi     = atan2(r32,-r31);
+
+alpha   = atan2(r21,r11);
+upsilon = atan2(-r31, sqrt(r32^2 + r33^2));
+psi     = atan2(r32, r33);
 
 phi = [alpha; upsilon; psi];
 end

@@ -32,9 +32,9 @@ clear all
 close all
 clc
 
-utils    = genpath('./utils');
-symbolic = genpath('./symbolic');
-addpath(utils, symbolic)
+utilities    = genpath('./utils');
+symb         = genpath('./symbolic');
+addpath(utilities, symb)
 
 % Measurement model and it's derivative
 f_func     = @forwardDynamics;
@@ -45,19 +45,22 @@ dh_dx_func = @outputDerivatives;
 db_dx_func = @derivativeBackwardDynamics;
 
 dt      = 0.01;      % sampling time
-T       = 2.0;       % time span
+T       = 2.5;         % time span
 sigma_f = 0.1;       % output error
 sigma_u = 0.05;      % output error
 sigma_a = 0.1;       % output error
-n       = 15;        % state dimension
+n       = 21;        % state dimension (including additional force/torque)
 m       = 9;         % output dimension
 
 model.I   = diag([0.05 0.02 0.03]);
-model.m   = 20;
-model.u   = 10;
-model.v   = 1;
-R0        = eye(3);
-model.x0  = [ones(6,1); ones(6,1); dcm2euler(R0)];
+model.m   = 10;
+model.u   = 0.5;
+model.v   = 0.5;
+model.ud  = 2.5;
+model.vd  = 2.5;
+th = pi/4;
+R0        = [cos(th) -sin(th) 0; sin(th) cos(th) 0; 0 0 1];
+model.x0  = [0*ones(6,1); 0*ones(12,1); dcm2euler(R0)];
 model.dt  = dt;
 model.g   = 9.81;
 model.bck = false;
@@ -73,15 +76,15 @@ model.bck = false;
 % Let's compute the output used in the Kalman filter. In this specific
 % case we will use dv^B, f^B and mu^B. In practice:
 %
-% y = [dv^B, f^B, mu^B];
-%
+% y = [dv^B, f^B_1, f^B_2, mu^B_1, mu^B_2];
+
 
 for i = 1:length(t)
     y(:,i) = rigidBodyOutput(x(i,:)',model);
 end
 y = y';
 
-R         = diag([sigma_a.*ones(1,3), sigma_f.*ones(1,3), sigma_u.*ones(1,3)]);
+R         = diag([sigma_a.*ones(1,3), sigma_f.*ones(1,3), sigma_f.*ones(1,3), sigma_u.*ones(1,3), sigma_u.*ones(1,3)]);
 y         = y + rand(size(y))*chol(R);
 
 % Let's define the state of the Kalman filter. In this case we use an
@@ -105,10 +108,21 @@ y         = y + rand(size(y))*chol(R);
 
 Xhat             = zeros(size(x));
 % Q              = diag([ones(6,1).*dt*10000; ones(6,1)*10000; ones(4,1).*dt*10000;]);
-Q                = diag([ones(6,1); ones(6,1); ones(3,1);])*0.1;
+a_Q  = 0.1;
+f_Q  = 1;
+mu_Q = 1; 
+Q                = diag([a_Q*ones(3,1); f_Q*ones(6,1); mu_Q*ones(6,1)]);
 
-model.u   = 0;
-model.v   = 0;
+% This is necessary to pretend that there's no torque applied to the system
+% during each iteration of Kalman estimates, because this is modeled by the
+% noise represented in Q. Kalman Filter does not assume external control
+% input during and update time step [k -> k+1]
+
+ model.u   = 0;
+ model.v   = 0;
+ model.ud  = 0;
+ model.vd  = 0;
+ 
 xh        = rand(size(model.x0)).*20 - 10;
 Ph        = eye(n)*10000; 
 
@@ -118,15 +132,17 @@ for i = 1:length(t)
     % [xe, Pe, e, Lambda] = updateStepKF(xn', y(i-1,:)', C, Pn, R, model);
     [xh, Ph] = ekf_update1(xh , Ph, y(i,:)', dh_dx_func, R, h_func, [], model);
 
+    Xupdt(i,:) = xh;
+    
     % Prediction step update
     % [xn, Pn] = predictStepKF(Xhat(i-1,:)', P(:,:,i-1),          A, Q, model);
     [xh, Ph] =  ekf_predict1(xh, Ph, df_dx_func, Q, f_func, [], model);
-    
-    
+     
     Xhat(i,:) = xh;
     P(:,:,i)  = Ph;
 end
 
+plotResults(x, Xupdt, P, t, 0)
 plotResults(x, Xhat, P, t, 0)
 
 %Smoother

@@ -1,48 +1,62 @@
 function plotResults(x, Xhat, P, t, index)
 
+idx = 5; %Time 
+stateVar = 1; % State variable from the state vector.
+
+%% Estimated Forces 
+stateVar = 1;
 figure(index+1)
 subplot(311)
-shadedErrorBar(t,Xhat(:,1),squeeze(2*sqrt(P(1,1,:)))','b', 1);
+shadedErrorBar(t(idx:end),Xhat(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
 hold on
-plot(t, x(:,1), '--b')
+plot(t(idx:end), x(idx:end,stateVar), '--b')
 title('Total force acting on the body (x-component)');
 
 subplot(312)
-shadedErrorBar(t,Xhat(:,2),squeeze(2*sqrt(P(2,2,:)))','g',1);
+shadedErrorBar(t(idx:end),Xhat(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
 hold on
-plot(t, x(:,2), '--g')
+plot(t(idx:end), x(idx:end,stateVar+1), '--g')
 title('Total force acting on the body (y-component)');
 
 subplot(313)
-shadedErrorBar(t,Xhat(:,3),squeeze(2*sqrt(P(3,3,:)))','r',1);
+shadedErrorBar(t(idx:end),Xhat(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
 hold on
-plot(t, x(:,3), '--r')
+plot(t(idx:end), x(idx:end,stateVar+2), '--r')
 title('Total force acting on the body (z-component)');
 
+%% Estimated Torques
 figure(index+2)
 subplot(311)
-shadedErrorBar(t,Xhat(:,4),squeeze(2*sqrt(P(4,4,:)))','b', 1);
+shadedErrorBar(t(idx:end),Xhat(idx:end,4),squeeze(2*sqrt(P(4,4,idx:end)))','b', 1);
 hold on
-plot(t, x(:,4), '--b')
+plot(t(idx:end), x(idx:end,4), '--b')
 title('Total torque acting on the body (x-component)');
 
 subplot(312)
-shadedErrorBar(t,Xhat(:,5),squeeze(2*sqrt(P(5,5,:)))','g',1);
+shadedErrorBar(t(idx:end),Xhat(idx:end,5),squeeze(2*sqrt(P(5,5,idx:end)))','g',1);
 hold on
-plot(t, x(:,5), '--g')
+plot(t(idx:end), x(idx:end,5), '--g')
 title('Total torque acting on the body (y-component)');
 
 subplot(313)
-shadedErrorBar(t,Xhat(:,6),squeeze(2*sqrt(P(6,6,:)))','r',1);
+shadedErrorBar(t(idx:end),Xhat(idx:end,6),squeeze(2*sqrt(P(6,6,idx:end)))','r',1);
 hold on
-plot(t, x(:,6), '--r')
+plot(t(idx:end), x(idx:end,6), '--r')
 title('Total torque acting on the body (z-component)');
 
+%% Estimated Orientation
 figure(3)
 subplot(311)
-plot(t, x(:,15),'--m'), hold on
-shadedErrorBar(t,Xhat(:,15),squeeze(2*sqrt(P(15,15,:)))','r',1);
+plot(t(idx:end), x(idx:end,19),'--m'), hold on
+shadedErrorBar(t(idx:end),Xhat(idx:end,19),squeeze(2*sqrt(P(19,19,idx:end)))','r',1);
 
+subplot(312)
+plot(t(idx:end), x(idx:end,20),'--m'), hold on
+shadedErrorBar(t(idx:end),Xhat(idx:end,20),squeeze(2*sqrt(P(20,20,idx:end)))','r',1);
+
+subplot(313)
+plot(t(idx:end), x(idx:end,21),'--m'), hold on
+shadedErrorBar(t(idx:end),Xhat(idx:end,21),squeeze(2*sqrt(P(21,21,idx:end)))','r',1);
 
 % figure(index+3)
 % subplot(221)

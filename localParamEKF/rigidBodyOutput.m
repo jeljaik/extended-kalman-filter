@@ -15,16 +15,18 @@ function y = rigidBodyOutput(x,p)
 
 v_B     = x(1:3, 1);
 omega_B = x(4:6, 1); 
-f_B     = x(7:9  , 1);
-mu_B    = x(10:12, 1); 
-phi     = x(13:15, 1);
+f_B_1   = x(7:9  , 1);
+f_B_2   = x(10:12, 1);
+mu_B_1  = x(13:15, 1);
+mu_B_2  = x(16:18, 1); 
+phi     = x(19:21, 1);
 
 R    = euler2dcm(phi);
 m    = p.m;
 g    = p.g;
 
-dv_B     =          -S(omega_B) * v_B + 1/m * f_B + g.*R*[0; 0; 1];
+dv_B     =          -S(omega_B) * v_B + 1/m * f_B_1 +1/m * f_B_2 + g.*R*[0; 0; 1];
 % domega_B =   I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_t);
 
-y  = [dv_B; f_B; mu_B];
+y  = [dv_B; f_B_1; mu_B_1; f_B_2; mu_B_2];
 % y  = [f_B; mu_B];
