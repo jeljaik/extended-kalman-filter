@@ -36,7 +36,7 @@ utilities    = genpath('./utils');
 symb         = genpath('./symbolic');
 addpath(utilities, symb)
 
-% Measurement model and it's derivative
+%% Measurement model and it's derivative
 f_func     = @forwardDynamics;
 b_func     = @backwardDynamics;
 h_func     = @rigidBodyOutput;
@@ -44,8 +44,9 @@ df_dx_func = @derivativeForwardDynamics;
 dh_dx_func = @outputDerivatives;
 db_dx_func = @derivativeBackwardDynamics;
 
+%%
 dt      = 0.01;      % sampling time
-T       = 2.5;         % time span
+T       = 2.5;       % time span
 sigma_f = 0.1;       % output error
 sigma_u = 0.05;      % output error
 sigma_a = 0.1;       % output error
@@ -65,6 +66,7 @@ model.dt  = dt;
 model.g   = 9.81;
 model.bck = false;
 
+%%
 % [tv1, f1]=ode45(@(t, x) rigidBodyDifferentialEquation(t, x, model),[0 5], model.x0, []);
 % odeSettings = odeset('Mass', @(t,y)massMatrix(t,y,model), 'MStateDependence', 'strong');
 % [tv3, f3]=ode45(@(t, x) rigidBodyDifferentialEquationImplicit(t, x, model),[0 5], model.x0, odeSettings);
