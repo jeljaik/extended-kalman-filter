@@ -28,7 +28,7 @@
 % phi    : ZYZ Euler angles representing orientation.
 % T_phi  : Transformation matrix between omega and dphi
 
-clear all
+clear
 close all
 clc
 
@@ -59,21 +59,25 @@ model.u   = 0.5;
 model.v   = 0.5;
 model.ud  = 2.5;
 model.vd  = 2.5;
-th = pi/4;
-R0        = [cos(th) -sin(th) 0; sin(th) cos(th) 0; 0 0 1];
+model.th_init = pi/4;
+R0        = [cos(model.th_init) -sin(model.th_init) 0; sin(model.th_init) cos(model.th_init) 0; 0 0 1];
 model.x0  = [0*ones(6,1); 0*ones(12,1); dcm2euler(R0)];
 model.dt  = dt;
 model.g   = 9.81;
 model.bck = false;
 
-%%
-% [tv1, f1]=ode45(@(t, x) rigidBodyDifferentialEquation(t, x, model),[0 5], model.x0, []);
-% odeSettings = odeset('Mass', @(t,y)massMatrix(t,y,model), 'MStateDependence', 'strong');
-% [tv3, f3]=ode45(@(t, x) rigidBodyDifferentialEquationImplicit(t, x, model),[0 5], model.x0, odeSettings);
+%% Inverse Dynamics - Planning
+% This section computes the external force and torque datasets used in
+% order to have a desired orientation away from singularities. 
+useInvDyn = 'y';
+plots = 0;
+[f_B1_tid, mu_B1_tid, f_B2_tid, mu_B2_tid, t_invDyn] = InverseDynamics(T,model, plots);
 
-
-[t,   x] = integrateForwardDynamics(model.x0, model, 0:dt:T);
-% [tb, xb] = integrateBackwardDynamics(x(end,:), model, T:dt:2*T);
+%% Forward Dynamics
+if(useInvDyn == 'y')
+    model.x0 = [0*ones(6,1); dcm2euler(R0)];
+end
+[t,   x] = integrateForwardDynamics(model.x0, model, 0:dt:T, t_invDyn, f_B1_tid, mu_B1_tid, f_B2_tid, mu_B2_tid, useInvDyn);
 
 % Let's compute the output used in the Kalman filter. In this specific
 % case we will use dv^B, f^B and mu^B. In practice:
