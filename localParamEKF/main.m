@@ -80,6 +80,8 @@ else
     [yMeas,tMeas,model] = realMeasurement(model.dtKalman,model,1);
     T = tMeas(end);
     tKalman = tMeas;
+    
+    yMeas = yMeas (1:20,:);tKalman = tKalman(1:20);
 end
 
 % Q              = diag([ones(6,1).*dt*10000; ones(6,1)*10000; ones(4,1).*dt*10000;]);
@@ -113,6 +115,9 @@ disp('Starting Kalman Filter prediction');
 drawnow;
 
 for i = 1:length(tKalman)
+    
+    fprintf('Timenow : ');disp(tKalman(i)); drawnow();
+    tic;
     % Update step
     % [xe, Pe, e, Lambda] = updateStepKF(xn', y(i-1,:)', C, Pn, R, model);
     %[xh, Ph] = ekf_update1(xh , Ph, y(i,:)', dh_dx_func, R, h_func, [], model);
@@ -127,11 +132,14 @@ for i = 1:length(tKalman)
      
     Xhat(i,:) = xh;
     P(:,:,i)  = Ph;
+    fprintf('Step processing time :');
+    disp(toc());
+    
 end
 
 
 %plotResults(xForDyn, tForDyn, Xupdt, P, tKalman,  0)
-plotResultsOutput(Xupdt, P, tKalman, yMeas);
+plotResultsOutput_noGyro(Xupdt, P, tKalman, yMeas);
 %plotResults(xForDyn, tForDyn, Xhat, P, tKalman, 0)
 
 %Smoother
