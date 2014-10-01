@@ -3,7 +3,8 @@
 % Istituto Italiano di Tecnologia, 11 September 2014
 %
 % Original code by: Francesco Nori, 
-% Modified to include local parametrization by: Jorhabib Eljaik G. 
+% Modified to include local parametrization by: Jorhabib Eljaik G. and
+% Naveen Kuppuswamy
 % 
 % This piece of code simulates the problem of estimating dynamic quantities
 % for a single rigid body with distributed force/torque measurements and
@@ -28,7 +29,7 @@
 % phi    : ZYZ Euler angles representing orientation.
 % T_phi  : Transformation matrix between omega and dphi
 
-clear
+%clear
 close all
 clc
 
@@ -36,107 +37,76 @@ utilities    = genpath('./utils');
 symb         = genpath('./symbolic');
 addpath(utilities, symb)
 
-%% Measurement model and it's derivative
+%% Measurement model and its derivative
 f_func     = @forwardDynamics;
 b_func     = @backwardDynamics;
-h_func     = @rigidBodyOutput;
+%h_func     = 
 df_dx_func = @derivativeForwardDynamics;
 dh_dx_func = @outputDerivatives;
 db_dx_func = @derivativeBackwardDynamics;
+h_func = @(x,model)rigidBodyOutput(x,model, [],[],[],[]);
 
-%%
-dt      = 0.01;      % sampling time
-T       = 2.5;       % time span
-sigma_f = 0.1;       % output error
-sigma_u = 0.05;      % output error
-sigma_a = 0.1;       % output error
-n       = 21;        % state dimension (including additional force/torque)
-m       = 9;         % output dimension
+source = 1; % 1 : sim data, 2 : real-data
 
+%% Kalman Parameters
+%dt      = 0.01;      % sampling time
+T       = 1.5   ;       % time span
+sigma_f = 0.025;       % output error variance (forces)
+sigma_u = 0.025;      % output error variance (torques)
+sigma_a = 0.01;       % output error variance (acceleration)
+sigma_omega = 0.01;
+n       = 21;%21;      % statedimension - (translational vel, rotational vel, RPY angle)  % older : state dimension (including additional force/torque)
+m       = 12;         % output dimension
+
+%% Model Parameters
 model.I   = diag([0.05 0.02 0.03]);
-model.m   = 10;
-model.u   = 0.5;
-model.v   = 0.5;
-model.ud  = 2.5;
-model.vd  = 2.5;
-model.th_init = pi/4;
-R0        = [cos(model.th_init) -sin(model.th_init) 0; sin(model.th_init) cos(model.th_init) 0; 0 0 1];
-model.x0  = [0*ones(6,1); 0*ones(12,1); dcm2euler(R0)];
-model.dt  = dt;
+model.m   = 7;
+model.dtInvDyn = 0.0001;
+model.dtForDyn = 0.001;
+model.dtKalman = 0.01;
 model.g   = 9.81;
 model.bck = false;
 
-%% Inverse Dynamics - Planning
-% This section computes the external force and torque datasets used in
-% order to have a desired orientation away from singularities. 
-useInvDyn = 'y';
-plots = 0;
-[f_B1_tid, mu_B1_tid, f_B2_tid, mu_B2_tid, t_invDyn] = InverseDynamics(T,model, plots);
+tKalman = 0:model.dtKalman:T;
 
-%% Forward Dynamics
-if(useInvDyn == 'y')
-    model.x0 = [0*ones(6,1); dcm2euler(R0)];
+R         = diag([sigma_a.*ones(1,3),sigma_omega.*ones(1,3),sigma_f.*ones(1,3), sigma_f.*ones(1,3), sigma_u.*ones(1,3), sigma_u.*ones(1,3)]);
+
+%% chose source of data (simulation or real-robot)
+if(source ==1) 
+    [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,[],1); % set the last parameter to empty to use saved simulation data if exists
 end
-[t,   x] = integrateForwardDynamics(model.x0, model, 0:dt:T, t_invDyn, f_B1_tid, mu_B1_tid, f_B2_tid, mu_B2_tid, useInvDyn);
-
-% Let's compute the output used in the Kalman filter. In this specific
-% case we will use dv^B, f^B and mu^B. In practice:
-%
-% y = [dv^B, f^B_1, f^B_2, mu^B_1, mu^B_2];
-
-
-for i = 1:length(t)
-    y(:,i) = rigidBodyOutput(x(i,:)',model);
-end
-y = y';
-
-R         = diag([sigma_a.*ones(1,3), sigma_f.*ones(1,3), sigma_f.*ones(1,3), sigma_u.*ones(1,3), sigma_u.*ones(1,3)]);
-y         = y + rand(size(y))*chol(R);
-
-% Let's define the state of the Kalman filter. In this case we use an
-% augmented state that includes also the applied forces and torques f^B and
-% mu^B. Therefore we have:
-%
-% X = [dv^B, domega^b, f^B, mu^B, phi] = [x, f^B, mu^B, phi];
-%
-% Notice that since we have:
-%
-% dX = f(x) + Af*[f^B, mu^B]
-% Y  = [f(x) + Af*[f^B, mu^B]](1:3)
-%       f^B, mu^B];
-%
-% its discretization is:
-%
-% Xn     = X + df/dx(x)*dt + Af*[f^B, mu^B]*dt
-% dh/dX  = [df/dx(1:3) Af(1:3)
-%          0           I]
-
-
-Xhat             = zeros(size(x));
 % Q              = diag([ones(6,1).*dt*10000; ones(6,1)*10000; ones(4,1).*dt*10000;]);
-a_Q  = 0.1;
-f_Q  = 1;
-mu_Q = 1; 
-Q                = diag([a_Q*ones(3,1); f_Q*ones(6,1); mu_Q*ones(6,1)]);
-
-% This is necessary to pretend that there's no torque applied to the system
-% during each iteration of Kalman estimates, because this is modeled by the
-% noise represented in Q. Kalman Filter does not assume external control
-% input during and update time step [k -> k+1]
-
- model.u   = 0;
- model.v   = 0;
- model.ud  = 0;
- model.vd  = 0;
- 
-xh        = rand(size(model.x0)).*20 - 10;
-Ph        = eye(n)*10000; 
+a_Q  = 0.001;
+f_Q  = 0.04;
+mu_Q = 0.04; 
+phi_Q = 0.001;
+%Q                = diag([a_Q*ones(3,1); f_Q*ones(6,1); mu_Q*ones(6,1)]);
+Q  = diag([a_Q*ones(6,1); f_Q*ones(6,1); mu_Q*ones(6,1); phi_Q*ones(3,1)]);
 
 
-for i = 1:length(t)
+ xh        = model.x0;% + 0.1*randn(size(model.x0));
+%xh        = rand(s0(1)+12,s0(2)).*20 - 10;
+Ph        = 0.0001*diag([20;20*ones(5,1); 15*ones(6,1); 15*ones(6,1);15*ones(3,1)]); 
+
+% updating 100 times faster than reality
+%model.dt = model.dt/100;
+%t = 
+
+Xhat             = zeros(n,length(tKalman))';
+%% Faking a measured signal from the output of interated forward dynamics
+
+model.dt = model.dtKalman;
+
+
+Xupdt = zeros(length(tKalman),n);
+P = zeros(size(Ph,1), size(Ph,2),length(tKalman));
+
+for i = 1:length(tKalman)
     % Update step
     % [xe, Pe, e, Lambda] = updateStepKF(xn', y(i-1,:)', C, Pn, R, model);
-    [xh, Ph] = ekf_update1(xh , Ph, y(i,:)', dh_dx_func, R, h_func, [], model);
+    %[xh, Ph] = ekf_update1(xh , Ph, y(i,:)', dh_dx_func, R, h_func, [], model);
+    [xh, Ph] = ekf_update1(xh , Ph, yMeasSim(i,:)', dh_dx_func, R,...
+        h_func, [], model);
 
     Xupdt(i,:) = xh;
     
@@ -148,8 +118,10 @@ for i = 1:length(t)
     P(:,:,i)  = Ph;
 end
 
-plotResults(x, Xupdt, P, t, 0)
-plotResults(x, Xhat, P, t, 0)
+
+%plotResults(xForDyn, tForDyn, Xupdt, P, tKalman,  0)
+plotResultsOutput(Xupdt, P, tKalman, yMeasSim);
+%plotResults(xForDyn, tForDyn, Xhat, P, tKalman, 0)
 
 %Smoother
 % [Xhats,Ps] = etf_smooth1(Xhat',P,y',db_dx_func,Q,b_func,[],model, dh_dx_func,R,h_func,[],model, 1, 1);
