@@ -1,62 +1,255 @@
-function plotResults(x, Xhat, P, t, index)
+function plotResults(x, t,Xhat, P, tK, index)
 
-idx = 5; %Time 
-stateVar = 1; % State variable from the state vector.
-
+figPreN = figure()-1;
+idx = 1; %Time 
+%stateVar = 1; % State variable from the state vector.
+tMin = 0.0;
 %% Estimated Forces 
-stateVar = 1;
-figure(index+1)
-subplot(311)
-shadedErrorBar(t(idx:end),Xhat(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
+stateVar = 7;
+figure(index+1+figPreN)
+subplot(3,2,1)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
 hold on
 plot(t(idx:end), x(idx:end,stateVar), '--b')
-title('Total force acting on the body (x-component)');
+title('Expectation of force f_o');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(f _x) N');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
 
-subplot(312)
-shadedErrorBar(t(idx:end),Xhat(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
+subplot(3,2,3);
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
 hold on
 plot(t(idx:end), x(idx:end,stateVar+1), '--g')
-title('Total force acting on the body (y-component)');
+%title('Total force acting on the body (y-component)');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(f _y) N');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
 
-subplot(313)
-shadedErrorBar(t(idx:end),Xhat(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
+subplot(3,2,5)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
 hold on
 plot(t(idx:end), x(idx:end,stateVar+2), '--r')
-title('Total force acting on the body (z-component)');
+%title('Total force acting on the body (z-component)');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(f _z) N');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
 
-%% Estimated Torques
-figure(index+2)
-subplot(311)
-shadedErrorBar(t(idx:end),Xhat(idx:end,4),squeeze(2*sqrt(P(4,4,idx:end)))','b', 1);
+
+subplot(3,2,2)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
 hold on
-plot(t(idx:end), x(idx:end,4), '--b')
-title('Total torque acting on the body (x-component)');
+plot(t(idx:end), x(idx:end,stateVar+3), '--b')
+title('Expectation of force f_c');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(f _x) N');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
 
-subplot(312)
-shadedErrorBar(t(idx:end),Xhat(idx:end,5),squeeze(2*sqrt(P(5,5,idx:end)))','g',1);
+subplot(3,2,4);
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
 hold on
-plot(t(idx:end), x(idx:end,5), '--g')
-title('Total torque acting on the body (y-component)');
+plot(t(idx:end), x(idx:end,stateVar+4), '--g')
+%title('Total force acting on the body (y-component)');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(f _y) N');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
 
-subplot(313)
-shadedErrorBar(t(idx:end),Xhat(idx:end,6),squeeze(2*sqrt(P(6,6,idx:end)))','r',1);
+subplot(3,2,6)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
 hold on
-plot(t(idx:end), x(idx:end,6), '--r')
-title('Total torque acting on the body (z-component)');
+plot(t(idx:end), x(idx:end,stateVar+5), '--r')
+%title('Total force acting on the body (z-component)');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(f _z) N');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
 
-%% Estimated Orientation
-figure(3)
-subplot(311)
-plot(t(idx:end), x(idx:end,19),'--m'), hold on
-shadedErrorBar(t(idx:end),Xhat(idx:end,19),squeeze(2*sqrt(P(19,19,idx:end)))','r',1);
 
-subplot(312)
-plot(t(idx:end), x(idx:end,20),'--m'), hold on
-shadedErrorBar(t(idx:end),Xhat(idx:end,20),squeeze(2*sqrt(P(20,20,idx:end)))','r',1);
 
-subplot(313)
-plot(t(idx:end), x(idx:end,21),'--m'), hold on
-shadedErrorBar(t(idx:end),Xhat(idx:end,21),squeeze(2*sqrt(P(21,21,idx:end)))','r',1);
+%% Estimated Torques 
+stateVar = 13;
+figure(index+2+figPreN)
+subplot(3,2,1)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar), '--b')
+title('Expectation of torque \mu_o');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\mu _x) Nm');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+subplot(3,2,3);
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+1), '--g')
+%title('Total force acting on the body (y-component)');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\mu _y) N(m)');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+subplot(3,2,5)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+2), '--r')
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\mu _z) N(m)');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+
+subplot(3,2,2)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+3), '--b')
+title('Expectation of torque \mu_c');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\mu _x) Nm');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+subplot(3,2,4);
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+4), '--g')
+%title('Total force acting on the body (y-component)');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\mu _y) Nm');a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+subplot(3,2,6)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+5), '--r')
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\mu _z) Nm');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+
+
+
+
+%% Estimated Velocities 
+stateVar = 1;
+figure(index+3+figPreN)
+subplot(3,2,1)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar), '--b')
+title('Expectation of Translational Velocity v^B');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(v _x) Nm');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+subplot(3,2,3);
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+1), '--g')
+%title('Total force acting on the body (y-component)');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(v _y) N(m)');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+subplot(3,2,5)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+2), '--r')
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(v _z) N(m)');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+
+subplot(3,2,2)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+3), '--b')
+title('Expectation of Angular Velocity \omega ^B');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\omega _1) Nm');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+subplot(3,2,4);
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+4), '--g')
+%title('Total force acting on the body (y-component)');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\omega _2) Nm');a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+subplot(3,2,6)
+shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
+hold on
+plot(t(idx:end), x(idx:end,stateVar+5), '--r')
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\omega _3) Nm');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+
+
+
+% 
+% %% Estimated Orientation
+% figure(index+3+figPreN)
+% subplot(3,1,1)
+% plot(t(idx:end), x(idx:end,19),'--m'), hold on
+% shadedErrorBar(tK(idx:end),Xhat(idx:end,19),squeeze(2*sqrt(P(19,19,idx:end)))','r',1);
+% axis tight;
+% title('Orientation Estimate');
+% axis tight;
+% xlabel('Time t(sec)');
+% ylabel('E(\phi (t) rads');
+% a = axis();
+% axis([tMin a(2) a(3) a(4)]);
+% 
+% subplot(3,1,2)
+% plot(t(idx:end), x(idx:end,20),'--m'), hold on
+% shadedErrorBar(tK(idx:end),Xhat(idx:end,20),squeeze(2*sqrt(P(20,20,idx:end)))','r',1);
+% axis tight;
+% xlabel('Time t(sec)');
+% ylabel('E(\phi (t) rads');
+% a = axis();
+% axis([tMin a(2) a(3) a(4)]);
+% 
+% 
+% subplot(3,1,3)
+% plot(t(idx:end), x(idx:end,21),'--m'), hold on
+% shadedErrorBar(tK(idx:end),Xhat(idx:end,21),squeeze(2*sqrt(P(21,21,idx:end)))','r',1);
+% axis tight;
+% xlabel('Time t(sec)');
+% ylabel('E(\phi (t) rads');
+% a = axis();
+% axis([tMin a(2) a(3) a(4)]);
+
 
 % figure(index+3)
 % subplot(221)
