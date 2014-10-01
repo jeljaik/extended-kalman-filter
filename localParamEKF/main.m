@@ -27,7 +27,8 @@
 % omega^B: angular velocity expressed in the body reference frame
 % v^B    : linear velocity in the body reference frame
 % phi    : ZYZ Euler angles representing orientation.
-% T_phi  : Transformation matrix between omega and dphi
+% T_phi  : Transformation matrix between omeg%diff(torsoVelDash)./repmat(diff(t(1:end-1),1,1),1,3);
+
 
 %clear
 close all
@@ -46,7 +47,7 @@ dh_dx_func = @outputDerivatives;
 db_dx_func = @derivativeBackwardDynamics;
 h_func = @(x,model)rigidBodyOutput(x,model, [],[],[],[]);
 
-source = 1; % 1 : sim data, 2 : real-data
+source = 2; % 1 : sim data, 2 : real-data
 
 %% Kalman Parameters
 %dt      = 0.01;      % sampling time
@@ -63,25 +64,31 @@ model.I   = diag([0.05 0.02 0.03]);
 model.m   = 7;
 model.dtInvDyn = 0.0001;
 model.dtForDyn = 0.001;
-model.dtKalman = 0.01;
+model.dtKalman = 0.01;%0.01;
 model.g   = 9.81;
 model.bck = false;
 
 tKalman = 0:model.dtKalman:T;
 
-R         = diag([sigma_a.*ones(1,3),sigma_omega.*ones(1,3),sigma_f.*ones(1,3), sigma_f.*ones(1,3), sigma_u.*ones(1,3), sigma_u.*ones(1,3)]);
+R         = diag([sigma_a.*ones(1,3),sigma_f.*ones(1,3), sigma_f.*ones(1,3), sigma_u.*ones(1,3), sigma_u.*ones(1,3)]);
 
 %% chose source of data (simulation or real-robot)
 if(source ==1) 
-    [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,[],1); % set the last parameter to empty to use saved simulation data if exists
+    [yMeas,model] = simulatedMeasurement(tKalman,R,model,'forceSim',1); % set the last parameter to empty to use saved simulation data if exists
+    
+else
+    [yMeas,tMeas,model] = realMeasurement(model.dtKalman,model,1);
+    T = tMeas(end);
+    tKalman = tMeas;
 end
+
 % Q              = diag([ones(6,1).*dt*10000; ones(6,1)*10000; ones(4,1).*dt*10000;]);
 a_Q  = 0.001;
 f_Q  = 0.04;
 mu_Q = 0.04; 
 phi_Q = 0.001;
 %Q                = diag([a_Q*ones(3,1); f_Q*ones(6,1); mu_Q*ones(6,1)]);
-Q  = diag([a_Q*ones(6,1); f_Q*ones(6,1); mu_Q*ones(6,1); phi_Q*ones(3,1)]);
+Q  = diag([a_Q*ones(3,1); f_Q*ones(6,1); mu_Q*ones(6,1); phi_Q*ones(3,1)]);
 
 
  xh        = model.x0;% + 0.1*randn(size(model.x0));
@@ -101,11 +108,15 @@ model.dt = model.dtKalman;
 Xupdt = zeros(length(tKalman),n);
 P = zeros(size(Ph,1), size(Ph,2),length(tKalman));
 
+
+disp('Starting Kalman Filter prediction');
+drawnow;
+
 for i = 1:length(tKalman)
     % Update step
     % [xe, Pe, e, Lambda] = updateStepKF(xn', y(i-1,:)', C, Pn, R, model);
     %[xh, Ph] = ekf_update1(xh , Ph, y(i,:)', dh_dx_func, R, h_func, [], model);
-    [xh, Ph] = ekf_update1(xh , Ph, yMeasSim(i,:)', dh_dx_func, R,...
+    [xh, Ph] = ekf_update1(xh , Ph, yMeas(i,:)', dh_dx_func, R,...
         h_func, [], model);
 
     Xupdt(i,:) = xh;
@@ -120,7 +131,7 @@ end
 
 
 %plotResults(xForDyn, tForDyn, Xupdt, P, tKalman,  0)
-plotResultsOutput(Xupdt, P, tKalman, yMeasSim);
+plotResultsOutput(Xupdt, P, tKalman, yMeas);
 %plotResults(xForDyn, tForDyn, Xhat, P, tKalman, 0)
 
 %Smoother
