@@ -1,5 +1,13 @@
 function plotResultsOutput_noGyro(Xhat, P, tK, yM)
 
+
+if(isempty(Xhat) && isempty(P) && isempty(tK) && isempty(yM))
+    load(sprintf('./data/real_sensor_data'));
+    %,'Xhat','P','tK','yM');
+    tK = tKalman;
+    yM = yMeas;
+end
+
 figPreN = figure()-1;
 idx = 1; %Time 
 index = 0;
@@ -254,11 +262,39 @@ axis([tMin a(2) a(3) a(4)]);
 figure(index+5+figPreN)
 
 
+muo_x = Xhat(idx:end,13); muo_x_sigma = squeeze(2*sqrt(P(13,13,idx:end)))';
+muo_y = Xhat(idx:end,14); muo_y_sigma = squeeze(2*sqrt(P(14,14,idx:end)))';
+
+muc_x = Xhat(idx:end,19); muc_x_sigma = squeeze(2*sqrt(P(19,19,idx:end)))';
+muc_y = Xhat(idx:end,20); muc_y_sigma = squeeze(2*sqrt(P(20,20,idx:end)))';
 
 
+
+fc_z = Xhat(idx:end,12); fc_z_sigma = squeeze(2*sqrt(P(12,12,idx:end)))';
+fo_z = Xhat(idx:end,9); fo_z_sigma = squeeze(2*sqrt(P(9,9,idx:end)))';
+
+pcop_expect = zeros(size(muo_x,1),2);pcop_covariance = zeros(size(muo_y,1),2,2);
+pfri_expect = zeros(size(muo_x,1),2);pfri_covariance = zeros(size(muo_y,1),2,2);
+
+for i = 1:size(muo_x,1)
+    [pcop_expect(i,:),pcop_covariance(i,:,:)] = computeCOP(muc_x(i),muc_y(i),fc_z(i),...
+        muc_x_sigma(i),muc_y_sigma(i),fc_z_sigma(i)) ;
+    [pfri_expect(i,:),pfri_covariance(i,:,:)] = computeFRI(muo_x(i),muo_y(i),fo_z(i),...
+        muo_x_sigma(i),muo_y_sigma(i),fo_z_sigma(i));
+    
+   % if(mod(i,50) == 0)
+   %     annota
+end
+
+
+plot(pcop_expect(:,1),pcop_expect(:,2),'r'); hold on;
+plot(pfri_expect(:,1),pfri_expect(:,2),'b');
+legend('COP','FRI');
 
 xlabel('Position x(m)');
 ylabel('Position y(m)');
+
+
 
 %muox
 
@@ -275,6 +311,11 @@ figure(index+5+figPreN)
 
 
 
+
+plot(pfri_expect(:,1),pfri_expect(:,2))
+
+xlabel('Position x(m)');
+ylabel('Position y(m)');
 
 % 
 % %% Estimated Orientation

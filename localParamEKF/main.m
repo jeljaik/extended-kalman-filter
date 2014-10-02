@@ -69,7 +69,7 @@ model.dtKalman = 0.001;%0.01;
 model.g   = 9.81;
 model.bck = false;
 t_min = 56;%42;
-t_max = 63;%43;
+t_max = 64;%43;
 
 tKalman = 0:model.dtKalman:T;
 
@@ -101,7 +101,7 @@ Q  = diag([a_Q*ones(3,1); f_Q*ones(6,1); mu_Q*ones(6,1); phi_Q*ones(3,1)]);
 
  xh        = model.x0;% + 0.1*randn(size(model.x0));
 %xh        = rand(s0(1)+12,s0(2)).*20 - 10;
-Ph        = 0.001*diag([20*ones(6,1); 15*ones(6,1); 15*ones(6,1);20*ones(3,1)]); 
+Ph        = 0.001*diag([20*ones(6,1); 5*ones(6,1); 5*ones(6,1);20*ones(3,1)]);
 
 % updating 100 times faster than reality
 %model.dt = model.dt/100;
