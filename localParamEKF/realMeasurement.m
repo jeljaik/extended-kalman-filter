@@ -1,10 +1,10 @@
-function [yMeas,tMeas, model] = realMeasurement(dtKalman,model,plots)
+function [yMeas,tMeas, model] = realMeasurement(dtKalman,model,plots,t_min,t_max)
 % ignore R, forceSim.
 disp('Taking measurements from real data');
 drawnow();
 
 %% Key option
-useFilteredAccln =0; %0 - false, 1- true;
+useFilteredAccln =1; %0 - false, 1- true;
 
 
 %% offset of forces (from macumba output)
@@ -57,8 +57,8 @@ right_foot.f = right_foot_data(:,3:5);
 right_foot.mu = right_foot_data(:,6:8);
 
 
-t_min = 53;
-t_max = 63.5;
+%t_min = 40;% 56.0;%53;
+%t_max = 45;%63.5;
 index_at_time = @(desTime,totalTime)find(totalTime>desTime,1,'first');
 
 %% computing adjoint matrices of the transformation of leg and foot sensors to leg CoM
@@ -179,9 +179,25 @@ title('torque difference');
 end
 %% new model parameters from robot 
 model.m = 4.9580;
-model.x0 = [zeros(3,1);zeros(3,1);fo(1:3,1);fc(1:3,1);muo(1:3,1);muc(1:3,1);[0;0.01;0]]; %fake small phi rotation
+model.x0 = [zeros(3,1);zeros(3,1);fo(1:3,1);fc(1:3,1);muo(1:3,1);muc(1:3,1);[0;0.1;0]]; %fake small phi rotation
 
-[a ,a_filt] = extractViconData(dtKalman,plots);
+
+%% obtaining mass-matrix from mexWBIModel
+wholeBodyModel('model-initialise','icubGazeboSim');
+Mtot = wholeBodyModel('mass-matrix',zeros(25,1));
+Mjts = Mtot(7:end,7:end);
+MI_at_thigh = Mjts(14:16,14:16);
+Tl = [0 1 0; 1 0 0 ; 0 0 -1];
+Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
+% 
+% MI_at_thigh_r = Mjts(20:22,20:22);
+% Tl_r = [0 -1 0; 1 0 0 ; 0 0 1];
+% Ic_r = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
+
+% disp(Ic);
+% model.I = Ic;
+% disp(Ic_r);
+[a ,a_filt] = extractViconData(dtKalman,plots,t_min,t_max);
 
 minId = min(size(a,2),size(fo,2));
 

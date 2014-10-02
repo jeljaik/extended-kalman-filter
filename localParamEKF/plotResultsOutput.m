@@ -215,8 +215,39 @@ ylabel('E(\omega _3) Nm');
 a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
+%% Estimated Orientation
+stateVar = 1;
+figure(index+4+figPreN)
+
+subplot(3,1,1)
+%plot(t(idx:end), x(idx:end,19),'--m'), hold on
+shadedErrorBar(tK(idx:end),Xhat(idx:end,19),squeeze(2*sqrt(P(19,19,idx:end)))','r',1);
+axis tight;
+title('Orientation Estimate');
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\phi (t) rads');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
+
+subplot(3,1,2)
+%plot(t(idx:end), x(idx:end,20),'--m'), hold on
+shadedErrorBar(tK(idx:end),Xhat(idx:end,20),squeeze(2*sqrt(P(20,20,idx:end)))','r',1);
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\phi (t) rads');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
 
 
+subplot(3,1,3)
+%plot(t(idx:end), x(idx:end,21),'--m'), hold on
+shadedErrorBar(tK(idx:end),Xhat(idx:end,21),squeeze(2*sqrt(P(21,21,idx:end)))','r',1);
+axis tight;
+xlabel('Time t(sec)');
+ylabel('E(\phi (t) rads');
+a = axis();
+axis([tMin a(2) a(3) a(4)]);
 
 % 
 % %% Estimated Orientation
