@@ -40,8 +40,8 @@ dphi     =  inv(Tomega_dphi(phi))*omega_B;
 
 f     = [dv_B; domega_B; df_B_1; df_B_2; dmu_B_1; dmu_B_2; dphi];
 x     = [ v_B;  omega_B;  f_B_1; f_B_2;  mu_B_1; mu_B_2;  phi];
-%h     = [dv_B; f_B_1; mu_B_1; f_B_2; mu_B_2];
-h     = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1; mu_B_2];
+h     = [dv_B; f_B_1; f_B_2; mu_B_1; mu_B_2];
+%h     = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1; mu_B_2];
 df_dx = jacobian(f, x);
 dh_dx = jacobian(h, x);
 
@@ -50,6 +50,8 @@ model.I  = I_B;
 matlabFunction(df_dx,'file','./symbolic/rigidBodyDynamicsDerivatives','vars',[x; dI; m; g]);
 matlabFunction(dh_dx,'file','./symbolic/rigidBodyOutputsDerivatives','vars',[x; dI; m; g]);
 
+matlabFunction(df_dx,'file','./symbolic/rigidBodyDynamicsDerivatives','vars',[x; dI; m; g]);
+matlabFunction(dh_dx,'file','./symbolic/rigidBodyOutputsDerivatives','vars',[x; dI; m; g]);
 % 
 % 
 % f_red     = [dv_B; domega_B; dphi];

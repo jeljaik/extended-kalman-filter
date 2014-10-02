@@ -35,5 +35,7 @@ g    = p.g;
 dv_B     =          -(1/m)*S(omega_B) *(m*v_B) + (1/m) *( f_B_1 + f_B_2 )+ g.*R*[0; 0; 1];
 % domega_B =   I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_t);
 
-y  = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
+%y  = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
+y  = [dv_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
+
 % y  = [f_B; mu_B];
