@@ -179,7 +179,7 @@ title('torque difference');
 end
 %% new model parameters from robot 
 model.m = 4.9580;
-model.x0 = [zeros(3,1);zeros(3,1);fo(1:3,1);fc(1:3,1);muo(1:3,1);muc(1:3,1);[0;0.1;0]]; %fake small phi rotation
+model.x0 = [zeros(3,1);zeros(3,1);fo(1:3,1);fc(1:3,1);muo(1:3,1);muc(1:3,1);[0;0.5;0]]; %fake small phi rotation
 
 
 %% obtaining mass-matrix from mexWBIModel
@@ -195,7 +195,7 @@ Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
 % Ic_r = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
 
 % disp(Ic);
-% model.I = Ic;
+model.I = Ic;
 % disp(Ic_r);
 [a ,a_filt] = extractViconData(dtKalman,plots,t_min,t_max);
 

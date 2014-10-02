@@ -3,6 +3,7 @@ function plotResultsOutput_noGyro(Xhat, P, tK, yM)
 
 if(isempty(Xhat) && isempty(P) && isempty(tK) && isempty(yM))
     load(sprintf('./data/real_sensor_data'));
+    %load(sprintf('./data/real_sensor_data_betterI'));
     %,'Xhat','P','tK','yM');
     tK = tKalman;
     yM = yMeas;
@@ -281,22 +282,31 @@ for i = 1:size(muo_x,1)
         muc_x_sigma(i),muc_y_sigma(i),fc_z_sigma(i)) ;
     [pfri_expect(i,:),pfri_covariance(i,:,:)] = computeFRI(muo_x(i),muo_y(i),fo_z(i),...
         muo_x_sigma(i),muo_y_sigma(i),fo_z_sigma(i));
-    
-   % if(mod(i,50) == 0)
-   %     annota
+ 
 end
 
 
-plot(pcop_expect(:,1),pcop_expect(:,2),'r'); hold on;
+%plot(pcop_expect(:,1),pcop_expect(:,2),'r'); hold on;
 plot(pfri_expect(:,1),pfri_expect(:,2),'b');
-legend('COP','FRI');
+%legend('FRI');
+title('Motion of FRI');
+
+%hold on;
+%ellipse(squeeze(2*sqrt(ellipse(pfri_covariance(end,1,1)))),squeeze(2*sqrt(ellipse(pfri_covariance(end,2,2)))),0,pfri_expect(end,1),pfri_expect(end,2),'r');
 
 xlabel('Position x(m)');
 ylabel('Position y(m)');
 
-
-
-%muox
+% 
+% figure;
+% 
+% plot(tK(idx:end),pcop_expect,'r'); hold on
+% plot(tK(idx:end),pfri_expect,'b');
+% %muox
+% 
+%    
+%    if(mod(i,50) == 0)
+%        %annotation('ellipse',[pcop_expect(i,1) pcop_expect(i,2) squeeze(2*sqrt(pcop_covariance(i,1,1))) squeeze(2*sqrt(pcop_covariance(i,2,2)))]);
 
 %muoy
 
@@ -306,16 +316,11 @@ ylabel('Position y(m)');
 
 %mucy
 
-%fcz
-figure(index+5+figPreN)
 
+%plot(pfri_expect(:,1),pfri_expect(:,2))
 
-
-
-plot(pfri_expect(:,1),pfri_expect(:,2))
-
-xlabel('Position x(m)');
-ylabel('Position y(m)');
+%xlabel('Position x(m)');
+%ylabel('Position y(m)');
 
 % 
 % %% Estimated Orientation

@@ -37,7 +37,10 @@ clc
 utilities    = genpath('./utils');
 symb         = genpath('./symbolic');
 mexbm        = genpath('./mexWBModel');
-addpath(utilities, symb, mexbm)
+ellipses      = genpath('./ellipses');
+matlab_c3D =  genpath('./c3d_analysis');
+
+addpath(utilities, symb, mexbm, ellipses, matlab_c3d)
 
 %% Measurement model and its derivative
 f_func     = @forwardDynamics;
@@ -101,8 +104,8 @@ Q  = diag([a_Q*ones(3,1); f_Q*ones(6,1); mu_Q*ones(6,1); phi_Q*ones(3,1)]);
 
  xh        = model.x0;% + 0.1*randn(size(model.x0));
 %xh        = rand(s0(1)+12,s0(2)).*20 - 10;
-Ph        = 0.001*diag([20*ones(6,1); 5*ones(6,1); 5*ones(6,1);20*ones(3,1)]);
-
+Ph        = 0.001*diag([10*ones(6,1); 1*ones(6,1); 1*ones(6,1);20*ones(3,1)]);
+                                    
 % updating 100 times faster than reality
 %model.dt = model.dt/100;
 %t = 
