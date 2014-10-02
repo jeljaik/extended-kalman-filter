@@ -32,8 +32,8 @@ dPhi = [ dalpha  dupsilon'  dpsi ];
 
 %Assuming foot position traces an ellipse of (semi major axis a, semi minor
 %axis b).
-ell_a = 0.25;
-ell_b = 0.001;
+ell_a = 3.5;
+ell_b = 1.0;
 ell_th = ((pi/T) - ((0.5*pi/T)*tc)  )';
 d_th = -(0.5*pi)/T;
 %Pos = zeros(length(tc),3);

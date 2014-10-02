@@ -1,4 +1,4 @@
-function [a, a_filt] = extractViconData(deltaTKalman,plots)
+function [a, a_filt] = extractViconData(deltaTKalman,plots,tMinD,tMaxD)
 
 %% loading from dataset
 
@@ -9,8 +9,12 @@ t = [0;cumsum((1/120)*ones(size(dataset,1)-1,1))];%0:1/120:size(dataset,1);
 
 
 index_at_time = @(desTime,totalTime)find(totalTime>desTime,1,'first');
-tMin = 47.0;
-tMax = 57.5;
+tMin = tMinD - 5.5;
+tMax = tMaxD - 5.5;
+%tMin = 50;%47.0;
+%tMax = 57.5;
+
+
 idxMin = index_at_time(tMin,t);
 idxMax = index_at_time(tMax,t);
 
@@ -34,6 +38,9 @@ legAccl = diff(leg2,2,1)./repmat(diff(t(1:end-1)),1,3);
 %torsoVelDash = sgolayfilt(torsoVel,5,101);%filter(ones(1,windowSize)/windowSize,1,torsoVel); %(1/3)*([torsoVel(1:end-1,:); zeros(1,3)]+ torsoVel + [zeros(1,3) ; torsoVel(2:end,:)]);
 legAcclDash = sgolayfilt(legAccl,5,101);
 %diff(torsoVelDash)./repmat(diff(t(1:end-1),1,1),1,3);
+
+legAccl(:,3) = -legAccl(:,3);
+legAcclDash(:,3) = -legAcclDash(:,3);
 
 if(plots==1)
     figure;
@@ -72,6 +79,7 @@ end
  idMax = index_at_time(tMax,newTime);
  
  a = a_F(idMin:idMax,:)';
+ %a(3,:) = -a(3,:);
  a_filt = a_filt_F(idMin:idMax,:)';
-
+ %a_filt(3,:) = -a_filt(3,:);   
 end

@@ -251,6 +251,31 @@ ylabel('E(\phi (t) rads');
 a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
+figure(index+5+figPreN)
+
+
+
+
+
+xlabel('Position x(m)');
+ylabel('Position y(m)');
+
+%muox
+
+%muoy
+
+%foz
+
+%mucx
+
+%mucy
+
+%fcz
+figure(index+5+figPreN)
+
+
+
+
 % 
 % %% Estimated Orientation
 % figure(index+3+figPreN)

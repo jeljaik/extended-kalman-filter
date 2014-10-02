@@ -36,7 +36,8 @@ clc
 
 utilities    = genpath('./utils');
 symb         = genpath('./symbolic');
-addpath(utilities, symb)
+mexbm        = genpath('./mexWBModel');
+addpath(utilities, symb, mexbm)
 
 %% Measurement model and its derivative
 f_func     = @forwardDynamics;
@@ -52,10 +53,10 @@ source = 2; % 1 : sim data, 2 : real-data
 %% Kalman Parameters
 %dt      = 0.01;      % sampling time
 T       = 1.5   ;       % time span
-sigma_f = 0.025;       % output error variance (forces)
-sigma_u = 0.025;      % output error variance (torques)
-sigma_a = 0.01;       % output error variance (acceleration)
-sigma_omega = 0.01;
+sigma_f = 0.25;       % output error variance (forces)
+sigma_u = 0.25;      % output error variance (torques)
+sigma_a = 0.5;       % output error variance (acceleration)
+sigma_omega = 0.05;
 n       = 21;%21;      % statedimension - (translational vel, rotational vel, RPY angle)  % older : state dimension (including additional force/torque)
 m       = 12;         % output dimension
 
@@ -64,9 +65,11 @@ model.I   = diag([0.05 0.02 0.03]);
 model.m   = 7;
 model.dtInvDyn = 0.0001;
 model.dtForDyn = 0.001;
-model.dtKalman = 0.01;%0.01;
+model.dtKalman = 0.001;%0.01;
 model.g   = 9.81;
 model.bck = false;
+t_min = 56;%42;
+t_max = 63;%43;
 
 tKalman = 0:model.dtKalman:T;
 
@@ -74,14 +77,17 @@ R         = diag([sigma_a.*ones(1,3),sigma_f.*ones(1,3), sigma_f.*ones(1,3), sig
 
 %% chose source of data (simulation or real-robot)
 if(source ==1) 
-    [yMeas,model] = simulatedMeasurement(tKalman,R,model,'forceSim',1); % set the last parameter to empty to use saved simulation data if exists
+    [yMeas,model] = simulatedMeasurement(tKalman,R,model,'forceSim',1,t_min,t_max); % set the last parameter to empty to use saved simulation data if exists
     
 else
-    [yMeas,tMeas,model] = realMeasurement(model.dtKalman,model,1);
+    [yMeas,tMeas,model] = realMeasurement(model.dtKalman,model,1,t_min,t_max);
     T = tMeas(end);
-    tKalman = tMeas;
+   tKalman = tMeas;
+   % numSamples = length(tKalman) - 4000;
+   numJump = 15;
     
-    yMeas = yMeas (1:20,:);tKalman = tKalman(1:20);
+  %  yMeas = yMeas(numSamples:end,:);tKalman = tKalman(numSamples:end);
+   yMeas = yMeas(1:numJump:end,:);tKalman = tKalman(1:numJump:end);
 end
 
 % Q              = diag([ones(6,1).*dt*10000; ones(6,1)*10000; ones(4,1).*dt*10000;]);
@@ -95,7 +101,7 @@ Q  = diag([a_Q*ones(3,1); f_Q*ones(6,1); mu_Q*ones(6,1); phi_Q*ones(3,1)]);
 
  xh        = model.x0;% + 0.1*randn(size(model.x0));
 %xh        = rand(s0(1)+12,s0(2)).*20 - 10;
-Ph        = 0.0001*diag([20;20*ones(5,1); 15*ones(6,1); 15*ones(6,1);15*ones(3,1)]); 
+Ph        = 0.001*diag([20*ones(6,1); 15*ones(6,1); 15*ones(6,1);20*ones(3,1)]); 
 
 % updating 100 times faster than reality
 %model.dt = model.dt/100;
@@ -115,8 +121,9 @@ disp('Starting Kalman Filter prediction');
 drawnow;
 
 for i = 1:length(tKalman)
-    
-    fprintf('Timenow : ');disp(tKalman(i)); drawnow();
+    if(mod(i,10)==0)
+        fprintf('Timenow : ');disp(tKalman(i)+t_min); drawnow();
+    end
     tic;
     % Update step
     % [xe, Pe, e, Lambda] = updateStepKF(xn', y(i-1,:)', C, Pn, R, model);
@@ -132,8 +139,10 @@ for i = 1:length(tKalman)
      
     Xhat(i,:) = xh;
     P(:,:,i)  = Ph;
-    fprintf('Step processing time :');
-    disp(toc());
+    if(mod(i,10)==0)
+        fprintf('Step processing time :');
+        disp(toc());
+    end
     
 end
 
