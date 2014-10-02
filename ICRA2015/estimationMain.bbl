@@ -1,0 +1,53 @@
+\begin{thebibliography}{1}
+
+\bibitem{KalmanDeSchutter}
+J.~De~Schutter, J.~De~Geeter, T.~Lefebvre, and H.~Bruyninckx.
+\newblock Kalman filters: A tutorial.
+\newblock {\em Journal A}, 40(4):52--59, 1999.
+
+\bibitem{Goswami99footrotation}
+A.~Goswami.
+\newblock Foot rotation indicator (fri) point: A new gait planning tool to
+  evaluate postural stability of biped robots.
+\newblock In {\em IEEE International Conference on Robotics and Automation},
+  pages 47--52, 1999.
+
+\bibitem{Goswami1999}
+A.~Goswami.
+\newblock Postural stability of biped robots and the foot-rotation indicator
+  (fri) point.
+\newblock {\em The International Journal of Robotics Research}, 18(6):523--533,
+  1999.
+
+\bibitem{ekfToolbox}
+J.~Hartikainen, A.~Solin, and S.~S{\"a}rkk{\"a}.
+\newblock Optimal filtering with kalman filters and smoothers.
+\newblock {\em Department of Biomedica Engineering and Computational Sciences,
+  Aalto University School of Science, 16th August}, 2011.
+
+\bibitem{Park2007}
+S.~Park, Y.~Han, and H.~Hahn.
+\newblock Kalman filter based zmp estimation scheme for balance control of a
+  biped robot.
+\newblock In {\em Proceedings of The 4th International Conference on Ubiquitous
+  Robots and Ambient Intelligence (URAI 2007)}, 2007.
+
+\bibitem{park2009balance}
+S.~Park, Y.~Han, and H.~Hahn.
+\newblock Balance control of a biped robot using camera image of reference
+  object.
+\newblock {\em International Journal of Control, Automation and Systems},
+  7(1):75--84, 2009.
+
+\bibitem{siciliano2009robotics}
+B.~Siciliano, L.~Sciavicco, L.~Villani, and G.~Oriolo.
+\newblock {\em Robotics: Modelling, Planning and Control}.
+\newblock Advanced Textbooks in Control and Signal Processing. Springer, 2009.
+
+\bibitem{Vukobratovic1969}
+M.~Vukobratovic and D.~Juricic.
+\newblock Contribution to the synthesis of biped gait.
+\newblock {\em Biomedical Engineering, IEEE Transactions on}, BME-16(1):1--6,
+  1969.
+
+\end{thebibliography}

@@ -1,0 +1,4 @@
+\beamer@endinputifotherversion {3.24pt}
+\beamer@sectionintoc {1}{Introduction}{3}{0}{1}
+\beamer@sectionintoc {2}{Bayesian Network for a Floating Base Rigid Body System}{8}{0}{2}
+\beamer@sectionintoc {3}{The Extended Kalman Filter}{9}{0}{3}
