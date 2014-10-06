@@ -51,7 +51,7 @@ dh_dx_func = @outputDerivatives;
 db_dx_func = @derivativeBackwardDynamics;
 h_func = @(x,model)rigidBodyOutput(x,model, [],[],[],[]);
 
-source = 2; % 1 : sim data, 2 : real-data
+source = 1; % 1 : sim data, 2 : real-data
 
 %dt      = 0.01;      % sampling time
 T       = 1.5   ;       % time span
@@ -72,7 +72,7 @@ realKalman.sigma_omega = 0.05;
 realKalman.a_Q  = 0.01;
 realKalman.f_Q  = 0.04;
 realKalman.mu_Q = 0.04; 
-realKalman.phi_Q = 0.01;
+realKalman.phi_Q = 0.005;
 
 realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
 

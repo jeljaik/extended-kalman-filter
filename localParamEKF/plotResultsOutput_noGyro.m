@@ -1,7 +1,7 @@
-function plotResultsOutput_noGyro(Xhat, P, tK, yM)
+function plotResultsOutput_noGyro(XUpt, XPred,P, tK, yM,source)
 
 
-if(isempty(Xhat) && isempty(P) && isempty(tK) && isempty(yM))
+if(isempty(XUpt) && isempty(P) && isempty(tK) && isempty(yM))
     load(sprintf('./data/real_sensor_data'));
     %load(sprintf('./data/real_sensor_data_betterI'));
     %,'Xhat','P','tK','yM');
@@ -13,14 +13,14 @@ figPreN = figure()-1;
 idx = 1; %Time 
 index = 0;
 %stateVar = 1; % State variable from the state vector.
-tMin = 0.0;
+tMin = tK(1);%0.0;
 yM = [yM(:,1:3), zeros(size(yM,1),3), yM(:,4:end)];
 
 %% Estimated Forces 
 stateVar = 7;
 figure(1+figPreN)
 subplot(3,2,1)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar), '--b')
 title('Expectation of force f_o');
@@ -31,7 +31,7 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,3);
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+1), '--g')
 %title('Total force acting on the body (y-component)');
@@ -42,7 +42,7 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,5)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+2), '--r')
 %title('Total force acting on the body (z-component)');
@@ -54,7 +54,7 @@ axis([tMin a(2) a(3) a(4)]);
 
 
 subplot(3,2,2)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+3), '--b')
 title('Expectation of force f_c');
@@ -65,7 +65,7 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,4);
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+4), '--g')
 %title('Total force acting on the body (y-component)');
@@ -76,7 +76,7 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,6)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+5), '--r')
 %title('Total force acting on the body (z-component)');
@@ -92,7 +92,7 @@ axis([tMin a(2) a(3) a(4)]);
 stateVar = 13;
 figure(index+2+figPreN)
 subplot(3,2,1)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar), '--b')
 title('Expectation of torque \mu_o');
@@ -103,7 +103,7 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,3);
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+1), '--g')
 %title('Total force acting on the body (y-component)');
@@ -114,7 +114,7 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,5)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+2), '--r')
 axis tight;
@@ -125,7 +125,7 @@ axis([tMin a(2) a(3) a(4)]);
 
 
 subplot(3,2,2)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+3), '--b')
 title('Expectation of torque \mu_c');
@@ -136,7 +136,7 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,4);
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+4), '--g')
 %title('Total force acting on the body (y-component)');
@@ -146,7 +146,7 @@ ylabel('E(\mu _y) Nm');a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,6)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
 hold on
 plot(tK(idx:end), yM(idx:end,stateVar+5), '--r')
 axis tight;
@@ -163,7 +163,7 @@ axis([tMin a(2) a(3) a(4)]);
 stateVar = 1;
 figure(index+3+figPreN)
 subplot(3,2,1)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
 hold on
 %plot(tK(idx:end), yM(idx:end,stateVar), '--b')
 title('Expectation of Translational Velocity v^B');
@@ -174,7 +174,7 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,3);
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
 hold on
 %plot(tK(idx:end), yM(idx:end,stateVar+1), '--g')
 %title('Total force acting on the body (y-component)');
@@ -185,7 +185,7 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,5)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
 hold on
 %plot(tK(idx:end), yM(idx:end,stateVar+2), '--r')
 axis tight;
@@ -196,9 +196,9 @@ axis([tMin a(2) a(3) a(4)]);
 
 
 subplot(3,2,2)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+3), '--b')
+%plot(tK(idx:end), yM(idx:end,stateVar+3), '--b')
 title('Expectation of Angular Velocity \omega ^B');
 axis tight;
 xlabel('Time t(sec)');
@@ -207,9 +207,9 @@ a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,4);
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+4), '--g')
+%plot(tK(idx:end), yM(idx:end,stateVar+4), '--g')
 %title('Total force acting on the body (y-component)');
 axis tight;
 xlabel('Time t(sec)');
@@ -217,9 +217,9 @@ ylabel('E(\omega _2) Nm');a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,2,6)
-shadedErrorBar(tK(idx:end),Xhat(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+5), '--r')
+%plot(tK(idx:end), yM(idx:end,stateVar+5), '--r')
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\omega _3) Nm');
@@ -232,7 +232,7 @@ figure(index+4+figPreN)
 
 subplot(3,1,1)
 %plot(t(idx:end), x(idx:end,19),'--m'), hold on
-shadedErrorBar(tK(idx:end),Xhat(idx:end,19),squeeze(2*sqrt(P(19,19,idx:end)))','r',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,19),squeeze(2*sqrt(P(19,19,idx:end)))','r',1);
 axis tight;
 title('Orientation Estimate');
 axis tight;
@@ -243,7 +243,7 @@ axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,1,2)
 %plot(t(idx:end), x(idx:end,20),'--m'), hold on
-shadedErrorBar(tK(idx:end),Xhat(idx:end,20),squeeze(2*sqrt(P(20,20,idx:end)))','r',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,20),squeeze(2*sqrt(P(20,20,idx:end)))','r',1);
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\phi (t) rads');
@@ -253,49 +253,37 @@ axis([tMin a(2) a(3) a(4)]);
 
 subplot(3,1,3)
 %plot(t(idx:end), x(idx:end,21),'--m'), hold on
-shadedErrorBar(tK(idx:end),Xhat(idx:end,21),squeeze(2*sqrt(P(21,21,idx:end)))','r',1);
+shadedErrorBar(tK(idx:end),XUpt(idx:end,21),squeeze(2*sqrt(P(21,21,idx:end)))','r',1);
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\phi (t) rads');
 a = axis();
 axis([tMin a(2) a(3) a(4)]);
 
+
 figure(index+5+figPreN)
 
 
-muo_x = Xhat(idx:end,13); muo_x_sigma = squeeze(2*sqrt(P(13,13,idx:end)))';
-muo_y = Xhat(idx:end,14); muo_y_sigma = squeeze(2*sqrt(P(14,14,idx:end)))';
+% muo_x_B = Xhat(idx:end,13); muo_x_B_sigma = squeeze(2*sqrt(P(13,13,idx:end)))';
+% muo_y_B = Xhat(idx:end,14); muo_y_B_sigma = squeeze(2*sqrt(P(14,14,idx:end)))';
+% muo_z_B = Xhat(idx:end,15); muo_z_B_sigma = squeeze(2*sqrt(P(15,15,idx:end)))';
+% 
+% muc_x_B = Xhat(idx:end,19); muc_x_B_sigma = squeeze(2*sqrt(P(19,19,idx:end)))';
+% muc_y_B = Xhat(idx:end,20); muc_y_B_sigma = squeeze(2*sqrt(P(20,20,idx:end)))';
+% muc_z_B = Xhat(idx:end,20); muc_z_B_sigma = squeeze(2*sqrt(P(21,21,idx:end)))';
 
-muc_x = Xhat(idx:end,19); muc_x_sigma = squeeze(2*sqrt(P(19,19,idx:end)))';
-muc_y = Xhat(idx:end,20); muc_y_sigma = squeeze(2*sqrt(P(20,20,idx:end)))';
+if(source==2)
+    index_at_time = @(desTime,totalTime)find(totalTime>desTime,1,'first');
+    idEnd = index_at_time(62.85,tK);
+    disp(idEnd);
+    disp(length(tK));
 
 
+    plot_FRI(XPred, P,tK, idx,idEnd,'r',index+5+figPreN);
 
-fc_z = Xhat(idx:end,12); fc_z_sigma = squeeze(2*sqrt(P(12,12,idx:end)))';
-fo_z = Xhat(idx:end,9); fo_z_sigma = squeeze(2*sqrt(P(9,9,idx:end)))';
-
-pcop_expect = zeros(size(muo_x,1),2);pcop_covariance = zeros(size(muo_y,1),2,2);
-pfri_expect = zeros(size(muo_x,1),2);pfri_covariance = zeros(size(muo_y,1),2,2);
-
-for i = 1:size(muo_x,1)
-    [pcop_expect(i,:),pcop_covariance(i,:,:)] = computeCOP(muc_x(i),muc_y(i),fc_z(i),...
-        muc_x_sigma(i),muc_y_sigma(i),fc_z_sigma(i)) ;
-    [pfri_expect(i,:),pfri_covariance(i,:,:)] = computeFRI(muo_x(i),muo_y(i),fo_z(i),...
-        muo_x_sigma(i),muo_y_sigma(i),fo_z_sigma(i));
- 
+    ind = figure();
+    plot_FRI(XUpt, P,tK, idx,idEnd,'b',index+5+figPreN);
 end
-
-
-%plot(pcop_expect(:,1),pcop_expect(:,2),'r'); hold on;
-plot(pfri_expect(:,1),pfri_expect(:,2),'b');
-%legend('FRI');
-title('Motion of FRI');
-
-%hold on;
-%ellipse(squeeze(2*sqrt(ellipse(pfri_covariance(end,1,1)))),squeeze(2*sqrt(ellipse(pfri_covariance(end,2,2)))),0,pfri_expect(end,1),pfri_expect(end,2),'r');
-
-xlabel('Position x(m)');
-ylabel('Position y(m)');
 
 % 
 % figure;
