@@ -1,5 +1,5 @@
 
-% Department of Robotics, Barin and Cognitive Sciences
+% Department of Robotics, Brain and Cognitive Sciences
 % Istituto Italiano di Tecnologia, 11 September 2014
 %
 % Original code by: Francesco Nori, 
@@ -54,7 +54,7 @@ h_func = @(x,model)rigidBodyOutput(x,model, [],[],[],[]);
 source = 1; % 1 : sim data, 2 : real-data
 
 %dt      = 0.01;      % sampling time
-T       = 1.5   ;       % time span
+T       = 3.0   ; %1.5      % time span
 n       = 21;%21;      % statedimension - (translational vel, rotational vel, RPY angle)  % older : state dimension (including additional force/torque)
 m       = 12;         % output dimension
 
@@ -169,29 +169,35 @@ end
 plotResultsOutput_noGyro(Xupdt, Xhat, P, tKalman, yMeas,source);
 %plotResults(xForDyn, tForDyn, Xhat, P, tKalman, 0)
 
+plotFigBaseFolder = 'plots/test/';
+if(~exist(plotFigBaseFolder))
+    mkdir(plotFigBaseFolder);
+end
+
+plotFigBaseName = strcat('./',plotFigBaseFolder,'predicted');
 
 if(source == 1)
     figure(3);
     set(gca,'FontSize',12);
        set(gcf,'Renderer','OpenGL')
-    print('-depsc2','-r200','./plots/predictedForce_sim','-opengl');
+    print('-depsc2','-r200',strcat(plotFigBaseName,'Force_sim'),'-opengl');
     figure(4);
     set(gca,'FontSize',12);
        set(gcf,'Renderer','OpenGL')
-    print('-depsc2','-r200','./plots/predictedTorque_sim','-opengl');
+    print('-depsc2','-r200',strcat(plotFigBaseName,'Torque_sim'),'-opengl');
     figure(5);
     set(gca,'FontSize',12);
        set(gcf,'Renderer','OpenGL')
-    print('-depsc2','-r200','./plots/predictedVelocitites_sim','-opengl');
+    print('-depsc2','-r200',strcat(plotFigBaseName,'Velocitites_sim'),'-opengl');
     figure(6);
     set(gca,'FontSize',12);
        set(gcf,'Renderer','OpenGL')
-    print('-depsc2','-r200','./plots/predictedOrientation_sim','-opengl');
+    print('-depsc2','-r200',strcat(plotFigBaseName,'Orientation_sim'),'-opengl');
     
     figure(8);
     set(gca,'FontSize',12);
        set(gcf,'Renderer','OpenGL')
-    print('-depsc2','-r200','./plots/predictedUpdatedFRI_sim','-opengl');
+    print('-depsc2','-r200',strcat(plotFigBaseName,'UpdatedFRI_sim'),'-opengl');
 end
 
 
@@ -199,15 +205,15 @@ if(source == 2)
     figure(1);
     set(gca,'FontSize',12);
     set(gcf,'Renderer','OpenGL');
-    print('-depsc2','-r200','./plots/predictedForce_real','-opengl');
+    print('-depsc2','-r200',strcat(plotFigBaseName,'Force_real'),'-opengl');
     figure(2);
     set(gca,'FontSize',12);
     set(gcf,'Renderer','OpenGL');
-    print('-depsc2','-r200','./plots/predictedTorque_real','-opengl');
+    print('-depsc2','-r200',strcat(plotFigBaseName,'Torque_real'),'-opengl');
     figure(8);
     set(gca,'FontSize',12);
     set(gcf,'Renderer','OpenGL');
-    print('-depsc2','-r200','./plots/predictedUpdatedFRI_real','-opengl');
+    print('-depsc2','-r200',strcat(plotFigBaseName,'UpdatedFRI_real'),'-opengl');
 end
 
 %Smoother
