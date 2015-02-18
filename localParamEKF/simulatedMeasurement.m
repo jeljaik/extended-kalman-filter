@@ -59,7 +59,7 @@ function [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,forceSim,plots)
         % Let's compute the output used in the Kalman filter. In this specific
         % case we will use dv^B, omega^B f^B and mu^B. In practice:
         %
-        % y = [dv^B, f^B_1, f^B_2, mu^B_1, mu^B_2];    disp('Adding measurement noise, preparing for kalman filter');
+        % y = [dv^B, omega^B, f^B_1, f^B_2, mu^B_1, mu^B_2];    disp('Adding measurement noise, preparing for kalman filter');
 
         yForDyn = zeros(18,length(tForDyn));
 
@@ -69,7 +69,8 @@ function [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,forceSim,plots)
            mu_B1_tid(tForDyn(i)),mu_B2_tid(tForDyn(i)));
         end
         yForDyn = yForDyn';
-
+            
+        % Augmenting state with input forces and torques
         xForDyn(:,7:18) = [f_B1_tid(tForDyn)',f_B2_tid(tForDyn)',...
                mu_B1_tid(tForDyn)',mu_B2_tid(tForDyn)'];
 

@@ -121,13 +121,18 @@ muoDash_left = interp1(left_leg.t, left_leg.mu,newTime);
 foDash_right = interp1(right_leg.t, right_leg.f,newTime);
 muoDash_right = interp1(right_leg.t, right_leg.mu,newTime);
 
+%TODO The previous lines must be repeated when using the skin
 
+%% TODO The following average MUST be removed for independent-foot 
 fcDash = 0.5*(fcDash_left+fcDash_right);
 mucDash = 0.5*(mucDash_left+mucDash_right);
 
 foDash = 0.5*(foDash_left+foDash_right);
 muoDash = 0.5*(muoDash_left+muoDash_right);
 
+%% TODO 
+% When using the skin under the feet, the following transformations to put
+% the readings in the COM reference frame will not be needed
 
 fc = fcDash'; % Due to first 3 rows of adjoint matrix above.
 muc = S([0 0 -0.18102]') * fcDash' + mucDash';
@@ -185,11 +190,13 @@ model.x0 = [zeros(3,1);zeros(3,1);fo(1:3,1);fc(1:3,1);muo(1:3,1);muc(1:3,1);[0;0
 %% obtaining mass-matrix from mexWBIModel
 wholeBodyModel('model-initialise','icubGazeboSim');
 Mtot = wholeBodyModel('mass-matrix',zeros(25,1));
-Mjts = Mtot(7:end,7:end);
+%% TODO We need to extract foot's instead.
+Mjts = Mtot(7:end,7:end);            % Leg mass matrix 
 MI_at_thigh = Mjts(14:16,14:16);
 Tl = [0 1 0; 1 0 0 ; 0 0 -1];
+% Transformation of the mass matrix to COM reference frame
 Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
-% 
+
 % MI_at_thigh_r = Mjts(20:22,20:22);
 % Tl_r = [0 -1 0; 1 0 0 ; 0 0 1];
 % Ic_r = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
@@ -197,7 +204,10 @@ Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
 % disp(Ic);
 model.I = Ic;
 % disp(Ic_r);
-[a ,a_filt] = extractViconData(dtKalman,plots,t_min,t_max);
+%%  SIMULATING accelerometer via Vicon.
+% TODO We will be using the real accelerometer from the IMU.
+% This won't be needed.
+[a, a_filt] = extractViconData(dtKalman,plots,t_min,t_max);
 
 minId = min(size(a,2),size(fo,2));
 

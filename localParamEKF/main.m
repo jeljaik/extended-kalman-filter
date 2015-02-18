@@ -53,16 +53,15 @@ h_func = @(x,model)rigidBodyOutput(x,model, [],[],[],[]);
 
 source = 1; % 1 : sim data, 2 : real-data
 
-%dt      = 0.01;      % sampling time
-T       = 8.0   ; %1.5      % time span
-n       = 21;%21;      % statedimension - (translational vel, rotational vel, RPY angle)  % older : state dimension (including additional force/torque)
+T       = 8.0;        % estimation time span
+n       = 21;         % state dimension - (translational vel, rotational vel, w_o, w_c, RPY angle)
 m       = 18;         % output dimension
 
 %% Kalman Parameters
+% RealSensor parameters
 
-%% RealSensor parameters
 %dt      = 0.01;      % sampling time
-realKalman.T       = 1.5   ;       % time span
+realKalman.T       = 1.5;       % time span
 realKalman.sigma_f = 0.5;       % output error variance (forces)
 realKalman.sigma_u = 0.25;      % output error variance (torques)
 realKalman.sigma_a = 0.5;       % output error variance (acceleration)
@@ -122,18 +121,27 @@ else
    numJump = 1;%10;
     
   %  yMeas = yMeas(numSamples:end,:);tKalman = tKalman(numSamples:end);
-   yMeas = yMeas(1:numJump:end,:);tKalman = tKalman(1:numJump:end);
+   yMeas = yMeas(1:numJump:end,:);
+   tKalman = tKalman(1:numJump:end);
    kalman = realKalman;
 end
 % remove next line later
 %kalman.P = diag([kalman.sigma_a.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_u.*ones(1,3)]);
-Q  = diag([kalman.a_Q*ones(3,1); kalman.f_Q*ones(6,1); kalman.mu_Q*ones(6,1); kalman.phi_Q*ones(3,1)]);
-R =diag([kalman.sigma_a.*ones(1,3),kalman.sigma_omega.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_u.*ones(1,3)]);
+
+
+%% KALMAN FILTER IMPLEMENTATION
+Q  = diag([kalman.a_Q*ones(3,1); 
+           kalman.f_Q*ones(6,1); 
+           kalman.mu_Q*ones(6,1); 
+           kalman.phi_Q*ones(3,1)]);
+R =diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_u.*ones(1,3)]);
 Ph = kalman.P;
 
+% Initializing estimate
 xh        = model.x0;% + 0.1*randn(size(model.x0));
-Xhat             = zeros(n,length(tKalman))';
+Xhat      = zeros(n,length(tKalman))';
 
+% Initializing update
 model.dt = model.dtKalman;
 Xupdt = zeros(length(tKalman),n);
 P = zeros(size(Ph,1), size(Ph,2),length(tKalman));
