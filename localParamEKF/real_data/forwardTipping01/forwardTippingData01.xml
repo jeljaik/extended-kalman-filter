@@ -7,7 +7,7 @@
 		<port>/icub/torso/state:o</port>
 	</dependencies>
 	<module>
-		<name>dataDumper</name>
+		<name>yarpdatadumper</name>
 		<parameters>--name /dumper/icub/left_leg/analog:o --type bottle</parameters>
 		<node>icub15</node>
 		<tag>data-dumper-icub-left_leg-analog-o</tag>
@@ -18,7 +18,7 @@
 		<protocol>udp</protocol>
 	</connection>
 	<module>
-		<name>dataDumper</name>
+		<name>yarpdatadumper</name>
 		<parameters>--name /dumper/icub/skin/left_foot --type bottle</parameters>
 		<node>icub15</node>
 		<tag>data-dumper-icub-skin-left_foot</tag>
@@ -29,7 +29,7 @@
 		<protocol>udp</protocol>
 	</connection>
 	<module>
-		<name>dataDumper</name>
+		<name>yarpdatadumper</name>
 		<parameters>--name /dumper/icub/inertial --type bottle</parameters>
 		<node>icub15</node>
 		<tag>data-dumper-icub-inertial</tag>
@@ -40,7 +40,7 @@
 		<protocol>udp</protocol>
 	</connection>
 	<module>
-		<name>dataDumper</name>
+		<name>yarpdatadumper</name>
 		<parameters>--name /dumper/icub/torso/state:o --type bottle</parameters>
 		<node>icub15</node>
 		<tag>data-dumper-icub-torso-state-o</tag>
