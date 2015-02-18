@@ -31,8 +31,8 @@
 
 
 %clear
-%close all
-%clc
+close all
+clc
 
 utilities    = genpath('./utils');
 symb         = genpath('./symbolic');
@@ -49,14 +49,14 @@ b_func     = @backwardDynamics;
 df_dx_func = @derivativeForwardDynamics;
 dh_dx_func = @outputDerivatives;
 db_dx_func = @derivativeBackwardDynamics;
-h_func = @(x,model)rigidBodyOutput_noGyro(x,model, [],[],[],[]);
+h_func = @(x,model)rigidBodyOutput(x,model, [],[],[],[]);
 
 source = 1; % 1 : sim data, 2 : real-data
 
 %dt      = 0.01;      % sampling time
-T       = 1.0   ; %1.5      % time span
+T       = 8.0   ; %1.5      % time span
 n       = 21;%21;      % statedimension - (translational vel, rotational vel, RPY angle)  % older : state dimension (including additional force/torque)
-m       = 12;         % output dimension
+m       = 18;         % output dimension
 
 %% Kalman Parameters
 
@@ -109,9 +109,9 @@ t_max = 64;%43;
 %% chose source of data (simulation or real-robot)
 if(source ==1) 
     kalman = simKalman;
-    R =diag([kalman.sigma_a.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_u.*ones(1,3)]);
+    R =diag([kalman.sigma_a.*ones(1,3),kalman.sigma_omega.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_u.*ones(1,3)]);
     tKalman = 0:model.dtKalman:T;
-    [yMeas,model] = simulatedMeasurement_noGyro(tKalman,R,model,'forceSim',1); % set the last parameter to empty to use saved simulation data if exists
+    [yMeas,model] = simulatedMeasurement(tKalman,R,model,'forceSim',1); % set the last parameter to empty to use saved simulation data if exists
     
     
 else
@@ -128,7 +128,7 @@ end
 % remove next line later
 %kalman.P = diag([kalman.sigma_a.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_u.*ones(1,3)]);
 Q  = diag([kalman.a_Q*ones(3,1); kalman.f_Q*ones(6,1); kalman.mu_Q*ones(6,1); kalman.phi_Q*ones(3,1)]);
-R =diag([kalman.sigma_a.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_u.*ones(1,3)]);
+R =diag([kalman.sigma_a.*ones(1,3),kalman.sigma_omega.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_u.*ones(1,3)]);
 Ph = kalman.P;
 
 xh        = model.x0;% + 0.1*randn(size(model.x0));

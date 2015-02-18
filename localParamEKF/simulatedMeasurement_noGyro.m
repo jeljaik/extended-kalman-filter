@@ -1,4 +1,4 @@
-function [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,forceSim,plots)
+function [yMeasSim,model] = simulatedMeasurement_noGyro(tKalman,R,model,forceSim,plots)
 
 
 % Department of Robotics, Barin and Cognitive Sciences
@@ -61,10 +61,10 @@ function [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,forceSim,plots)
         %
         % y = [dv^B, f^B_1, f^B_2, mu^B_1, mu^B_2];    disp('Adding measurement noise, preparing for kalman filter');
 
-        yForDyn = zeros(18,length(tForDyn));
+        yForDyn = zeros(15,length(tForDyn));
 
         for i = 1:length(tForDyn)
-           yForDyn(:,i) = rigidBodyOutput(xForDyn(i,:)',model,...
+           yForDyn(:,i) = rigidBodyOutput_noGyro(xForDyn(i,:)',model,...
            f_B1_tid(tForDyn(i)),f_B2_tid(tForDyn(i)),...
            mu_B1_tid(tForDyn(i)),mu_B2_tid(tForDyn(i)));
         end
@@ -97,11 +97,11 @@ function [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,forceSim,plots)
         end
 
     %% saving simulation trial in file
-        save(sprintf('./data/sim_%d',round(1000*T)),'tForDyn','yForDyn','xForDyn','model');
+        save(sprintf('./data/sim_noGyro_%d',round(1000*T)),'tForDyn','yForDyn','xForDyn','model');
     else
         disp('Using stored simulation data'); drawnow();
         
-        load(sprintf('./data/sim_%d',round(1000*T)),'tForDyn','yForDyn','xForDyn','model');
+        load(sprintf('./data/sim_noGyro_%d',round(1000*T)),'tForDyn','yForDyn','xForDyn','model');
     end
     
     yForDyn_at_tid = @(t)interp1(tForDyn,yForDyn,t);

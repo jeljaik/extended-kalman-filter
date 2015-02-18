@@ -1,4 +1,4 @@
-function y = rigidBodyOutput(x,p,f_B_1_t,f_B_2_t,mu_B_1_t,mu_B_2_t)
+function y = rigidBodyOutput_noGyro(x,p,f_B_1_t,f_B_2_t,mu_B_1_t,mu_B_2_t)
 
 % This piece of code computes the rigid body differential equations. The
 % equation is defined as follows:
@@ -35,7 +35,7 @@ g    = p.g;
 dv_B     =          -(1/m)*S(omega_B) *(m*v_B) + (1/m) *( f_B_1 + f_B_2 )+ g.*R*[0; 0; 1];
 % domega_B =   I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_t);
 
-y  = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
-%y  = [dv_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
+%y  = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
+y  = [dv_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
 
 % y  = [f_B; mu_B];
