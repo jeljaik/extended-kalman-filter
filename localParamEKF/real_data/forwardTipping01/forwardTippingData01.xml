@@ -1,31 +1,31 @@
 <application>
 	<name>forwardTippingTest01</name>
 	<dependencies>
-		<port>/icub/left_leg/analog:o</port>
-		<port>/icub/skin/left_foot</port>
+		<port>/icub/right_leg/analog:o</port>
+		<port>/icub/skin/right_foot</port>
 		<port>/icub/inertial</port>
 		<port>/icub/torso/state:o</port>
 	</dependencies>
 	<module>
 		<name>yarpdatadumper</name>
-		<parameters>--name /dumper/icub/left_leg/analog:o --type bottle</parameters>
+		<parameters>--name /dumper/icub/right_leg/analog:o --type bottle</parameters>
 		<node>icub15</node>
-		<tag>data-dumper-icub-left_leg-analog-o</tag>
+		<tag>data-dumper-icub-right_leg-analog-o</tag>
 	</module>
 	<connection>
-		<from>/icub/left_leg/analog:o</from>
-		<to>/dumper/icub/left_leg/analog:o</to>
+		<from>/icub/right_leg/analog:o</from>
+		<to>/dumper/icub/right_leg/analog:o</to>
 		<protocol>udp</protocol>
 	</connection>
 	<module>
 		<name>yarpdatadumper</name>
-		<parameters>--name /dumper/icub/skin/left_foot --type bottle</parameters>
+		<parameters>--name /dumper/icub/skin/right_foot --type bottle</parameters>
 		<node>icub15</node>
-		<tag>data-dumper-icub-skin-left_foot</tag>
+		<tag>data-dumper-icub-skin-right_foot</tag>
 	</module>
 	<connection>
-		<from>/icub/skin/left_foot</from>
-		<to>/dumper/icub/skin/left_foot</to>
+		<from>/icub/skin/right_foot</from>
+		<to>/dumper/icub/skin/right_foot</to>
 		<protocol>udp</protocol>
 	</connection>
 	<module>
