@@ -1,4 +1,4 @@
-clear all
+ clear all
 close all
 clc
 
@@ -41,6 +41,7 @@ dphi     =  inv(Tomega_dphi(phi))*omega_B;
 f     = [dv_B; domega_B; df_B_1; df_B_2; dmu_B_1; dmu_B_2; dphi];
 x     = [ v_B;  omega_B;  f_B_1; f_B_2;  mu_B_1; mu_B_2;  phi];
 h_noGyro = [dv_B; f_B_1; f_B_2; mu_B_1; mu_B_2];
+h_withSkin = [dv_B;f_B_1; f_B_2; mu_B_1];
 h     = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1; mu_B_2];
 
 df_dx = jacobian(f, x);
