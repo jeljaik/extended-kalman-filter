@@ -41,7 +41,7 @@ function [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,forceSim,plots)
         % order to have a desired orientation away from singularities. 
         useInvDyn = 'y';
         
-        [f_B1_tid, mu_B1_tid, f_B2_tid, mu_B2_tid, model.x0] = InverseDynamics(T,model, plots);
+        [f_Bo_tid, mu_Bo_tid, f_Bc_tid, mu_Bc_tid, model.x0] = InverseDynamics(T,model, plots);
 
         %model.th_init = th_0;
         %R0        = [cos(model.th_init) -sin(model.th_init) 0; sin(model.th_init) cos(model.th_init) 0; 0 0 1];
@@ -54,25 +54,25 @@ function [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,forceSim,plots)
             %model.x0 = [0*ones(6,1); dcm2euler(R0)];
         %    model.x0  = [dP0;omega_B0; f_B1_tid(1,:)';f_B2_tid(1,:)';mu_B1_tid(1,:)';mu_B2_tid(1,:)'; th_0];
         %end
-        [tForDyn,   xForDyn] = integrateForwardDynamics(model.x0, model, 0:model.dtForDyn:T,f_B1_tid, mu_B1_tid, f_B2_tid, mu_B2_tid, useInvDyn);
+        [tForDyn,   xForDyn] = integrateForwardDynamics(model.x0, model, 0:model.dtForDyn:T,f_Bo_tid, mu_Bo_tid, f_Bc_tid, mu_Bc_tid, useInvDyn);
 
         % Let's compute the output used in the Kalman filter. In this specific
         % case we will use dv^B, omega^B f^B and mu^B. In practice:
         %
         % y = [dv^B, omega^B, f^B_1, f^B_2, mu^B_1, mu^B_2];    disp('Adding measurement noise, preparing for kalman filter');
 
-        yForDyn = zeros(15,length(tForDyn));
+        yForDyn = zeros(19,length(tForDyn));
 
         for i = 1:length(tForDyn)
            yForDyn(:,i) = rigidBodyOutput(xForDyn(i,:)',model,...
-           f_B1_tid(tForDyn(i)),f_B2_tid(tForDyn(i)),...
-           mu_B1_tid(tForDyn(i)),mu_B2_tid(tForDyn(i)));
+           f_Bo_tid(tForDyn(i)),mu_Bo_tid(tForDyn(i)),...
+           f_Bc_tid(tForDyn(i)),mu_Bc_tid(tForDyn(i)));
         end
         yForDyn = yForDyn';
             
         % Augmenting state with input forces and torques
-        xForDyn(:,7:18) = [f_B1_tid(tForDyn)',f_B2_tid(tForDyn)',...
-               mu_B1_tid(tForDyn)',mu_B2_tid(tForDyn)'];
+        xForDyn(:,7:18) = [f_Bo_tid(tForDyn)',mu_Bo_tid(tForDyn)',...
+               f_Bc_tid(tForDyn)',mu_Bc_tid(tForDyn)'];
 
         if plots
             figure(2);

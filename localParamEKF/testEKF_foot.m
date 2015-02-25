@@ -38,9 +38,11 @@ utilities    = genpath('./utils');
 symb         = genpath('./symbolic');
 mexbm        = genpath('./mexWBModel');
 ellipses      = genpath('./ellipses');
+dynFuncs     = genpath('./dynamicsFunctions');
+plotFuncs   = genpath('./plotFunctions');
 %matlab_c3D =  genpath('./c3d_analysis');
 
-addpath(utilities, symb, mexbm, ellipses)
+addpath(utilities, symb, mexbm, ellipses,dynFuncs,plotFuncs)
 
 %% Measurement model and its derivative
 f_func     = @forwardDynamics;
@@ -55,7 +57,7 @@ source = 1; % 1 : sim data, 2 : real-data
 
 T       = 2.0;        % estimation time span
 n       = 21;         % state dimension - (translational vel, rotational vel, w_o, w_c, RPY angle)
-m       = 18;         % output dimension
+m       = 19;         % output dimension
 
 %% Kalman Parameters
 % RealSensor parameters
@@ -110,8 +112,9 @@ t_max = 64;%43;
 %% chose source of data (simulation or real-robot)
 if(source ==1) 
     kalman = simKalman;
-    R =diag([kalman.sigma_a.*ones(1,3),kalman.sigma_omega.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_skin*ones(1,3)]);
+    R =diag([kalman.sigma_a.*ones(1,3),kalman.sigma_omega.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_skin*ones(1,1)]);
     tKalman = 0:model.dtKalman:T;
+   % [yMeas,model] = simulatedMeasurement(tKalman,R,model,'forceSim',1); % set the last parameter to empty to use saved simulation data if exists
     [yMeas,model] = simulatedMeasurement(tKalman,R,model,[],1); % set the last parameter to empty to use saved simulation data if exists
     
     
@@ -136,7 +139,7 @@ Q  = diag([kalman.a_Q*ones(3,1);
            kalman.f_Q*ones(6,1); 
            kalman.mu_Q*ones(6,1); 
            kalman.phi_Q*ones(3,1)]);
-R =diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_skin.*ones(1,3)]);
+R =diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
 Ph = kalman.P;
 
 % Initializing estimate
