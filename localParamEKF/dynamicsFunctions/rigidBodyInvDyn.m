@@ -1,4 +1,4 @@
-function [f_B1_t, mu_B1_t, f_B2_t, mu_B2_t,omega_B] = rigidBodyInvDyn(Phi,dPhi, dPos,ddPos,tc,model, coeff_f, coeff_mu)
+function [f_Bo_t, mu_Bo_t, f_Bc_t, mu_Bc_t,omega_B] = rigidBodyInvDyn(Phi,dPhi, dPos,ddPos,tc,model, coeff_f, coeff_mu)
 % RIGIDBODYINVDYN This function computes inverse dynamics for a rigid 
 % body system with two external forces, assuming null linear velocity and 
 % a desired orientation trajectory parametrized in ZYZ  Euler angles (roll,
@@ -57,8 +57,8 @@ function [f_B1_t, mu_B1_t, f_B2_t, mu_B2_t,omega_B] = rigidBodyInvDyn(Phi,dPhi, 
     for i=1:length(tc)
        f_t(:,i)   = (m*ddPos(i,:)' + S(omega_B(i,:)')*m*dPos(i,:)' - m*g*R{i}*[0 0 1]');%-2/3*m*g*R{i}*[0 0 1]';
     end
-    f_B1_tt = coeff_f*f_t';
-    f_B2_tt = (1-coeff_f)*f_t';
+    f_Bo_tt = coeff_f*f_t';
+    f_Bc_tt = (1-coeff_f)*f_t';
     
     % Torques
     %mu_B1_t = [];
@@ -68,14 +68,14 @@ function [f_B1_t, mu_B1_t, f_B2_t, mu_B2_t,omega_B] = rigidBodyInvDyn(Phi,dPhi, 
         mu_t(:,i)  = I_B*domega_B(i,:)' + S(omega_B(i,:)')*I_B*omega_B(i,:)'; 
         %-2/3*(I_B*domega_B(:,:,i) + S(omega_B(:,:,i))*I_B*omega_B(:,:,i));
     end
-    mu_B1_tt = coeff_mu*mu_t';
-    mu_B2_tt = (1-coeff_mu)*mu_t';
+    mu_Bo_tt = coeff_mu*mu_t';
+    mu_Bc_tt = (1-coeff_mu)*mu_t';
    % t = tc;
     
-    f_B1_t = @(tDes)interp1(tc,f_B1_tt,tDes)';
-    f_B2_t = @(tDes)interp1(tc,f_B2_tt,tDes)';
-    mu_B1_t = @(tDes)interp1(tc,mu_B1_tt,tDes)';
-    mu_B2_t = @(tDes)interp1(tc,mu_B2_tt,tDes)';
+    f_Bo_t = @(tDes)interp1(tc,f_Bo_tt,tDes)';
+    f_Bc_t = @(tDes)interp1(tc,f_Bc_tt,tDes)';
+    mu_Bo_t = @(tDes)interp1(tc,mu_Bo_tt,tDes)';
+    mu_Bc_t = @(tDes)interp1(tc,mu_Bc_tt,tDes)';
     
    % df_B1_t = @(tDes)interp1(t,f_B1_tt,tDes);
    % df_B2_t = @(tDes)interp1(t,f_B1_tt,tDes);
