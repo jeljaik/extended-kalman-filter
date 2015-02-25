@@ -5,8 +5,10 @@ function [totalForces] = computeTotalForce(processedSkinData, whichStiffVec)
 % 'forceTorques' (force and torques).
 
 if(strcmp(whichStiffVec,'normalForces'))
-    w_vec = load('footStiffnessMatrix.mat','best_w');
-    w_vec = w_vec.best_w;
+    w_vec = load('best_w_padded.mat','best_w_padded');
+    w_vec = w_vec.best_w_padded;
+    % The following totalForces corresponds to the total normal force as
+    % measured by the FT sensor
     totalForces = processedSkinData*w_vec;
 else
     if(strcmp(whichStiffVec,'forceTorques'))
