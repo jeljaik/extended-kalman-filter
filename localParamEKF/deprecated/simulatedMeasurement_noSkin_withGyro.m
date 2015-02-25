@@ -61,7 +61,7 @@ function [yMeasSim,model] = simulatedMeasurement(tKalman,R,model,forceSim,plots)
         %
         % y = [dv^B, omega^B, f^B_1, f^B_2, mu^B_1, mu^B_2];    disp('Adding measurement noise, preparing for kalman filter');
 
-        yForDyn = zeros(15,length(tForDyn));
+        yForDyn = zeros(18,length(tForDyn));
 
         for i = 1:length(tForDyn)
            yForDyn(:,i) = rigidBodyOutput(xForDyn(i,:)',model,...

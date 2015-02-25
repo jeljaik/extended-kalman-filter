@@ -40,31 +40,20 @@ dphi     =  inv(Tomega_dphi(phi))*omega_B;
 
 f     = [dv_B; domega_B; df_B_1; df_B_2; dmu_B_1; dmu_B_2; dphi];
 x     = [ v_B;  omega_B;  f_B_1; f_B_2;  mu_B_1; mu_B_2;  phi];
-h_noGyro = [dv_B; f_B_1; f_B_2; mu_B_1; mu_B_2];
-h_withSkin = [dv_B;f_B_1; f_B_2; mu_B_1];
-h     = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1; mu_B_2];
+%h_noSkin_noGyro = [dv_B; f_B_1; f_B_2; mu_B_1; mu_B_2];
+h = [dv_B; omega_B; f_B_1; mu_B_1; f_B_2x; mu_B_2y;mu_B_2z];
+%h_noSkin_withGyro = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1; mu_B_2];
 
 df_dx = jacobian(f, x);
-dh_dx_noGyro = jacobian(h_noGyro, x);
+%dh_dx_noSkin_noGyro = jacobian(h_noSkin_withGyro, x);
+%dh_dx_withSkin_withGyro = jacobian(h_withSkin_withGyro,x);
 dh_dx = jacobian(h,x);
 
 model.I  = I_B;
 
 matlabFunction(df_dx,'file','./symbolic/rigidBodyDynamicsDerivatives','vars',[x; dI; m; g]);
-matlabFunction(dh_dx_noGyro,'file','./symbolic/rigidBodyOutputsDerivatives_noGyro','vars',[x; dI; m; g]);
+%matlabFunction(dh_dx_noSkin_noGyro,'file','./symbolic/rigidBodyOutputsDerivatives_noSkin_noGyro','vars',[x; dI; m; g]);
 
 %matlabFunction(df_dx,'file','./symbolic/rigidBodyDynamicsDerivatives_noGyro','vars',[x; dI; m; g]);
 matlabFunction(dh_dx,'file','./symbolic/rigidBodyOutputsDerivatives','vars',[x; dI; m; g]);
-
-% 
-% f_red     = [dv_B; domega_B; dphi];
-% x_red     = [ v_B;  omega_B;  phi];
-% h_red     = [dv_B; f_B_1; mu_B_1; f_B_2; mu_B_2];
-% df_dx_red = jacobian(f_red, x_red);
-% dh_dx_red = jacobian(h_red, x_red);
-% 
-% model.I  = I_B;
-% 
-% matlabFunction(df_dx_red,'file','rigidBodyDynamicsDerivatives_red','vars',[x_red; dI; m; g]);
-% matlabFunction(dh_dx_red,'file','rigidBodyOutputsDerivatives_red','vars',[x_red; dI; m; g]);
-
+%matlabFunction(dh_dx_noSkin_withGyro,'file','./symbolic/rigidBodyOutputsDerivatives','vars',[x; dI; m; g]);
