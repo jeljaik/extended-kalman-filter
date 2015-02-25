@@ -4,6 +4,7 @@ function totalForce = totalForceFromSkinData(typeExperiment, numberExperiment, f
 % @numberExperiment: Integer from 1 to 6 (for now);
 % @foot: 'left' or 'right'
 
+% Load 
 rawSkinDataDumper = load(['../robotData/' typeExperiment '/dumperTippingSetup0' num2str(numberExperiment) '/icub/skin/' foot '_foot/data.log']);
 processedSkinData = dataPostProcessing(rawSkinDataDumper, 'normalForces');
 totalForce = computeTotalForce(processedSkinData, 'normalForces');
