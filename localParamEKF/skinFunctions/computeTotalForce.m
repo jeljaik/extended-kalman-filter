@@ -1,4 +1,4 @@
-function [totalForces] = computeTotalForce(processedSkinData, whichStiffVec)
+function [totalForce] = computeTotalForce(processedSkinData, whichStiffVec)
 % COMPUTETOTALFORCE(processedSkinData, whichStiffVec)
 % @processedSkinData: Processed skin data without package id or time stamp
 % @whichStiffVec: Stiffness vector estimated using 'normalForces' only or
@@ -9,7 +9,7 @@ if(strcmp(whichStiffVec,'normalForces'))
     w_vec = w_vec.best_w_padded;
     % The following totalForces corresponds to the total normal force as
     % measured by the FT sensor
-    totalForces = processedSkinData*w_vec;
+    totalForce = processedSkinData*w_vec;
 else
     if(strcmp(whichStiffVec,'forceTorques'))
         display('ERROR: option still not available');
