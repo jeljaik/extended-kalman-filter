@@ -36,13 +36,15 @@ clc
 
 utilities    = genpath('./utils');
 symb         = genpath('./symbolic');
-mexbm        = genpath('./mexWBModel');
+%mexbm        = genpath('./mexWBModel');
 ellipses      = genpath('./ellipses');
 dynFuncs     = genpath('./dynamicsFunctions');
 plotFuncs   = genpath('./plotFunctions');
 %matlab_c3D =  genpath('./c3d_analysis');
+skinFuncs   = genpath('./skinFunctions');
 
-addpath(utilities, symb, mexbm, ellipses,dynFuncs,plotFuncs)
+%addpath(utilities, symb, mexbm, ellipses,dynFuncs,plotFuncs)
+addpath(utilities, symb, ellipses,dynFuncs,plotFuncs,skinFuncs)
 
 %% Measurement model and its derivative
 f_func     = @forwardDynamics;
@@ -53,9 +55,9 @@ dh_dx_func = @outputDerivatives;
 db_dx_func = @derivativeBackwardDynamics;
 h_func = @(x,model)rigidBodyOutput(x,model, [],[],[],[]);
 
-source = 1; % 1 : sim data, 2 : real-data
+source = 2; % 1 : sim data, 2 : real-data
 
-T       = 2.0;        % estimation time span
+T       = 2;        % estimation time span
 n       = 21;         % state dimension - (translational vel, rotational vel, w_o, w_c, RPY angle)
 m       = 19;         % output dimension
 
@@ -63,20 +65,20 @@ m       = 19;         % output dimension
 % RealSensor parameters
 
 %dt      = 0.01;      % sampling time
-realKalman.T       = 1.5;       % time span
+realKalman.T       = 2;       % time span
 realKalman.sigma_f = 0.5;       % output error variance (forces)
-realKalman.sigma_u = 0.25;      % output error variance (torques)
+realKalman.sigma_u = 0.75;      % output error variance (torques)
 realKalman.sigma_a = 0.5;       % output error variance (acceleration)
-realKalman.sigma_omega = 0.05;
-
+realKalman.sigma_omega = 1.05;
+realKalman.sigma_skin = 0.5;
 
 realKalman.a_Q  = 0.01;
 realKalman.f_Q  = 0.04;
 realKalman.mu_Q = 0.04; 
 realKalman.phi_Q = 0.005;
 
-realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
-
+%realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
+realKalman.P =0.01* diag([ones(6,1); ones(6,1); ones(6,1); ones(3,1)]);
 
 %% SimSensor parameters
 
@@ -97,15 +99,15 @@ simKalman.P = diag([ones(6,1); ones(6,1); ones(6,1); ones(3,1)]);
 
 %% Model Parameters
 model.I   = diag([0.05 0.02 0.03]);
-model.m   = 7;
+model.m   = 0.761;%7;
 model.dtInvDyn = 0.0001;
 model.dtForDyn = 0.001;
 model.dtKalman = 0.01;%0.01;
 model.g   = 9.81;
 model.bck = false;
 
-t_min = 61;%42;
-t_max = 64;%43;
+t_min = 9;%61;%42;
+t_max = 12.5;%64;%43;
 
 
 
@@ -114,12 +116,12 @@ if(source ==1)
     kalman = simKalman;
     R =diag([kalman.sigma_a.*ones(1,3),kalman.sigma_omega.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_skin*ones(1,1)]);
     tKalman = 0:model.dtKalman:T;
-   % [yMeas,model] = simulatedMeasurement(tKalman,R,model,'forceSim',1); % set the last parameter to empty to use saved simulation data if exists
-    [yMeas,model] = simulatedMeasurement(tKalman,R,model,[],1); % set the last parameter to empty to use saved simulation data if exists
+   [yMeas,model] = simulatedMeasurement(tKalman,R,model,'forceSim',1); % set the last parameter to empty to use saved simulation data if exists
+   % [yMeas,model] = simulatedMeasurement(tKalman,R,model,[],1); % set the last parameter to empty to use saved simulation data if exists
     
     
 else
-    [yMeas,tMeas,model] = realMeasurement(model.dtKalman,model,0,t_min,t_max);
+    [yMeas,tMeas,model] = realMeasurement_withSkin(model.dtKalman,model,0,t_min,t_max);
     T = tMeas(end);
    tKalman = tMeas;
    % numSamples = length(tKalman) - 4000;

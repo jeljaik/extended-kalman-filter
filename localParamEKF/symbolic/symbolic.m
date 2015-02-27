@@ -36,8 +36,14 @@ df_B_o   =  [0 0 0]';
 dmu_B_o  =  [0 0 0]';
 df_B_c   =  [0 0 0]';
 dmu_B_c  =  [0 0 0]';
-dphi = R\omega_B;
-%dphi     =  inv(Tomega_dphi(phi))\omega_B;
+% 
+% Tphi = [ 0 -sin(phi1) cos(phi1)*sin(phi2) ;...
+%         0 cos(phi1)    sin(phi1)*sin(phi2) ;...
+%         1 0 cos(phi2)];
+%dphi = Tphi\omega_B;
+%dphi = Tomega_dphi(phi
+%R\omega_B;
+dphi     =  inv(Tomega_dphi(phi))\omega_B;
 
 
 h_imu = [dv_B ; omega_B];
