@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 function [yMeas,tMeas,model] = realMeasurement_withSkin(dtKalman, model, plots, t_min, t_max, numberOfExperiment, whichLeg, whichSkin)
 % REALMEASUREMENT_WITHSKIN loads data from the backward tipping experiments
 %   including the feet skin to post-process these data.
@@ -67,8 +66,8 @@ com_R_imu = [  0 -1 0 ;...
 leg_ft.t = leg_ft_data(:,2)-leg_ft_data(1,2);
 leg_ft.idx = leg_ft_data(:,1) - leg_ft_data(1,1);
 leg_ft_data(:,3:8) = leg_ft_data(:,3:8) - repmat(leg_ft_offset,size(leg_ft_data,1),1);
-left_leg_ft.f = leg_ft_data(:,3:5);
-left_leg_ft.mu = leg_ft_data(:,6:8);
+leg_ft.f = leg_ft_data(:,3:5);
+leg_ft.mu = leg_ft_data(:,6:8);
 
 foot_ft.t = foot_ft_data(:,2)-foot_ft_data(1,2);
 foot_ft.idx = foot_ft_data(:,1) - foot_ft_data(1,1);
@@ -99,11 +98,11 @@ a_omega = interp1(inertial.t,inertial.data,t);
 a_ = a_omega(:,4:6);
 omega_ = a_omega(:,7:9);
 
-del = (256 - del_)./255;
-fc_x = computeTotalForce(delta_, 'normalForces')';
+delta = (256 - delta_)./255;
+fc_x = computeTotalForce(delta, 'normalForces')';
 
 %% Forces and torques
-fo_muo = com_adj_ankle * ankle_adj_leg * [fo_';muo_'];
+fo_muo = com_adj_leg * [fo_';muo_'];
 fo = fo_muo(1:3,:);
 muo = fo_muo(4:6,:);
 
