@@ -104,8 +104,8 @@ ylabel('Position y(m)');
 % axis tight;
 % hold on;
 
-addpath('./foot_plotting/util');
-addpath('./foot_plotting/graphics');
+addpath('./plotFunctions/foot_plotting/util');
+addpath('./plotFunctions/foot_plotting/graphics');
 
 
 

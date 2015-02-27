@@ -4,9 +4,9 @@ function [V8, F, FN8] = read_plot_foot_mesh(rightFoot, doPlot)
 % If required, plot the mesh.
 
 if(rightFoot)
-    forearm_file_name = './foot_plotting/foot_right.obj';
+    forearm_file_name = './plotFunctions/foot_plotting/foot_right.obj';
 else
-    forearm_file_name = './foot_plotting/foot_left.obj';
+    forearm_file_name = './plotFunctions/foot_plotting/foot_left.obj';
 end
         
     [V,F,FN] = read_vertices_and_faces_from_obj_file(forearm_file_name);

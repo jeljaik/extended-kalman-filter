@@ -142,8 +142,9 @@ end
 
 %dphi     =   pinv(R,1e-10)*omega_B;%inv(R)*omega
 
-dphi     =   R\omega_B;%inv(R)*omega_B;
-
+dphi = Tomega_dphi(phi)\omega_B;
+%dphi     =   phiDerivative(phi,omega_B);%inv(R)*omega_B;
+%
 %if ~useInvDyn
     dxdt   = [fLin; fAng; df_B_o; dmu_B_o; df_B_c; dmu_B_c; dphi];
 %else
