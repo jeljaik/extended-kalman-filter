@@ -106,8 +106,8 @@ model.dtKalman = 0.01;%0.01;
 model.g   = 9.81;
 model.bck = false;
 
-t_min = 9;%61;%42;
-t_max = 12.5;%64;%43;
+t_min = 6;%61;%42;
+t_max = 8.5;%64;%43;
 
 
 

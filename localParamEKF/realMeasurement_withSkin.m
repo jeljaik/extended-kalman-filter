@@ -2,11 +2,20 @@ function [yMeas,tMeas,model] = realMeasurement_withSkin(dtKalman, model, plots, 
 % REALMEASUREMENT_WITHSKIN loads data from the backward tipping experiments
 %   including the feet skin to post-process these data.
 %
-%   REALMEASUREMENT_WITHSKIN() numberOfExperiments = 7, whichLeg = 'right',
-%   whichSkin = 'right'
+%   REALMEASUREMENT_WITHSKIN(dtKalman, model, plots, t_min, t_max) When 
+%   called like this, numberOfExperiments = 7, whichLeg = 'right',
+%   whichSkin = 'right'.
 %   REALMEASUREMENT_WITHSKIN(numberOfExperiments, whichLeg, whichSkin)
 
 disp('processing skin and other data');
+
+if(nargin<1)
+    dtKalman = 0.01;
+    model = struct();
+    plots = 0;
+    t_min = 0;
+    t_max = inf;
+end
 
 if (nargin<6)
     numberOfExperiment = 7;
@@ -16,13 +25,20 @@ end
 
 %skin_data = importdata('./robotData/backwardTipping/dumperTippingSetup01/icub/skin/right_foot/data.log ');
 
-%% TODO. 
-% Find out the correspondence between the FT number in the
-% wholeBodyDynamicsTree calibration dump and their corresponding leg/foot.
-left_leg_ft_offset = zeros(1,6);
-right_leg_ft_offset = zeros(1,6);
-left_foot_ft_offset = zeros(1,6);
-right_foot_ft_offset = zeros(1,6);
+%% OFFSETS. 
+% Left leg
+FT2 = [-4.11735 111.148 -131.104 -13.423 1.36924 -1.04304];
+% LEft Foot
+FT3 = [-52.0296 -5.64247 -18.0923 -0.516052 9.91345 0.717567];
+% Right Leg
+FT4 = [-5.65084 -10.5031 -24.6174 1.95779 2.61084 0.0036913];
+% Right foot
+FT5 = [-17.4992 -0.910681 18.0613 -0.824831 3.32657 -0.252851];
+
+left_leg_ft_offset = FT2;
+right_leg_ft_offset = FT4;
+left_foot_ft_offset = FT3;
+right_foot_ft_offset = FT5;
 
 %%
 expPath     = ['./robotData/backwardTipping/dumperTippingSetup0' ...
@@ -98,7 +114,10 @@ a_omega = interp1(inertial.t,inertial.data,t);
 a_ = a_omega(:,4:6);
 omega_ = a_omega(:,7:9);
 
-delta = (256 - delta_)./255;
+%% Total Normal Force through the skin
+% The following two lines can be replaced by totalForceFromSkinData() but
+% this would read again the raw values. 
+delta = dataPostProcessing(delta_, 'normalForces')
 fc_x = computeTotalForce(delta, 'normalForces')';
 
 %% Forces and torques
@@ -118,6 +137,7 @@ omega = (-com_R_imu*omega_')*(pi/180);
     %% plotting raw and corrected data
     if(plots == 0)
         figure(1);
+            % 
             subplot(2,2,1);
             plot(t,fo_);
             xlabel('time (sec)');
@@ -188,6 +208,7 @@ omega = (-com_R_imu*omega_')*(pi/180);
             plot(t,fc_x);
             xlabel('time (sec)');
             ylabel('force (N)');
+            title('Normal Force with Foot Skin');
             legend('fX', 'fY', 'fZ');
             axis tight;
 

@@ -1,4 +1,4 @@
-function [processedSkinData] = dataPostProcessing(rawSkinData, whichStiffVec, threshold)
+function [processedSkinData] = dataPostProcessing(rawSkinDataShort, whichStiffVec, threshold)
 % DATAPOSTPROCESSING(rawSkinData, whichStiffVec, threshold)
 % @param  rawSkinData [n x 386]: Raw skin data as retrieved by the
 % dataDumper where each row corresponds to a sample reading.
@@ -50,7 +50,7 @@ if (nargin < 2)
     whichStiffVec='normalForces';
 end
 
-rawSkinDataShort  = rawSkinData(:, 3:end);
+% rawSkinDataShort  = rawSkinData(:, 3:end);
 processedSkinData = 256-rawSkinDataShort;
 processedSkinData = processedSkinData/255;
 
