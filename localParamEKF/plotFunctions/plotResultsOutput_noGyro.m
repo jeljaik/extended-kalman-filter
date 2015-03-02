@@ -14,7 +14,7 @@ idx = 1; %Time
 index = 0;
 %stateVar = 1; % State variable from the state vector.
 tMin = tK(1);%0.0;
-yM = [yM(:,1:3), zeros(size(yM,1),3), yM(:,4:end)];
+%yM = [yM(:,1:3), zeros(size(yM,1),3), yM(:,4:end)];
 
 %% Estimated Forces 
 stateVar = 7;
@@ -271,20 +271,22 @@ figure(index+5+figPreN)
 % muc_x_B = Xhat(idx:end,19); muc_x_B_sigma = squeeze(2*sqrt(P(19,19,idx:end)))';
 % muc_y_B = Xhat(idx:end,20); muc_y_B_sigma = squeeze(2*sqrt(P(20,20,idx:end)))';
 % muc_z_B = Xhat(idx:end,20); muc_z_B_sigma = squeeze(2*sqrt(P(21,21,idx:end)))';
-
+%===========================================================
 if(source==2)
-    index_at_time = @(desTime,totalTime)find(totalTime>desTime,1,'first');
-    idEnd = index_at_time(62.85,tK);
-    disp(idEnd);
-    disp(length(tK));
-
-
-    plot_FRI(XPred, P,tK, idx,idEnd,'r',index+5+figPreN);
-
-    ind = figure();
-    plot_FRI(XUpt, P,tK, idx,idEnd,'b',index+5+figPreN);
+%     index_at_time = @(desTime,totalTime)find(totalTime>desTime,1,'first');
+%     idEnd = index_at_time(7.4,tK);
+%     disp(idEnd);
+%     disp(length(tK));
+% % 
+% % tK = totalTime;
+% % idEnd = length(tK);
+% 
+%     plot_FRI(XPred, P,tK, idx,idEnd,'r',index+5+figPreN);
+% 
+%     ind = figure();
+%     plot_FRI(XUpt, P,tK, idx,idEnd,'b',index+5+figPreN);
 end
-
+%===========================================================
 % 
 % figure;
 % 

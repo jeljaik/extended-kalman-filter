@@ -1,4 +1,4 @@
-function [yMeas,tMeas,model] = realMeasurement_withSkin(dtKalman, model, plots, t_min, t_max, numberOfExperiment, whichLeg, whichSkin)
+function [yMeas,tMeas,model,R] = realMeasurement_withSkin(dtKalman, model, plots, t_min, t_max, numberOfExperiment, whichLeg, whichSkin)
 % REALMEASUREMENT_WITHSKIN loads data from the backward tipping experiments
 %   including the feet skin to post-process these data.
 %
@@ -75,9 +75,9 @@ com_adj_ankle = [eye(3) zeros(3) ; -eye(3)*S(ankle_p_com) eye(3) ];
 ankle_adj_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_ankle) eye(3) ]; 
 com_adj_leg = com_adj_ankle * ankle_adj_leg;
 
-com_R_imu = [  0 -1 0 ;...
-               0  0 1 ;...
-              -1  0 0 ];
+com_R_imu = [  -1  0   0 ;...
+               0   0  -1 ;...
+               0   1   0 ];
 
 leg_ft.t = leg_ft_data(:,2)-leg_ft_data(1,2);
 leg_ft.idx = leg_ft_data(:,1) - leg_ft_data(1,1);
@@ -102,36 +102,83 @@ inertial.data = inertial_data(:,3:end);
 tMax = min([leg_ft.t(end),foot_ft.t(end),skin.t(end),inertial.t(end),t_max]);
 t = linspace(t_min,tMax,(tMax - t_min)/dtKalman);
 
-%% pre-processed interpolated data
-fo_ = interp1(leg_ft.t,leg_ft.f,t);
-muo_ = interp1(leg_ft.t,leg_ft.mu,t);
-fc_ = interp1(foot_ft.t,foot_ft.f,t);
-muc_ = interp1(foot_ft.t,foot_ft.mu,t);
-delta_ = interp1(skin.t,skin.data,t);
-a_omega = interp1(inertial.t,inertial.data,t);
+tCalib = linspace(0,t_min,(t_min)/dtKalman);
 
-%% IMU and skin
-a_ = a_omega(:,4:6);
-omega_ = a_omega(:,7:9);
+
+%% calibration and covariance estimation data
+fo_pre_calib = interp1(leg_ft.t,leg_ft.f,tCalib);
+muo_pre_calib = interp1(leg_ft.t,leg_ft.mu,tCalib);
+fc_pre_calib = interp1(foot_ft.t,foot_ft.f,tCalib);
+muc_pre_calib = interp1(foot_ft.t,foot_ft.mu,tCalib);
+delta_pre_calib = interp1(skin.t,skin.data,tCalib);
+a_omega_pre_calib = interp1(inertial.t,inertial.data,tCalib);
+
+a_pre_calib = a_omega_pre_calib(:,4:6);
+omega_pre_calib = a_omega_pre_calib(:,7:9);
+
+%omega_pre_calib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
+omegaOffset = mean((com_R_imu*omega_pre_calib'),2);
 
 %% Total Normal Force through the skin
 % The following two lines can be replaced by totalForceFromSkinData() but
 % this would read again the raw values. 
-delta = dataPostProcessing(delta_, 'normalForces')
-fc_x = computeTotalForce(delta, 'normalForces')';
+delta_proc_calib = dataPostProcessing(delta_pre_calib, 'normalForces');
+fc_z_calib = computeTotalForce(delta_proc_calib, 'normalForces')';
 
 %% Forces and torques
-fo_muo = com_adj_leg * [fo_';muo_'];
+fo_muo_calib = com_adj_leg * [fo_pre_calib';muo_pre_calib'];
+fo_calib = fo_muo_calib(1:3,:);
+muo_calib = fo_muo_calib(4:6,:);
+
+fc_muc_calib = com_adj_ankle * [fc_pre_calib';muc_pre_calib'];
+fc_calib = fc_muc_calib(1:3,:);
+muc_calib = fc_muc_calib(4:6,:);
+
+%% IMU
+a_calib = (com_R_imu*a_pre_calib');
+%omegaCentered = omega_calib - repmat(omegaOffset,size(omega_pre_proc,1),1);
+omega_calib = (com_R_imu*omega_pre_calib')*(pi/180);
+
+yCalib = [a_calib;omega_calib;fo_calib;muo_calib;fc_calib;muc_calib;fc_z_calib]';
+
+covMat = cov(yCalib);
+R = covMat;
+
+%% pre-processed interpolated data
+fo_pre_proc = interp1(leg_ft.t,leg_ft.f,t);
+muo_pre_proc = interp1(leg_ft.t,leg_ft.mu,t);
+fc_pre_proc = interp1(foot_ft.t,foot_ft.f,t);
+muc_pre_proc = interp1(foot_ft.t,foot_ft.mu,t);
+delta_pre_proc = interp1(skin.t,skin.data,t);
+a_omega_pre_proc = interp1(inertial.t,inertial.data,t);
+
+%% IMU and skin
+a_pre_proc = a_omega_pre_proc(:,4:6);
+omega_pre_proc = a_omega_pre_proc(:,7:9);
+
+%omegaCalib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
+%omegaOffset = mean(omega_calib,1);
+
+%% Total Normal Force through the skin
+% The following two lines can be replaced by totalForceFromSkinData() but
+% this would read again the raw values. 
+delta = dataPostProcessing(delta_pre_proc, 'normalForces');
+fc_z = computeTotalForce(delta, 'normalForces')';
+
+%% Forces and torques
+fo_muo = com_adj_leg * [fo_pre_proc';muo_pre_proc'];
 fo = fo_muo(1:3,:);
 muo = fo_muo(4:6,:);
 
-fc_muc = com_adj_ankle * [fc_';muc_'];
+fc_muc = com_adj_ankle * [fc_pre_proc';muc_pre_proc'];
 fc = fc_muc(1:3,:);
 muc = fc_muc(4:6,:);
 
-%% Gyro
-a = (-com_R_imu*a_');
-omega = (-com_R_imu*omega_')*(pi/180);
+%% IMU
+a = (com_R_imu*a_pre_proc');
+omegaCentered = (com_R_imu*omega_pre_proc')' - repmat(omegaOffset',size(omega_pre_proc,1),1);
+omega = (omegaCentered).*(pi/180);
+
 
 
     %% plotting raw and corrected data
@@ -139,7 +186,7 @@ omega = (-com_R_imu*omega_')*(pi/180);
         figure(1);
             % 
             subplot(2,2,1);
-            plot(t,fo_);
+            plot(t,fo_pre_proc);
             xlabel('time (sec)');
             ylabel('force (N)');
             legend('fX', 'fY', 'fZ');            
@@ -147,7 +194,7 @@ omega = (-com_R_imu*omega_')*(pi/180);
             title('fo_{raw}');
 
             subplot(2,2,2);
-            plot(t,muo_);
+            plot(t,muo_pre_proc);
             xlabel('time (sec)');
             ylabel('torque (Nm)');
             legend('muX', 'muY', 'muZ');                                    
@@ -155,7 +202,7 @@ omega = (-com_R_imu*omega_')*(pi/180);
             title('muo_{raw}');
 
             subplot(2,2,3);
-            plot(t,fc_);
+            plot(t,fc_pre_proc);
             xlabel('time (sec)');
             ylabel('force (N)');
             legend('fX', 'fY', 'fZ');                                    
@@ -163,7 +210,7 @@ omega = (-com_R_imu*omega_')*(pi/180);
             title('fc_{raw}');
 
             subplot(2,2,4);
-            plot(t,muc_);
+            plot(t,muc_pre_proc);
             xlabel('time (sec)');
             ylabel('torque (Nm)');
             legend('muX', 'muY', 'muZ');                        
@@ -205,16 +252,16 @@ omega = (-com_R_imu*omega_')*(pi/180);
 
         figure(3);
             %plot(t,(TFoot.ans'*del')');
-            plot(t,fc_x);
+            plot(t,fc_z);
             xlabel('time (sec)');
             ylabel('force (N)');
             title('Normal Force with Foot Skin');
-            legend('fX', 'fY', 'fZ');
+            legend('fZ');
             axis tight;
 
          figure(4);
             subplot(2,1,1);
-            plot(t,a_);
+            plot(t,a_pre_proc);
             xlabel('time (sec)');
             ylabel('m/sec^2');
             legend('accX', 'accY', 'accZ');
@@ -222,7 +269,7 @@ omega = (-com_R_imu*omega_')*(pi/180);
             title('Linear Acceleration a_{raw} [m/s^2]');
 
             subplot(2,1,2);
-            plot(t,omega_);
+            plot(t,omega_pre_proc);
             xlabel('time (sec)');
             ylabel('deg/sec');
             legend('gyrX', 'gyrY', 'gyrZ');
@@ -248,7 +295,7 @@ omega = (-com_R_imu*omega_')*(pi/180);
     end
   %  idx = t>t_min;
   %  yMeas = [a(:,idx);omega(:,idx);fo(:,idx);muo(:,idx);fc(:,idx);muc(:,idx);fc_x(:,idx)]';
-    yMeas = [a;omega;fo;muo;fc;muc;fc_x]';
+    yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
     tMeas = t;
     
     model.m = 0.761;
@@ -259,6 +306,6 @@ omega = (-com_R_imu*omega_')*(pi/180);
            
             %ixx="0.00253893" ixy="-4.51893e-06" ixz="-0.000903578" iyy="0.00407487" iyz="3.68679e-05" izz="0.00208378
     
-    model.x0 = [zeros(6,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);zeros(3,1)];
+    model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);zeros(3,1)];
 
 end

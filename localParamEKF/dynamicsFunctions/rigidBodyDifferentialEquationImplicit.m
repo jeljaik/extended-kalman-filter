@@ -118,8 +118,8 @@ end
 
 %% 
 %if ~useInvDyn
-    fLin     = - S(omega_B) * (m   * v_B    ) +  f_B_t_o + f_B_t_c + m*g.*R*[0; 0; 1];
-    fAng     = - S(omega_B) * (I_B * omega_B) +  mu_B_t_o + mu_B_t_c;
+    dv_B     = - S(omega_B) * (m   * v_B    ) +  f_B_t_o + f_B_t_c + m*g.*R*[0; 0; 1];
+    domega_B = - S(omega_B) * (I_B * omega_B) +  mu_B_t_o + mu_B_t_c;
     df_B_o   =  zeros(3,1); %df_B_t_1;%u_t;
     dmu_B_o  =  zeros(3,1); %dmu_B_t_1;%0.5*v_t;
     df_B_c   =  zeros(3,1); %df_B_t_2;%u_t;       %zeros(length(u_t),1);
@@ -146,7 +146,7 @@ dphi = Tomega_dphi(phi)\omega_B;
 %dphi     =   phiDerivative(phi,omega_B);%inv(R)*omega_B;
 %
 %if ~useInvDyn
-    dxdt   = [fLin; fAng; df_B_o; dmu_B_o; df_B_c; dmu_B_c; dphi];
+    dxdt   = [dv_B; domega_B; df_B_o; dmu_B_o; df_B_c; dmu_B_c; dphi];
 %else
  %   dxdt   = [fLin; fAng; dphi];
 %en
