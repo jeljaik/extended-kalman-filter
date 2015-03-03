@@ -35,7 +35,7 @@ close all
 clc
 
 utilities    = genpath('./utils');
-symb         = genpath('./symbolic');
+symb         = genpath('./symbolicFunctions');
 %mexbm        = genpath('./mexWBModel');
 ellipses      = genpath('./ellipses');
 dynFuncs     = genpath('./dynamicsFunctions');
@@ -57,7 +57,7 @@ h_func = @(x,model)rigidBodyOutput(x,model, [],[],[],[]);
 
 source = 2; % 1 : sim data, 2 : real-data
 
-T       = 2;        % estimation time span
+%T       = 2;        % estimation time span
 n       = 21;         % state dimension - (translational vel, rotational vel, w_o, w_c, RPY angle)
 m       = 19;         % output dimension
 
@@ -148,6 +148,7 @@ Q  = diag([kalman.a_Q*ones(3,1);
 if(~exist('RData'))       
     R =diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
 else 
+    disp('Using real data covariance matrix');
     R = RData;
 end
 

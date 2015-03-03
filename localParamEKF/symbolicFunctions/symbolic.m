@@ -44,7 +44,7 @@ dmu_B_c  =  [0 0 0]';
 %dphi = Tphi\omega_B;
 %dphi = Tomega_dphi(phi
 %R\omega_B;
-dphi     =  inv(Tomega_dphi(phi))\omega_B;
+dphi     =  (Tomega_dphi(phi))\omega_B;
 
 
 h_imu = [dv_B + g.*R*[1; 0; 0]; omega_B];
@@ -72,6 +72,6 @@ model.I  = I_B;
 %matlabFunction(df_dx,'file','./symbolic/rigidBodyDynamicsDerivatives','vars',[x; dI; m; g]);
 
 %matlabFunction(dh_dx,'file','./symbolic/rigidBodyOutputsDerivatives','vars',[x; dI; m; g]);
-matlabFunction(df_dx,'file','./symbolic/rigidBodyDynamicsDerivatives','vars',[x; dI; m; g]);
+matlabFunction(df_dx,'file','./symbolicFunctions/rigidBodyDynamicsDerivatives','vars',[x; dI; m; g]);
 
-matlabFunction(dh_dx,'file','./symbolic/rigidBodyOutputsDerivatives','vars',[x; dI; m; g]);
+matlabFunction(dh_dx,'file','./symbolicFunctions/rigidBodyOutputsDerivatives','vars',[x; dI; m; g]);

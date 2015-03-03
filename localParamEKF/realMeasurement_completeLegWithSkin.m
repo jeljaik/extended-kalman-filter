@@ -210,21 +210,21 @@ delta = dataPostProcessing(delta_pre_proc, 'normalForces');
 fc_z = computeTotalForce(delta, 'normalForces')';
 
 %% Forces and torques
-% fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
-% fo = fo_muo(1:3,:) - f_calib_delta*ones(1,length(t));
-% muo = fo_muo(4:6,:) - mu_calib_delta*ones(1,length(t));
-% 
-% fc_muc = com_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
-% fc = fc_muc(1:3,:)  + f_calib_delta*ones(1,length(t));
-% muc = fc_muc(4:6,:) + mu_calib_delta*ones(1,length(t));
-
 fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
-fo = fo_muo(1:3,:);
-muo = fo_muo(4:6,:);
+fo = fo_muo(1:3,:) - f_calib_delta*ones(1,length(t));
+muo = fo_muo(4:6,:) - mu_calib_delta*ones(1,length(t));
 
 fc_muc = com_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
-fc = fc_muc(1:3,:);
-muc = fc_muc(4:6,:);
+fc = fc_muc(1:3,:)  + f_calib_delta*ones(1,length(t));
+muc = fc_muc(4:6,:) + mu_calib_delta*ones(1,length(t));
+% 
+% fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
+% fo = fo_muo(1:3,:);
+% muo = fo_muo(4:6,:);
+% 
+% fc_muc = com_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
+% fc = fc_muc(1:3,:);
+% muc = fc_muc(4:6,:);
 
 %% IMU
 a = (com_R_imu*a_pre_proc');
@@ -344,12 +344,12 @@ omega = (omegaCentered).*(pi/180);
             legend('gyrX', 'gyrY', 'gyrZ');
             axis tight;
             title('Angular Velocity \omega _{com}');
-            
-            figure(6);
-            subplot(2,1,1);
-            plot(t,fo-fc);
-            subplot(2,1,2);
-            plot(t,muo-muc);
+%             
+%             figure(6);
+%             subplot(2,1,1);
+%             plot(t,fo-fc);
+%             subplot(2,1,2);
+%             plot(t,muo-muc);
     end
   %  idx = t>t_min;
   %  yMeas = [a(:,idx);omega(:,idx);fo(:,idx);muo(:,idx);fc(:,idx);muc(:,idx);fc_x(:,idx)]';

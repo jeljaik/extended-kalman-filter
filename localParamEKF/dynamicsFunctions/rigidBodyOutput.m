@@ -29,7 +29,7 @@ end
 
 %mu_B_2_y = mu_B_c(2,:);
 %mu_B_2_z = mu_B_c(3,:);
-f_B_c_z = f_B_c(3,:);
+f_B_c_z = f_B_c(3,1);
 
 phi     = x(19:21, 1);
 R    = euler2dcm(phi);

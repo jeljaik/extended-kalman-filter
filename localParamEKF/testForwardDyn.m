@@ -1,8 +1,8 @@
 
 
 %clear
-close all
-clc
+%close all
+%clc
 
 utilities    = genpath('./utils');
 symb         = genpath('./symbolic');
@@ -93,48 +93,48 @@ mu_Bc_tid = @(t)interp1(tMeas,yMeas(:,16:18),t)';
 [tint,xint] = integrateForwardDynamics( model.x0, model, tMeas, f_Bo_tid, mu_Bo_tid, f_Bc_tid, mu_Bc_tid, 'lala');
 
 figure;
-subplot(3,1,1);
-plot(tint,xint(:,19));
+subplot(3,3,1);
+plot(tint,xint(:,19)); 
 xlabel('t');
 ylabel('\phi_x');
 title('Orientation');
-subplot(3,1,2);
+subplot(3,3,4);
 plot(tint,xint(:,20));
 xlabel('t');
 ylabel('\phi_y');
-subplot(3,1,3);
+subplot(3,3,7);
 plot(tint,xint(:,21));
 xlabel('t');
 ylabel('\phi_z');
 
 
-figure;
-subplot(3,1,1);
+%figure;
+subplot(3,3,2);
 plot(tint,xint(:,1));
 xlabel('t');
 ylabel('v_x');
 title('Linear velocity');
-subplot(3,1,2);
+subplot(3,3,5);
 plot(tint,xint(:,2));
 xlabel('t');
 ylabel('v_y');
-subplot(3,1,3);
+subplot(3,3,8);
 plot(tint,xint(:,3));
 xlabel('t');
 ylabel('v_z');
 
 
-figure;
-subplot(3,1,1);
+%figure;
+subplot(3,3,3);
 plot(tint,xint(:,4));
 xlabel('t');
 ylabel('\omega_x');
 title('Angular velocity');
-subplot(3,1,2);
+subplot(3,3,6);
 plot(tint,xint(:,5));
 xlabel('t');
 ylabel('\omega_y');
-subplot(3,1,3);
+subplot(3,3,9);
 plot(tint,xint(:,6));
 xlabel('t');
 ylabel('\omega_z');
