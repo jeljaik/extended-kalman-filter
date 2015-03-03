@@ -68,18 +68,18 @@ m       = 19;         % output dimension
 realKalman.T       = 2;       % time span
 realKalman.sigma_f = 0.5;       % output error variance (forces)
 realKalman.sigma_u = 0.75;      % output error variance (torques)
-realKalman.sigma_a = 7.5;       % output error variance (acceleration)
-realKalman.sigma_omega = 3.00;
-realKalman.sigma_skin = 2.5;
+realKalman.sigma_a = 0.5;       % output error variance (acceleration)
+realKalman.sigma_omega = 1.00;
+realKalman.sigma_skin = 0.75;
 
-realKalman.a_Q  = 3.0;
-realKalman.omega_Q  = 15.0;
+realKalman.a_Q  = 1.0;
+realKalman.omega_Q  = 2.0;
 realKalman.f_Q  = 1.5;
 realKalman.mu_Q = 2.5; 
 realKalman.phi_Q = 7.5;
 
 %realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
-realKalman.P =10* diag([ones(3,1);100*ones(3,1); ones(6,1); ones(6,1); 25*ones(3,1)]);
+realKalman.P =0.51* diag([ones(3,1);100*ones(3,1); ones(6,1); ones(6,1); 25*ones(3,1)]);
 %realKalman.P = realKalman.P- 1*ones(size(realKalman.P)) + 5*rand(size(realKalman.P));
 %% SimSensor parameters
 
@@ -103,12 +103,12 @@ model.I   = diag([0.05 0.02 0.03]);
 model.m   = 0.761;%7;
 model.dtInvDyn = 0.0001;
 model.dtForDyn = 0.001;
-model.dtKalman = 0.025;%0.05;%0.0025;%0.01;
+model.dtKalman = 0.01;%0.05;%0.0025;%0.01;
 model.g   = 9.81;
 model.bck = false;
 
 t_min = 5;%61;%42;
-t_max = 8.5;%8.25;%64;%43;
+t_max = 7.5;%8.25;%64;%43;
 
 
 
@@ -122,7 +122,7 @@ if(source ==1)
     
     
 else
-    [yMeas,tMeas,model,RData] = realMeasurement_withSkin(model.dtKalman,model,0,t_min,t_max);
+    [yMeas,tMeas,model,RData] = realMeasurement_completeLegWithSkin(model.dtKalman,model,0,t_min,t_max);
     T = tMeas(end);
    tKalman = tMeas;
    % numSamples = length(tKalman) - 4000;
@@ -138,7 +138,7 @@ end
 
 
 %% KALMAN FILTER IMPLEMENTATION
-Q  = 5*diag([kalman.a_Q*ones(3,1);
+Q  = diag([kalman.a_Q*ones(3,1);
            kalman.omega_Q*ones(3,1);
            kalman.f_Q*ones(6,1); 
            kalman.mu_Q*ones(6,1); 
@@ -148,7 +148,7 @@ Q  = 5*diag([kalman.a_Q*ones(3,1);
 if(~exist('RData'))       
     R =diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
 else 
-    R = 5*RData;
+    R = 1.0*RData;
 end
 
 Ph = kalman.P;

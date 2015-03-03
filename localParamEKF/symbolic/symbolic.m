@@ -48,6 +48,7 @@ dphi     =  inv(Tomega_dphi(phi))\omega_B;
 
 
 h_imu = [dv_B + g.*R*[0; 0; 1]; omega_B];
+%h_imu = [dv_B ; omega_B];
 h_fto = [f_B_o; mu_B_o];
 h_ftc = [f_B_c; mu_B_c];
 h_skin = f_B_cz;
