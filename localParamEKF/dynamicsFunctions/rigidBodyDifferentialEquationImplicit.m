@@ -118,8 +118,8 @@ end
 
 %% 
 %if ~useInvDyn
-    dv_B     = - S(omega_B) * (m   * v_B    ) +  f_B_t_o + f_B_t_c + m*g.*R*[0; 0; 1];
-    domega_B = - S(omega_B) * (I_B * omega_B) +  mu_B_t_o + mu_B_t_c;
+    dv_B     = - S(omega_B) * (m   * v_B    ) + (f_B_t_o - f_B_t_c) + m*g.*R*[1; 0; 0];
+    domega_B = - S(omega_B) * (I_B * omega_B) +  (mu_B_t_o - mu_B_t_c);
     df_B_o   =  zeros(3,1); %df_B_t_1;%u_t;
     dmu_B_o  =  zeros(3,1); %dmu_B_t_1;%0.5*v_t;
     df_B_c   =  zeros(3,1); %df_B_t_2;%u_t;       %zeros(length(u_t),1);

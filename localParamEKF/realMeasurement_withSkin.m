@@ -66,7 +66,7 @@ end
  
 %% Rototranslation definitions
 % leg to ankle
-leg_p_ankle = [0.4776 0 0]' ;
+leg_p_ankle = [0 0 0.4776]';%[0.4776 0 0]' ;
 %leg_T_ankle = [eye(3) leg_p_ankle ; zeros(3,1),1];
 ankle_p_com = [0.024069 -0.000613931 0.0425846]';
 %ankle_T_com = [eye(3) ankle_p_com ; zeros(3,1),1];
@@ -74,11 +74,14 @@ ankle_p_com = [0.024069 -0.000613931 0.0425846]';
 com_adj_ankle = [eye(3) zeros(3) ; -eye(3)*S(ankle_p_com) eye(3) ];
 ankle_adj_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_ankle) eye(3) ]; 
 com_adj_leg = com_adj_ankle * ankle_adj_leg;
+% 
+% com_R_imu = [  -1  0   0 ;...
+%                0   0  -1 ;...
+%                0   1   0 ];
 
-com_R_imu = [  -1  0   0 ;...
-               0   0  -1 ;...
-               0   1   0 ];
-
+com_R_imu = [  1  0   0 ;...
+               0   0  1 ;...
+               0   -1   0 ];
 leg_ft.t = leg_ft_data(:,2)-leg_ft_data(1,2);
 leg_ft.idx = leg_ft_data(:,1) - leg_ft_data(1,1);
 leg_ft_data(:,3:8) = leg_ft_data(:,3:8) - repmat(leg_ft_offset,size(leg_ft_data,1),1);
@@ -113,7 +116,7 @@ muc_pre_calib = interp1(foot_ft.t,foot_ft.mu,tCalib);
 delta_pre_calib = interp1(skin.t,skin.data,tCalib);
 a_omega_pre_calib = interp1(inertial.t,inertial.data,tCalib);
 
-a_pre_calib = a_omega_pre_calib(:,4:6);
+a_pre_calib = -a_omega_pre_calib(:,4:6);
 omega_pre_calib = a_omega_pre_calib(:,7:9);
 
 %omega_pre_calib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
@@ -153,7 +156,7 @@ delta_pre_proc = interp1(skin.t,skin.data,t);
 a_omega_pre_proc = interp1(inertial.t,inertial.data,t);
 
 %% IMU and skin
-a_pre_proc = a_omega_pre_proc(:,4:6);
+a_pre_proc = -a_omega_pre_proc(:,4:6);
 omega_pre_proc = a_omega_pre_proc(:,7:9);
 
 %omegaCalib = interp1(inertial.t,inertial.data(:,7:9),tCalib);

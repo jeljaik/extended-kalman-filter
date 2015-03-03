@@ -72,14 +72,14 @@ realKalman.sigma_a = 0.5;       % output error variance (acceleration)
 realKalman.sigma_omega = 1.00;
 realKalman.sigma_skin = 0.75;
 
-realKalman.a_Q  = 1.0;
-realKalman.omega_Q  = 2.0;
-realKalman.f_Q  = 1.5;
-realKalman.mu_Q = 2.5; 
-realKalman.phi_Q = 7.5;
+realKalman.a_Q  = 25;
+realKalman.omega_Q  = 5;
+realKalman.f_Q  = 25;
+realKalman.mu_Q = 25; 
+realKalman.phi_Q = 10.0;
 
 %realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
-realKalman.P =0.51* diag([ones(3,1);100*ones(3,1); ones(6,1); ones(6,1); 25*ones(3,1)]);
+realKalman.P =2.0* diag([ones(3,1);ones(3,1); 10*ones(6,1); 10*ones(6,1); 100*ones(3,1)]);
 %realKalman.P = realKalman.P- 1*ones(size(realKalman.P)) + 5*rand(size(realKalman.P));
 %% SimSensor parameters
 
@@ -103,12 +103,12 @@ model.I   = diag([0.05 0.02 0.03]);
 model.m   = 0.761;%7;
 model.dtInvDyn = 0.0001;
 model.dtForDyn = 0.001;
-model.dtKalman = 0.01;%0.05;%0.0025;%0.01;
+model.dtKalman = 0.0075;%0.05;%0.0025;%0.01;
 model.g   = 9.81;
 model.bck = false;
 
 t_min = 5;%61;%42;
-t_max = 7.5;%8.25;%64;%43;
+t_max = 7.0;%8.25;%64;%43;
 
 
 
@@ -148,7 +148,7 @@ Q  = diag([kalman.a_Q*ones(3,1);
 if(~exist('RData'))       
     R =diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
 else 
-    R = 1.0*RData;
+    R = RData;
 end
 
 Ph = kalman.P;

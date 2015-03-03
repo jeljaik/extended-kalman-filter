@@ -24,6 +24,32 @@ if (nargin<6)
 end
 
 %skin_data = importdata('./robotData/backwardTipping/dumperTippingSetup01/icub/skin/right_foot/data.log ');
+%% Params
+   %% new model parameters from robot 
+model.m = 4.9580;
+
+
+%% obtaining mass-matrix from mexWBIModel (stored in utils)
+
+load('./utils/MIni','M_at_q0');
+
+%% TODO We need to extract foot's instead.
+Mjts = M_at_q0(7:end,7:end);            % Leg mass matrix 
+MI_at_thigh = Mjts(14:16,14:16);
+
+%% checkup if this is for left leg or right leg. Not entirely sure if it will be different
+Tl = [0 1 0; 1 0 0 ; 0 0 -1];
+% Transformation of the mass matrix to COM reference frame
+Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
+
+% MI_at_thigh_r = Mjts(20:22,20:22);
+% Tl_r = [0 -1 0; 1 0 0 ; 0 0 1];
+% Ic_r = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
+
+% disp(Ic);
+model.I = Ic;
+%model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);zeros(3,1)];
+
 
 %% OFFSETS. 
 % Left leg
@@ -146,8 +172,8 @@ muc_calib = fc_muc_calib(4:6,:);
 
 
 %% Force offsets corrected to calibration dataset
-f_calib_sum = mean(fo_calib - fc_calib,2);
-mu_calib_sum = mean(muo_calib - muc_calib,2);
+f_calib_delta = (0.5)*( mean(+fo_calib-fc_calib,2) + model.m*9.81 * euler2dcm([0,0.5*pi,0]')*[1;0;0]);
+mu_calib_delta = (0.5)*mean(+muo_calib - muc_calib,2);
 
 
 
@@ -184,13 +210,21 @@ delta = dataPostProcessing(delta_pre_proc, 'normalForces');
 fc_z = computeTotalForce(delta, 'normalForces')';
 
 %% Forces and torques
+% fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
+% fo = fo_muo(1:3,:) - f_calib_delta*ones(1,length(t));
+% muo = fo_muo(4:6,:) - mu_calib_delta*ones(1,length(t));
+% 
+% fc_muc = com_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
+% fc = fc_muc(1:3,:)  + f_calib_delta*ones(1,length(t));
+% muc = fc_muc(4:6,:) + mu_calib_delta*ones(1,length(t));
+
 fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
-fo = fo_muo(1:3,:) - 0.5.*f_calib_sum*ones(1,length(t));
-muo = fo_muo(4:6,:) - 0.5.*mu_calib_sum*ones(1,length(t));
+fo = fo_muo(1:3,:);
+muo = fo_muo(4:6,:);
 
 fc_muc = com_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
-fc = fc_muc(1:3,:)  + 0.5.*f_calib_sum*ones(1,length(t));
-muc = fc_muc(4:6,:) + 0.5.*mu_calib_sum*ones(1,length(t));
+fc = fc_muc(1:3,:);
+muc = fc_muc(4:6,:);
 
 %% IMU
 a = (com_R_imu*a_pre_proc');
@@ -321,7 +355,9 @@ omega = (omegaCentered).*(pi/180);
   %  yMeas = [a(:,idx);omega(:,idx);fo(:,idx);muo(:,idx);fc(:,idx);muc(:,idx);fc_x(:,idx)]';
     yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
     tMeas = t;
-    
+   % model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);[0,0.5*pi,0]']; %% corresponds to -9.81 accln on Z
+    model.x0 = [zeros(3,1);zeros(3,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);[0,0.5*pi,0]']; %% corresponds to -9.81 accln on Z
+
     %model.m = 0.761;
     
     %model.I = [0.00253893, -4.51893e-6, -0.000903578;...
@@ -331,30 +367,5 @@ omega = (omegaCentered).*(pi/180);
             %ixx="0.00253893" ixy="-4.51893e-06" ixz="-0.000903578" iyy="0.00407487" iyz="3.68679e-05" izz="0.00208378
     
             
-   %% new model parameters from robot 
-model.m = 4.9580;
-
-
-%% obtaining mass-matrix from mexWBIModel (stored in utils)
-
-load('./utils/MIni','M_at_q0');
-
-%% TODO We need to extract foot's instead.
-Mjts = M_at_q0(7:end,7:end);            % Leg mass matrix 
-MI_at_thigh = Mjts(14:16,14:16);
-
-%% checkup if this is for left leg or right leg. Not entirely sure if it will be different
-Tl = [0 1 0; 1 0 0 ; 0 0 -1];
-% Transformation of the mass matrix to COM reference frame
-Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
-
-% MI_at_thigh_r = Mjts(20:22,20:22);
-% Tl_r = [0 -1 0; 1 0 0 ; 0 0 1];
-% Ic_r = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
-
-% disp(Ic);
-model.I = Ic;
-%model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);zeros(3,1)];
-model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);[0, -0.5*pi, 0]']; %% corresponds to -9.81 accln on Z
 
 end

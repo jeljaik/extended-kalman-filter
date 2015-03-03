@@ -31,8 +31,8 @@ mu_B_c  = [    mu_B_cx    mu_B_cy    mu_B_cz]';
 phi     = [    phi1       phi2       phi3]';
 R       = euler2dcm(phi);
 
-dv_B     = -S(omega_B) * v_B + 1/m * f_B_o + 1/m*f_B_c + g.*R*[0; 0; 1];
-domega_B =  I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_o + mu_B_c);
+dv_B     = -S(omega_B) * v_B + 1/m * f_B_o - 1/m*f_B_c + g.*R*[1; 0; 0];
+domega_B =  I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_o - mu_B_c);
 df_B_o   =  [0 0 0]';
 dmu_B_o  =  [0 0 0]';
 df_B_c   =  [0 0 0]';
@@ -47,7 +47,7 @@ dmu_B_c  =  [0 0 0]';
 dphi     =  inv(Tomega_dphi(phi))\omega_B;
 
 
-h_imu = [dv_B + g.*R*[0; 0; 1]; omega_B];
+h_imu = [dv_B + g.*R*[1; 0; 0]; omega_B];
 %h_imu = [dv_B ; omega_B];
 h_fto = [f_B_o; mu_B_o];
 h_ftc = [f_B_c; mu_B_c];
