@@ -49,7 +49,9 @@ Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
 % disp(Ic);
 model.I = Ic;
 %model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);zeros(3,1)];
-
+model.gRot = [-1;0;0];
+model.phi0 = [0,0.5*pi,0]';
+model.acclSign = -1;
 
 %% OFFSETS. 
 % Left leg
@@ -149,7 +151,7 @@ muc_pre_calib = interp1(foot_ft.t,foot_ft.mu,tCalib);
 delta_pre_calib = interp1(skin.t,skin.data,tCalib);
 a_omega_pre_calib = interp1(inertial.t,inertial.data,tCalib);
 
-a_pre_calib = -a_omega_pre_calib(:,4:6);
+a_pre_calib = model.acclSign*a_omega_pre_calib(:,4:6);
 omega_pre_calib = a_omega_pre_calib(:,7:9);
 
 %omega_pre_calib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
@@ -172,8 +174,8 @@ muc_calib = fc_muc_calib(4:6,:);
 
 
 %% Force offsets corrected to calibration dataset
-f_calib_delta = (0.5)*( mean(+fo_calib-fc_calib,2) + model.m*9.81 * euler2dcm([0,0.5*pi,0]')*[1;0;0]);
-mu_calib_delta = (0.5)*mean(+muo_calib - muc_calib,2);
+f_calib_delta = (0.5)*( mean(-fo_calib+fc_calib,2) + model.m*9.81 * euler2dcm(model.phi0)*model.gRot);
+mu_calib_delta = (0.5)*mean(-muo_calib + muc_calib,2);
 
 
 
@@ -197,7 +199,7 @@ delta_pre_proc = interp1(skin.t,skin.data,t);
 a_omega_pre_proc = interp1(inertial.t,inertial.data,t);
 
 %% IMU and skin
-a_pre_proc = -a_omega_pre_proc(:,4:6);
+a_pre_proc = model.acclSign*a_omega_pre_proc(:,4:6);
 omega_pre_proc = a_omega_pre_proc(:,7:9);
 
 %omegaCalib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
@@ -211,12 +213,12 @@ fc_z = computeTotalForce(delta, 'normalForces')';
 
 %% Forces and torques
 fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
-fo = fo_muo(1:3,:) - f_calib_delta*ones(1,length(t));
-muo = fo_muo(4:6,:) - mu_calib_delta*ones(1,length(t));
+fo = fo_muo(1:3,:) + f_calib_delta*ones(1,length(t));
+muo = fo_muo(4:6,:) + mu_calib_delta*ones(1,length(t));
 
 fc_muc = com_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
-fc = fc_muc(1:3,:)  + f_calib_delta*ones(1,length(t));
-muc = fc_muc(4:6,:) + mu_calib_delta*ones(1,length(t));
+fc = fc_muc(1:3,:)  - f_calib_delta*ones(1,length(t));
+muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
 % 
 % fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
 % fo = fo_muo(1:3,:);
@@ -356,7 +358,7 @@ omega = (omegaCentered).*(pi/180);
     yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
     tMeas = t;
    % model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);[0,0.5*pi,0]']; %% corresponds to -9.81 accln on Z
-    model.x0 = [zeros(3,1);zeros(3,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);[0,0.5*pi,0]']; %% corresponds to -9.81 accln on Z
+    model.x0 = [zeros(3,1);zeros(3,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);model.phi0]; %% corresponds to -9.81 accln on Z
 
     %model.m = 0.761;
     

@@ -28,4 +28,4 @@ function dh = outputDerivatives(Xhat, model)
         Xhat(13),Xhat(14),Xhat(15),... % f_c 
         Xhat(16),Xhat(17),Xhat(18),... % mu_c
         Xhat(19),Xhat(20),Xhat(21),... % phi
-        model.I(1,1), model.I(1,2),model.I(1,3),model.I(2,2),model.I(2,3),model.I(3,3),model.m,model.g);
+        model.I(1,1), model.I(1,2),model.I(1,3),model.I(2,2),model.I(2,3),model.I(3,3),model.m,model.g,model.gRot(1),model.gRot(2),model.gRot(3));

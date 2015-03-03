@@ -105,10 +105,11 @@ model.dtInvDyn = 0.0001;
 model.dtForDyn = 0.001;
 model.dtKalman = 0.0075;%0.05;%0.0025;%0.01;
 model.g   = 9.81;
+
 model.bck = false;
 
 t_min = 5;%61;%42;
-t_max = 7.0;%8.25;%64;%43;
+t_max = 6.5;%8.25;%64;%43;
 
 
 
