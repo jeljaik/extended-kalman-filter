@@ -72,10 +72,10 @@ realKalman.sigma_a = 0.5;%1.5;       % output error variance (acceleration)
 realKalman.sigma_omega = 2;%1.00;
 realKalman.sigma_skin = 0.75;
 
-realKalman.a_Q  = 1.5;
-realKalman.omega_Q  = 0.75;
-realKalman.f_Q  = 2.5;
-realKalman.mu_Q = 2.5; 
+realKalman.a_Q  = 4.5;
+realKalman.omega_Q  = 4.75;
+realKalman.f_Q  = 6.5;
+realKalman.mu_Q = 6.5; 
 realKalman.phi_Q = 5.50;
 
 %realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
@@ -219,7 +219,7 @@ if(finalVersion == 1)
     close all;
 end
 
-save(strcat(dataBaseFolder,'filter_result_data.mat'),'tK','yM','Xupdt','Xpred');
+save(strcat(dataBaseFolder,'filter_result_data.mat'),'tKalman','yMeas','Xupdt','Xhat','P');
 plotAndSaveIrosFigs;
         
 if(source == 1)
