@@ -78,7 +78,7 @@ model.g   = 9.81;
 model.bck = false;
 
 t_min = 5.0;%61;%42;
-t_max = 6.0;%8.25;%64;%43;
+t_max = 6.5;%8.25;%64;%43;
 
 
 [yMeas,tMeas,model,RData] = realMeasurement_completeLegWithSkin(model.dtKalman,model,0,t_min,t_max);
@@ -94,47 +94,83 @@ mu_Bc_tid = @(t)interp1(tMeas,yMeas(:,16:18),t)';
 
 figure;
 subplot(3,3,1);
-plot(tint,xint(:,19)); 
+plot(tint,xint(:,19)); axis tight;
 xlabel('t');
 ylabel('\phi_x');
 title('Orientation');
 subplot(3,3,4);
-plot(tint,xint(:,20));
+plot(tint,xint(:,20)); axis tight;
 xlabel('t');
 ylabel('\phi_y');
 subplot(3,3,7);
-plot(tint,xint(:,21));
+plot(tint,xint(:,21)); axis tight;
 xlabel('t');
 ylabel('\phi_z');
 
 
 %figure;
 subplot(3,3,2);
-plot(tint,xint(:,1));
+plot(tint,xint(:,1)); axis tight;
 xlabel('t');
 ylabel('v_x');
 title('Linear velocity');
 subplot(3,3,5);
-plot(tint,xint(:,2));
+plot(tint,xint(:,2)); axis tight;
 xlabel('t');
 ylabel('v_y');
 subplot(3,3,8);
-plot(tint,xint(:,3));
+plot(tint,xint(:,3)); axis tight;
 xlabel('t');
 ylabel('v_z');
 
 
 %figure;
 subplot(3,3,3);
-plot(tint,xint(:,4));
+plot(tint,xint(:,4)); axis tight;
 xlabel('t');
 ylabel('\omega_x');
 title('Angular velocity');
 subplot(3,3,6);
-plot(tint,xint(:,5));
+plot(tint,xint(:,5)); axis tight;
 xlabel('t');
 ylabel('\omega_y');
 subplot(3,3,9);
-plot(tint,xint(:,6));
+plot(tint,xint(:,6)); axis tight;
 xlabel('t');
 ylabel('\omega_z');
+% 
+% figure;
+% %%acceleration assumption
+% plot(tint,x(:,
+
+y = zeros(length(tint),19);
+%% Sensor comparisons
+for tid = 1:length(tint)
+    tT = tint(tid);
+    y(tid,:) = rigidBodyOutput(xint(tid,:)',model,f_Bo_tid(tT),mu_Bo_tid(tT),f_Bc_tid(tT),mu_Bc_tid(tT));
+end
+t = tint;
+figure;
+subplot(2,1,1);
+plot(t,y(:,1:3)); hold on;
+plot(t,yMeas(:,1:3),'--'); axis tight;
+ylabel('Acceleration m/sec^2');
+xlabel('Time t(sec)');
+
+subplot(2,1,2);
+plot(t,(y(:,1:3) - yMeas(:,1:3)).^2.0); axis tight;
+ylabel('squared acceleration error m/sec^2');
+xlabel('Time t(sec)');
+
+figure;
+subplot(2,1,1);
+plot(t,y(:,4:6));hold on;
+plot(t,yMeas(:,4:6),'--'); axis tight;
+ylabel('Angular velocity \omega rad/sec');
+xlabel('Time t(sec)');
+
+subplot(2,1,2);
+plot(t,(y(:,4:6) - yMeas(:,4:6)).^2.0); axis tight;
+ylabel('Squared angular velocity error \omega rads/sec');
+xlabel('Time t(sec)');
+

@@ -35,16 +35,15 @@ load('./utils/MIni','M_at_q0');
 
 %% TODO We need to extract foot's instead.
 Mjts = M_at_q0(7:end,7:end);            % Leg mass matrix 
-MI_at_thigh = Mjts(14:16,14:16);
+%MI_at_thigh = Mjts(14:16,14:16);
 
-%% checkup if this is for left leg or right leg. Not entirely sure if it will be different
-Tl = [0 1 0; 1 0 0 ; 0 0 -1];
-% Transformation of the mass matrix to COM reference frame
-Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
-
-% MI_at_thigh_r = Mjts(20:22,20:22);
-% Tl_r = [0 -1 0; 1 0 0 ; 0 0 1];
-% Ic_r = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
+%%% checkup if this is for left leg or right leg. Not entirely sure if it will be different
+%Tl = [0 1 0; 1 0 0 ; 0 0 -1];
+%% Transformation of the mass matrix to COM reference frame
+%Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
+MI_at_thigh_r = Mjts(20:22,20:22);
+ Tl_r = [0 -1 0; 1 0 0 ; 0 0 1];
+ Ic = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
 
 % disp(Ic);
 model.I = Ic;
@@ -114,9 +113,15 @@ com_adjT_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_com) eye(3) ];
 %                0   0  -1 ;...
 %                0   1   0 ];
 
-com_R_imu = [  1  0   0 ;...
-               0   0  1 ;...
-               0   -1   0 ];
+% com_R_imu = [  1    0   0 ;...
+%                0    0   1 ;...
+%                0   -1   0 ];
+
+%imuDel1 = 0.25*pi;%0.5*pi-0.35*pi;%-0.1*pi
+%imuDel2 = 0.0;%0.01*pi;%0.005*pi;
+%com_R_imu = euler2dcm([pi/2+imuDel1,pi/2+imuDel2,-pi/2])
+load('IMUOffset.mat','com_R_imu');
+
 leg_ft.t = leg_ft_data(:,2)-leg_ft_data(1,2);
 leg_ft.idx = leg_ft_data(:,1) - leg_ft_data(1,1);
 leg_ft_data(:,3:8) = leg_ft_data(:,3:8) - repmat(leg_ft_offset,size(leg_ft_data,1),1);
@@ -155,7 +160,7 @@ a_pre_calib = model.acclSign*a_omega_pre_calib(:,4:6);
 omega_pre_calib = a_omega_pre_calib(:,7:9);
 
 %omega_pre_calib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
-omegaOffset = mean((com_R_imu*omega_pre_calib'),2);
+omegaOffset = mean((omega_pre_calib'),2);
 
 %% Total Normal Force through the skin
 % The following two lines can be replaced by totalForceFromSkinData() but
@@ -174,7 +179,7 @@ muc_calib = fc_muc_calib(4:6,:);
 
 
 %% Force offsets corrected to calibration dataset
-f_calib_delta = (0.5)*( mean(-fo_calib+fc_calib,2) + model.m*9.81 * euler2dcm(model.phi0)*model.gRot);
+f_calib_delta = (0.5)*( mean(-fo_calib+fc_calib,2) - model.m*9.81 * euler2dcm(model.phi0)*model.gRot);
 mu_calib_delta = (0.5)*mean(-muo_calib + muc_calib,2);
 
 
@@ -228,10 +233,13 @@ muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
 % fc = fc_muc(1:3,:);
 % muc = fc_muc(4:6,:);
 
+%% offset in skin to make it identical to FT measurements at calibrationtime
+fc_zDelta = (mean(fc_z_calib - (fc_calib(3,:) - f_calib_delta(3)*ones(1,length(tCalib)))));
+fc_z = fc_z - fc_zDelta;
 %% IMU
 a = (com_R_imu*a_pre_proc');
-omegaCentered = (com_R_imu*omega_pre_proc')' - repmat(omegaOffset',size(omega_pre_proc,1),1);
-omega = (omegaCentered).*(pi/180);
+omegaCentered = (omega_pre_proc')' - repmat(omegaOffset',size(omega_pre_proc,1),1);
+omega = (com_R_imu*omegaCentered')'.*(pi/180);
 
 
 
@@ -357,7 +365,9 @@ omega = (omegaCentered).*(pi/180);
   %  yMeas = [a(:,idx);omega(:,idx);fo(:,idx);muo(:,idx);fc(:,idx);muc(:,idx);fc_x(:,idx)]';
     yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
     tMeas = t;
-   % model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);[0,0.5*pi,0]']; %% corresponds to -9.81 accln on Z
+%a(:,1)
+%a(:,1) - model.g*euler2dcm(model.phi0)*model.gRot
+    % model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);[0,0.5*pi,0]']; %% corresponds to -9.81 accln on Z
     model.x0 = [zeros(3,1);zeros(3,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);model.phi0]; %% corresponds to -9.81 accln on Z
 
     %model.m = 0.761;
@@ -371,3 +381,4 @@ omega = (omegaCentered).*(pi/180);
             
 
 end
+

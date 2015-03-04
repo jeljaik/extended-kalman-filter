@@ -66,20 +66,20 @@ m       = 19;         % output dimension
 
 %dt      = 0.01;      % sampling time
 realKalman.T       = 2;       % time span
-realKalman.sigma_f = 0.5;       % output error variance (forces)
+realKalman.sigma_f = 1.5;       % output error variance (forces)
 realKalman.sigma_u = 0.75;      % output error variance (torques)
-realKalman.sigma_a = 0.5;       % output error variance (acceleration)
-realKalman.sigma_omega = 1.00;
+realKalman.sigma_a = 0.5;%1.5;       % output error variance (acceleration)
+realKalman.sigma_omega = 2;%1.00;
 realKalman.sigma_skin = 0.75;
 
-realKalman.a_Q  = 25;
-realKalman.omega_Q  = 5;
-realKalman.f_Q  = 25;
-realKalman.mu_Q = 25; 
-realKalman.phi_Q = 10.0;
+realKalman.a_Q  = 1.5;
+realKalman.omega_Q  = 0.75;
+realKalman.f_Q  = 0.1;
+realKalman.mu_Q = 0.1; 
+realKalman.phi_Q = 0.50;
 
 %realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
-realKalman.P =2.0* diag([ones(3,1);ones(3,1); 10*ones(6,1); 10*ones(6,1); 100*ones(3,1)]);
+realKalman.P =5.0* diag([300*ones(3,1);50*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1);10*ones(3,1); 25*ones(3,1)]);
 %realKalman.P = realKalman.P- 1*ones(size(realKalman.P)) + 5*rand(size(realKalman.P));
 %% SimSensor parameters
 
@@ -94,7 +94,7 @@ simKalman.f_Q  = 0.1;
 simKalman.mu_Q = 0.1; 
 simKalman.skin_f_mu_Q = 0.1;
 simKalman.phi_Q = 0.1;
-simKalman.P = diag([ones(6,1); ones(6,1); ones(6,1); ones(3,1)]);
+simKalman.P = diag(50*[100*ones(6,1); ones(6,1); ones(6,1); ones(3,1)]);
 
 %P = diag([simKalman.sigma_a.*ones(1,3),simKalman.sigma_f.*ones(1,3), simKalman.sigma_f.*ones(1,3), simKalman.sigma_u.*ones(1,3), simKalman.sigma_u.*ones(1,3)]);
 
@@ -108,8 +108,8 @@ model.g   = 9.81;
 
 model.bck = false;
 
-t_min = 5;%61;%42;
-t_max = 6.5;%8.25;%64;%43;
+t_min = 4.5;%61;%42;
+t_max = 8.0;%8.25;%64;%43;
 
 
 
@@ -147,12 +147,12 @@ Q  = diag([kalman.a_Q*ones(3,1);
 %Q = Q - 25*rand(size(Q));
        
 if(~exist('RData'))       
-    R =diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
+    R =2.0*diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
 else 
     disp('Using real data covariance matrix');
+    RData(19,19) = 35.63;
     R = RData;
 end
-
 Ph = kalman.P;
 
 % Initializing estimate
@@ -167,6 +167,9 @@ P = zeros(size(Ph,1), size(Ph,2),length(tKalman));
 disp('Starting Kalman Filter prediction');
 drawnow;
 
+fprintf('initial : \n');
+disp(model.x0(1:3)'); disp(kalman.P(1:6,1:3));
+
 for i = 1:length(tKalman)
     if(mod(i,10)==0)
         fprintf('Timenow : ');disp(tKalman(i)); drawnow();
@@ -178,18 +181,26 @@ for i = 1:length(tKalman)
     [xh, Ph] = ekf_update1(xh , Ph, yMeas(i,:)', dh_dx_func, R,...
         h_func, [], model);
 
+  %  fprintf('after update : \n');
+  %  disp(xh(1:3)'); disp(Ph(1:3,1:3));
     Xupdt(i,:) = xh;
+    xAfterUpdate = xh;
+    pAfterUpdate = Ph;
     
     % Prediction step update
     % [xn, Pn] = predictStepKF(Xhat(i-1,:)', P(:,:,i-1),          A, Q, model);
     [xh, Ph] =  ekf_predict1(xh, Ph, df_dx_func, Q, f_func, [], model);
-     
+    
+%     fprintf('after predict : \n');
+%     disp(xh(1:3)'); disp(Ph(1:3,1:3));
+%     
     Xhat(i,:) = xh;
     P(:,:,i)  = Ph;
     if(mod(i,10)==0)
         fprintf('Step processing time :');
         disp(toc());
     end
+   % pause;
     
 end
 
@@ -250,3 +261,4 @@ end
 % [M,P] =        ETF_SMOOTH1(M,P,Y,          A,Q,ia,W,aparam,H,R,h,V,hparam,same_p_a,same_p_h)
 % plotResults(x, Xhats', Ps, t, 4)
 
+figure(8); figure(7);figure(9);
