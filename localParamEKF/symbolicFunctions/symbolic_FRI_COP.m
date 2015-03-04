@@ -45,12 +45,11 @@ pcop_cov_at_Mean = J_cop_mean*diag([muc_x_var, muc_y_var,fc_z_var]')*J_cop_mean'
 pfri_expect_at_Mean = F_fri_mean;
 pfri_cov_at_Mean = J_fri_mean*diag([muo_x_var, muo_y_var,fo_z_var]')*J_fri_mean';
 % 
-% 
-% matlabFunction(pfri_expect_at_Bar,pfri_cov_at_Bar,'file','fri_arbitrayLinearisation','vars',[[muc_x_bar, muc_y_bar,fc_z_bar]';[muc_x_mean, muc_y_mean,fc_z_mean]';...
+% % matlabFunction(pfri_expect_at_Bar,pfri_cov_at_Bar,'file','fri_arbitrayLinearisation','vars',[[muc_x_bar, muc_y_bar,fc_z_bar]';[muc_x_mean, muc_y_mean,fc_z_mean]';...
 %     [muo_x_var, muo_y_var,fo_z_var]'],'outputs',{'pfri_expect','p_covariance'});
-matlabFunction(pfri_expect_at_Mean,pfri_cov_at_Mean,'file','./symbolic/computeFRI','vars',[[muo_x_mean, muo_y_mean,fo_z_mean],[muo_x_var, muo_y_var,fo_z_var]],'outputs',{'pfri_expect','pfri_covariance'});
+matlabFunction(pfri_expect_at_Mean,pfri_cov_at_Mean,'file','./symbolicFunctions/computeFRI','vars',[[muo_x_mean, muo_y_mean,fo_z_mean],[muo_x_var, muo_y_var,fo_z_var]],'outputs',{'pfri_expect','pfri_covariance'});
 
-matlabFunction(pcop_expect_at_Mean,pcop_cov_at_Mean,'file','./symbolic/computeCOP','vars',[[muc_x_mean, muc_y_mean,fc_z_mean],[muc_x_var, muc_y_var,fc_z_var]],'outputs',{'pcop_expect','pcop_covariance'});
+matlabFunction(pcop_expect_at_Mean,pcop_cov_at_Mean,'file','./symbolicFunctions/computeCOP','vars',[[muc_x_mean, muc_y_mean,fc_z_mean],[muc_x_var, muc_y_var,fc_z_var]],'outputs',{'pcop_expect','pcop_covariance'});
 
 %matlabFunction(pfri_expect_at_Mean,pfri_cov_at_Mean,'file','./symbolic/fri_meanLinearisation','vars',[[muc_x_mean, muc_y_mean,fc_z_mean]';...
     %[muo_x_var, muo_y_var,fo_z_var]'],'outputs',{'p_expect','p_covariance'});

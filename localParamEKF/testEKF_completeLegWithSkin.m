@@ -74,12 +74,12 @@ realKalman.sigma_skin = 0.75;
 
 realKalman.a_Q  = 1.5;
 realKalman.omega_Q  = 0.75;
-realKalman.f_Q  = 0.1;
-realKalman.mu_Q = 0.1; 
-realKalman.phi_Q = 0.50;
+realKalman.f_Q  = 2.5;
+realKalman.mu_Q = 2.5; 
+realKalman.phi_Q = 5.50;
 
 %realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
-realKalman.P =5.0* diag([300*ones(3,1);50*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1);10*ones(3,1); 25*ones(3,1)]);
+realKalman.P =5.0* diag([300*ones(3,1);50*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1)]);
 %realKalman.P = realKalman.P- 1*ones(size(realKalman.P)) + 5*rand(size(realKalman.P));
 %% SimSensor parameters
 
@@ -102,13 +102,13 @@ simKalman.P = diag(50*[100*ones(6,1); ones(6,1); ones(6,1); ones(3,1)]);
 model.I   = diag([0.05 0.02 0.03]);
 model.m   = 0.761;%7;
 model.dtInvDyn = 0.0001;
-model.dtForDyn = 0.001;
-model.dtKalman = 0.0075;%0.05;%0.0025;%0.01;
+model.dtForDyn = 0.0001;
+model.dtKalman = 0.005;%0.05;%0.0025;%0.01;
 model.g   = 9.81;
 
 model.bck = false;
 
-t_min = 4.5;%61;%42;
+t_min = 5.0;%61;%42;
 t_max = 8.0;%8.25;%64;%43;
 
 
@@ -147,7 +147,7 @@ Q  = diag([kalman.a_Q*ones(3,1);
 %Q = Q - 25*rand(size(Q));
        
 if(~exist('RData'))       
-    R =2.0*diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
+    R =1.1*diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
 else 
     disp('Using real data covariance matrix');
     RData(19,19) = 35.63;
@@ -199,23 +199,29 @@ for i = 1:length(tKalman)
     if(mod(i,10)==0)
         fprintf('Step processing time :');
         disp(toc());
+        fprintf('pred fo muo\n');
+        disp(Xupdt(i,7:9));
+        fprintf('expect fo muo\n');
+        disp(Xhat(i,7:9));
+        
     end
    % pause;
     
 end
 
-
-%plotResults(xForDyn, tForDyn, Xupdt, P, tKalman,  0)
-plotResultsOutput_withSkin(Xupdt, Xhat, P, tKalman, yMeas,source);
-%plotResults(xForDyn, tForDyn, Xhat, P, tKalman, 0)
-
-plotFigBaseFolder = 'plots/test/';
-if(~exist(plotFigBaseFolder))
-    mkdir(plotFigBaseFolder);
+dataBaseFolder = './data/irosMain/';
+if(~exist(dataBaseFolder))
+    mkdir(dataBaseFolder);
 end
 
-plotFigBaseName = strcat('./',plotFigBaseFolder,'predicted');
+finalVersion =1;
+if(finalVersion == 1)
+    close all;
+end
 
+save(strcat(dataBaseFolder,'filter_result_data.mat'),'tK','yM','Xupdt','Xpred');
+plotAndSaveIrosFigs;
+        
 if(source == 1)
     figure(3);
     set(gca,'FontSize',12);
@@ -241,20 +247,6 @@ if(source == 1)
 end
 
 
-if(source == 2)
-    figure(1);
-    set(gca,'FontSize',12);
-    set(gcf,'Renderer','OpenGL');
-    print('-depsc2','-r200',strcat(plotFigBaseName,'Force_real'),'-opengl');
-    figure(2);
-    set(gca,'FontSize',12);
-    set(gcf,'Renderer','OpenGL');
-    print('-depsc2','-r200',strcat(plotFigBaseName,'Torque_real'),'-opengl');
-    figure(8);
-    set(gca,'FontSize',12);
-    set(gcf,'Renderer','OpenGL');
-    print('-depsc2','-r200',strcat(plotFigBaseName,'UpdatedFRI_real'),'-opengl');
-end
 
 %Smoother
 % [Xhats,Ps] = etf_smooth1(Xhat',P,y',db_dx_func,Q,b_func,[],model, dh_dx_func,R,h_func,[],model, 1, 1);

@@ -1,12 +1,18 @@
 function plotResultsOutput_withSkin(XUpt, XPred,P, tK, yM,source)
 
+if(nargin<1)
+    dataBaseFolder = 'data/irosMain/';
+    load(strcat(dataBaseFolder,'filter_result_data.mat'));
 
-if(isempty(XUpt) && isempty(P) && isempty(tK) && isempty(yM))
-    load(sprintf('./data/real_sensor_data'));
+   % load(sprintf('./data/real_sensor_data'));
     %load(sprintf('./data/real_sensor_data_betterI'));
     %,'Xhat','P','tK','yM');
     tK = tKalman;
     yM = yMeas;
+    source = 2;
+    XUpt = Xupdt;
+    XPred = Xhat;
+    tMin = tK(1);
 end
 
 figPreN = figure()-1;
@@ -14,6 +20,7 @@ idx = 1; %Time
 index = 0;
 %stateVar = 1; % State variable from the state vector.
 tMin = tK(1);%0.0;
+tMax = tK(end);
 %yM = [yM(:,1:3), zeros(size(yM,1),3), yM(:,4:end)];
 
 %% Estimated Ankle Wrenches 
@@ -22,70 +29,75 @@ figure(1+figPreN)
 subplot(3,2,1)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar), '--b')
+plot(tK(idx:end), yM(idx:end,stateVar), '--b','linewidth',2)
 title('Expectation of force f_o');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _x) N');
-a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = axis();a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
+set(gca,'yTick',[]);
+%xlabel('Time t(sec)');
 
 subplot(3,2,3);
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+1), '--g')
+plot(tK(idx:end), yM(idx:end,stateVar+1), '--g','linewidth',2)
 %title('Total force acting on the body (y-component)');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _y) N');
-a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = axis();a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,2,5)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+2), '--r')
+plot(tK(idx:end), yM(idx:end,stateVar+2), '--r','linewidth',2)
 %title('Total force acting on the body (z-component)');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _z) N');
-a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = axis();a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 
 subplot(3,2,2)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+3), '--b')
+plot(tK(idx:end), yM(idx:end,stateVar+3), '--b','linewidth',2)
 title('Expectation of torque \mu_c');
-
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _x) Nm');
-a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = axis();a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
 
 subplot(3,2,4);
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+4), '--g')
+plot(tK(idx:end), yM(idx:end,stateVar+4), '--g','linewidth',2)
 %title('Total force acting on the body (y-component)');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _y) Nm');
-a = axis();
-axis([tMin a(2) a(3) a(4)]);
-
+a = axis();a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 subplot(3,2,6)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+5), '--r')
+plot(tK(idx:end), yM(idx:end,stateVar+5), '--r','linewidth',2)
 %title('Total force acting on the body (z-component)');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _z) Nm');
-a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = axis();a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
 
 
 
@@ -95,66 +107,76 @@ figure(index+2+figPreN)
 subplot(3,2,1)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar),squeeze(2*sqrt(P(stateVar,stateVar,idx:end)))','b', 1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar), '--b')
+plot(tK(idx:end), yM(idx:end,stateVar), '--b','linewidth',2)
 title('Expectation of Force f_c');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _x) N');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,2,3);
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+1), '--g')
+plot(tK(idx:end), yM(idx:end,stateVar+1), '--g','linewidth',2)
 %title('Total force acting on the body (y-component)');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _y) N');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
+a = 1.1*a;axis([tMin tMax a(3) a(4)]);
 
 subplot(3,2,5)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+2), '--r')
+plot(tK(idx:end), yM(idx:end,stateVar+2), '--r','linewidth',2)
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _z) N');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
-
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,2,2)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+3),squeeze(2*sqrt(P(stateVar+3,stateVar+3,idx:end)))','b', 1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+3), '--b')
+plot(tK(idx:end), yM(idx:end,stateVar+3), '--b','linewidth',2)
 title('Expectation of torque \mu_c');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _x) Nm');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,2,4);
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+4), '--g')
+plot(tK(idx:end), yM(idx:end,stateVar+4), '--g','linewidth',2)
 %title('Total force acting on the body (y-component)');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _y) Nm');a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,2,6)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
 hold on
-plot(tK(idx:end), yM(idx:end,stateVar+5), '--r')
+plot(tK(idx:end), yM(idx:end,stateVar+5), '--r','linewidth',2)
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _z) Nm');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 
 
@@ -172,7 +194,9 @@ axis tight;
 xlabel('Time t(sec)');
 ylabel('E(v _x) Nm');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,2,3);
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+1),squeeze(2*sqrt(P(stateVar+1,stateVar+1,idx:end)))','g',1);
@@ -183,7 +207,9 @@ axis tight;
 xlabel('Time t(sec)');
 ylabel('E(v _y) N(m)');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,2,5)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+2),squeeze(2*sqrt(P(stateVar+2,stateVar+2,idx:end)))','r',1);
@@ -193,7 +219,9 @@ axis tight;
 xlabel('Time t(sec)');
 ylabel('E(v _z) N(m)');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 
 subplot(3,2,2)
@@ -205,7 +233,9 @@ axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\omega _x) Nm');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,2,4);
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+4),squeeze(2*sqrt(P(stateVar+4,stateVar+4,idx:end)))','g',1);
@@ -215,7 +245,9 @@ hold on
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\omega _y) Nm');a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,2,6)
 shadedErrorBar(tK(idx:end),XUpt(idx:end,stateVar+5),squeeze(2*sqrt(P(stateVar+5,stateVar+5,idx:end)))','r',1);
@@ -225,7 +257,9 @@ axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\omega _z) Nm');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 %% Estimated Orientation
 stateVar = 19;
@@ -240,7 +274,9 @@ axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\phi_x (t) rads');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 subplot(3,1,2)
 %plot(t(idx:end), x(idx:end,20),'--m'), hold on
@@ -249,7 +285,9 @@ axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\phi_y (t) rads');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 
 subplot(3,1,3)
@@ -259,7 +297,9 @@ axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\phi_z (t) rads');
 a = axis();
-axis([tMin a(2) a(3) a(4)]);
+a = 1.1*a;
+axis([tMin tMax a(3) a(4)]);
+g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 
 
 %figure(index+5+figPreN)
@@ -274,18 +314,19 @@ axis([tMin a(2) a(3) a(4)]);
 % muc_z_B = Xhat(idx:end,20); muc_z_B_sigma = squeeze(2*sqrt(P(21,21,idx:end)))';
 %===========================================================
 if(source==2)
-%     index_at_time = @(desTime,totalTime)find(totalTime>desTime,1,'first');
-%     idEnd = index_at_time(7.4,tK);
-%     disp(idEnd);
-%     disp(length(tK));
+   % index_at_time = @(desTime,totalTime)find(totalTime>desTime,1,'first');
+    %idEnd = index_at_time(tK(end),tK);
+   % disp(idEnd);
+   % disp(length(tK));
 % % 
-% % tK = totalTime;
-% % idEnd = length(tK);
-% 
-%     plot_FRI(XPred, P,tK, idx,idEnd,'r',index+5+figPreN);
-% 
-%     ind = figure();
-%     plot_FRI(XUpt, P,tK, idx,idEnd,'b',index+5+figPreN);
+% tK = totalTime;
+% idEnd = length(tK);
+
+ %figure();
+ %   plot_FRI(XPred, P,tK, idx,idEnd,'r',index+5+figPreN);
+
+    ind = figure();
+    plot_FRI(XUpt,P,XPred, P,tK, idx,length(tK));%,'b',index+5+figPreN);
 end
 %===========================================================
 % 
