@@ -34,6 +34,7 @@ title('Expectation of force f_o');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _x) N');
+set(gca,'FontSize',12);
 a = axis();a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
 g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
@@ -48,6 +49,7 @@ plot(tK(idx:end), yM(idx:end,stateVar+1), '--g','linewidth',2)
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _y) N');
+set(gca,'FontSize',12);
 a = axis();a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
 g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
@@ -60,6 +62,7 @@ plot(tK(idx:end), yM(idx:end,stateVar+2), '--r','linewidth',2)
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _z) N');
+set(gca,'FontSize',12);
 a = axis();a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
 g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
@@ -73,6 +76,7 @@ title('Expectation of torque \mu_c');
 g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 axis tight;
 xlabel('Time t(sec)');
+set(gca,'FontSize',12);
 ylabel('E(\mu _x) Nm');
 a = axis();a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
@@ -85,6 +89,7 @@ plot(tK(idx:end), yM(idx:end,stateVar+4), '--g','linewidth',2)
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _y) Nm');
+set(gca,'FontSize',12);
 a = axis();a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
 g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
@@ -96,6 +101,7 @@ plot(tK(idx:end), yM(idx:end,stateVar+5), '--r','linewidth',2)
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _z) Nm');
+set(gca,'FontSize',12);
 a = axis();a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
 
@@ -112,6 +118,7 @@ title('Expectation of Force f_c');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _x) N');
+set(gca,'FontSize',12);
 a = axis();
 a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
@@ -125,6 +132,7 @@ plot(tK(idx:end), yM(idx:end,stateVar+1), '--g','linewidth',2)
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _y) N');
+set(gca,'FontSize',12);
 a = axis();
 g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
 a = 1.1*a;axis([tMin tMax a(3) a(4)]);
@@ -136,6 +144,7 @@ plot(tK(idx:end), yM(idx:end,stateVar+2), '--r','linewidth',2)
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(f _z) N');
+set(gca,'FontSize',12);
 a = axis();
 a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
@@ -149,6 +158,7 @@ title('Expectation of torque \mu_c');
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _x) Nm');
+set(gca,'FontSize',12);
 a = axis();
 a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
@@ -161,7 +171,9 @@ plot(tK(idx:end), yM(idx:end,stateVar+4), '--g','linewidth',2)
 %title('Total force acting on the body (y-component)');
 axis tight;
 xlabel('Time t(sec)');
-ylabel('E(\mu _y) Nm');a = axis();
+ylabel('E(\mu _y) Nm');
+set(gca,'FontSize',12);
+a = axis();
 a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);
 g = get(gca);set(gca,'yTick',linspace(g.YTick(1),g.YTick(end),3));
@@ -173,6 +185,7 @@ plot(tK(idx:end), yM(idx:end,stateVar+5), '--r','linewidth',2)
 axis tight;
 xlabel('Time t(sec)');
 ylabel('E(\mu _z) Nm');
+set(gca,'FontSize',12);
 a = axis();
 a = 1.1*a;
 axis([tMin tMax a(3) a(4)]);

@@ -40,6 +40,7 @@ function [] = plot_FRI(XUpt, PUpt,XPred,PPred,tK, idx,idEnd,col,figIn)
 
     ylabel('Estimate FRI_z (m)');
     xlabel('Time t(sec)');
+    set(gca,'FontSize',12);
 
 
 
@@ -85,7 +86,7 @@ function [] = plot_FRI(XUpt, PUpt,XPred,PPred,tK, idx,idEnd,col,figIn)
     plot3(pfri_expect(idx:idEnd,1),pfri_expect(idx:idEnd,2),pfri_expect(idx:idEnd,3),'.-', 'LineWidth',2,'MarkerSize', 5, 'Color', 'b');
     axis tight;
     axis equal;
-    
+    set(gca,'FontSize',12);
     a = axis();
     axis([a(1:4)*1.1 a(5:6)]);
 
