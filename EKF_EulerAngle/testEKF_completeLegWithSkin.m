@@ -67,19 +67,20 @@ m       = 19;         % output dimension
 %dt      = 0.01;      % sampling time
 realKalman.T       = 2;       % time span
 realKalman.sigma_f = 1.5;       % output error variance (forces)
-realKalman.sigma_u = 0.75;      % output error variance (torques)
-realKalman.sigma_a = 0.5;%1.5;       % output error variance (acceleration)
-realKalman.sigma_omega = 2;%1.00;
-realKalman.sigma_skin = 0.75;
+realKalman.sigma_u = 2.75;      % output error variance (torques)
+realKalman.sigma_a = 1.25;%1.5;       % output error variance (acceleration)
+realKalman.sigma_omega = 4.5;%1.00;
+realKalman.sigma_skin = 25.75;
 
-realKalman.a_Q  = 4.5;
-realKalman.omega_Q  = 4.75;
-realKalman.f_Q  = 6.5;
-realKalman.mu_Q = 6.5; 
-realKalman.phi_Q = 5.50;
+realKalman.a_Q  = 0.5;%4.5;
+realKalman.omega_Q  = 6.0;%4.75;
+realKalman.f_Q  = 0.5;%6.5;
+realKalman.mu_Q = 2.5;%6.5; 
+realKalman.phi_Q = 2.50;
 
 %realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
-realKalman.P =5.0* diag([300*ones(3,1);50*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1)]);
+%realKalman.P =5.0* diag([300*ones(3,1);50*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1)]);
+realKalman.P =25.0* diag([10.0*ones(3,1);85.0*ones(3,1); 10.0*ones(3,1);10.0*ones(3,1); 25.0*ones(3,1);25.0*ones(3,1); 25*ones(3,1)]);
 %realKalman.P = realKalman.P- 1*ones(size(realKalman.P)) + 5*rand(size(realKalman.P));
 %% SimSensor parameters
 
@@ -101,15 +102,15 @@ simKalman.P = diag(50*[100*ones(6,1); ones(6,1); ones(6,1); ones(3,1)]);
 %% Model Parameters
 model.I   = diag([0.05 0.02 0.03]);
 model.m   = 0.761;%7;
-model.dtInvDyn = 0.0001;
+model.dtInvDyn = 0.00005;
 model.dtForDyn = 0.0001;
-model.dtKalman = 0.005;%0.05;%0.0025;%0.01;
+model.dtKalman = 0.01;%0.05;%0.0025;%0.01;
 model.g   = 9.81;
 
 model.bck = false;
 
-t_min = 5.0;%61;%42;
-t_max = 8.0;%8.25;%64;%43;
+t_min = 4.5;%61;%42;
+t_max = 8.0;%8.0;%8.25;%64;%43;
 
 
 
@@ -145,14 +146,15 @@ Q  = diag([kalman.a_Q*ones(3,1);
            kalman.mu_Q*ones(6,1); 
            kalman.phi_Q*ones(3,1)]);
 %Q = Q - 25*rand(size(Q));
-       
-if(~exist('RData'))       
-    R =1.1*diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
-else 
-    disp('Using real data covariance matrix');
-    RData(19,19) = 35.63;
-    R = RData;
-end
+
+
+%if(~exist('RData'))       
+    R =1.5*diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
+%else 
+%    disp('Using real data covariance matrix');
+%    RData(19,19) = 35.63;
+%    R = RData;
+%end
 Ph = kalman.P;
 
 % Initializing estimate
@@ -209,7 +211,9 @@ for i = 1:length(tKalman)
     
 end
 
-dataBaseFolder = './data/irosMain/';
+%dataBaseFolder = './data/irosMain/';
+plotFigBaseFolder = 'plots/acclTests/';
+dataBaseFolder = './data/acclTests/';
 if(~exist(dataBaseFolder))
     mkdir(dataBaseFolder);
 end
@@ -220,7 +224,7 @@ if(finalVersion == 1)
 end
 
 save(strcat(dataBaseFolder,'filter_result_data.mat'),'tKalman','yMeas','Xupdt','Xhat','P');
-plotAndSaveIrosFigs;
+plotAndSaveFigs(dataBaseFolder,plotFigBaseFolder);
         
 if(source == 1)
     figure(3);

@@ -118,7 +118,7 @@ end
 
 %% 
 %if ~useInvDyn
-    dv_B     = - S(omega_B) * (m   * v_B    ) + (-f_B_t_o + f_B_t_c) + m*g.*R*p.gRot;
+    dv_B     = - S(omega_B) * (m   * v_B    ) + (-f_B_t_o + f_B_t_c) - m*g.*R*p.gRot;
     domega_B = - S(omega_B) * (I_B * omega_B) +  (-mu_B_t_o + mu_B_t_c);
     df_B_o   =  zeros(3,1); %df_B_t_1;%u_t;
     dmu_B_o  =  zeros(3,1); %dmu_B_t_1;%0.5*v_t;

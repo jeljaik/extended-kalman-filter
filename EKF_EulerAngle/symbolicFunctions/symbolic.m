@@ -32,7 +32,7 @@ phi     = [    phi1       phi2       phi3]';
 R       = euler2dcm(phi);
 gRot = [gRot1;gRot2;gRot3];
 
-dv_B     = -S(omega_B) * v_B - 1/m * f_B_o + 1/m*f_B_c + g.*R*gRot;
+dv_B     = -S(omega_B) * v_B - 1/m * f_B_o + 1/m*f_B_c - g.*R*gRot;
 domega_B =  I_B \ (-S(omega_B) * (I_B * omega_B) - mu_B_o + mu_B_c);
 df_B_o   =  [0 0 0]';
 dmu_B_o  =  [0 0 0]';
@@ -48,8 +48,8 @@ dmu_B_c  =  [0 0 0]';
 dphi     =  (Tomega_dphi(phi))\omega_B;
 
 
-h_imu = [dv_B - g.*R*gRot; omega_B];
-%h_imu = [dv_B ; omega_B];
+h_imu = [(dv_B + g.*R*gRot); omega_B];
+%h_imu = [R'*dv_B ; omega_B];
 h_fto = [f_B_o; mu_B_o];
 h_ftc = [f_B_c; mu_B_c];
 h_skin = f_B_cz;

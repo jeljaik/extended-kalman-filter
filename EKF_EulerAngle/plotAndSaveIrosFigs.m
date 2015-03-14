@@ -1,6 +1,7 @@
 plotResultsOutput_withSkin
 
-plotFigBaseFolder = 'plots/irosMain/';
+%plotFigBaseFolder = 'plots/irosMain/';
+dataBaseFolder = './data/acclTests/';
 if(~exist(plotFigBaseFolder))
     mkdir(plotFigBaseFolder);
 end

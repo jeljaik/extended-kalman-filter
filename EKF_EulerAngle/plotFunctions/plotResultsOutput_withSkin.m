@@ -1,7 +1,7 @@
-function plotResultsOutput_withSkin(XUpt, XPred,P, tK, yM,source)
+function plotResultsOutput_withSkin(dataBaseFolder,XUpt, XPred,P, tK, yM,source)
 
-if(nargin<1)
-    dataBaseFolder = 'data/irosMain/';
+if(nargin<2)
+   % dataBaseFolder = 'data/irosMain/';
     load(strcat(dataBaseFolder,'filter_result_data.mat'));
 
    % load(sprintf('./data/real_sensor_data'));

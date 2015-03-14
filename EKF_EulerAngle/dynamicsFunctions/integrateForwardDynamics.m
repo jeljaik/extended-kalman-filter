@@ -17,6 +17,6 @@ model.bck        = false;
 
 [t, x]=ode15s(@(t, x) rigidBodyDifferentialEquationImplicit(t, x, model,f_B1_tid, mu_B1_tid, f_B2_tid, mu_B2_tid, useInvDyn ), time_span, x0, odeSettings);
 
-
+x=x;
 end
 
