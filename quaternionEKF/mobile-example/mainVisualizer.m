@@ -2,12 +2,13 @@
 % with data recorded from its gyros, accelerometers and magnetometer.
 %
 % e.g. mainVisualizer('debug'   , [], [1 0 0])
-%      mainVisualizer('batchEKF', 'pitchTestGyroPlusAccel.mat', [])
-%      mainVisualizer('batchVis', 'pitchTest.mat', [])
+%      mainVisualizer('batchEKF', 'pitchTestGyroPlusAccel.mat')
+%      mainVisualizer('batchVis', 'pitchTest.mat')
+%      mainVisualizer('onlineEKF')
 %
 % In:
 % TYPE        'debug' for debugging axes. With this choice you have to
-%             specify also 'revAxis', for the axis you want to debug as a 
+%             specify also 'revAxis', for the axis you want to debug as a
 %             unit vector, e.g. [1 0 0].
 % DATASET     String with the name of the dataset to load when type is
 %             'batchEKF' or 'batchVis'.
@@ -48,6 +49,9 @@ else
     else
         if (strcmp(type,'batchEKF'))
             dummy_flag = 3;
+        end
+        if(strcmp(type,'onlineEKF'))
+            dummy_flag = 4;
         end
     end
 end
@@ -138,4 +142,96 @@ if dummy_flag == 3
     
     quaternion_based_EKF(interpOrientation, interpAccel, interpAngVel, dt, newTime);
 end
+
+% Online visualization
+if dummy_flag == 4
+    disp('Make sure your Matlab Mobile application has been launched on your Android device and that you have setup the right IP address');
+    % Create interface
+    connector on;
+    m = mobiledev;
+    loops = 1000;
+    
+    if(m.Connected)
+        disp('Phone connected to MATLAB');
+        
+        % Activate all sensors
+        m.AngularVelocitySensorEnabled = 1;
+        m.AccelerationSensorEnabled    = 1;
+        m.OrientationSensorEnabled     = 1;
+        % Start logging data
+        m.Logging = 1;
+        
+        currAcc = 0;
+        currAngVel = 0;
+        currOrient = 0;
+        
+        while(isempty(m.Acceleration) && isempty(m.AngularVelocity) && isempty(m.Orientation))
+            disp('Waiting for data ...');
+        end
+        
+        disp('Acceleration before entering loop...');
+        disp(m.Acceleration);
+        disp('Angular velocity before entering loop...');
+        disp(m.AngularVelocity);
+        
+        % Kalman dt
+        dt = 0.05;
+
+        % Gyro covariance matrix
+        stdGyro = 0.1;
+        Qgyro = stdGyro*eye(3);
+        
+        % Measurement noise covariance
+        measCov = 0.1;
+        R = measCov*eye(4);
+
+        using_lti_disc = 0;
+        param{1} = dt;
+        % Param{2} is gravity in g units. This is convenient for the quaternion
+        % representation. MEASUREMENTS SHOULD BE NORMALIZED THEN.
+        param{2} = [0 0 1]';
+        param{3} = measCov;
+        
+        % Prior on the process covariance matrix
+        P  = 1*eye(4);
+        % Initializing estimates;
+        MM = [];
+        PP = [];
+
+        % Initial orientation
+        M = quaternion.eulerangles('xyz', pi/180*[0 0 0]');
+        M.double;
+        
+        %
+        idx = 1;
+        while(loops > 0) 
+%             startTime = tic;
+            while(isempty(m.Acceleration))
+%                 disp('waiting for acc...');
+            end
+            currAcc = m.Acceleration;
+            while(isempty(m.AngularVelocity))
+%                 disp('waiting for angVel...');
+            end
+            currAngVel = m.AngularVelocity;
+            
+            [MM, PP] = online_quaternion_based_EKF([],currAcc, currAngVel, dt, M, P, Qgyro, R, MM, PP, param, idx);
+            setOrientation(myView, MM);
+            loops = loops - 1;
+        end
+        
+    else
+        disp('Phone not connected');
+    end
+    
+    
+    m.Logging                      = 0;
+    m.AngularVelocitySensorEnabled = 0;
+    m.AccelerationSensorEnabled    = 0;
+    m.OrientationSensorEnabled     = 0;
+    
+    clear m;
+    connector off;
+end
+
 end
