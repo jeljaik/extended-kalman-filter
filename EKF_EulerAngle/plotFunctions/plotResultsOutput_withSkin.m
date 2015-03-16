@@ -15,7 +15,8 @@ if(nargin<2)
     tMin = tK(1);
 end
 
-figPreN = figure()-1;
+figPreN = figure();
+figPreN = figPreN.Number - 1;
 idx = 1; %Time 
 index = 0;
 %stateVar = 1; % State variable from the state vector.
@@ -436,7 +437,7 @@ end
 % shadedErrorBar(t,zhat(:,1),squeeze(2*sqrt(Pz(1,1,:)))','b');
 % %plot(t,zhat(:,1), 'b')
 % hold on
-% plot(t,z(:,1), 'b--')
+% plot(t,z(:,1), 'b--')Orientation Estimate
 % subplot(312)
 % shadedErrorBar(t,zhat(:,2),squeeze(2*sqrt(Pz(2,2,:)))','r');
 % %plot(t,zhat(:,2), 'r')

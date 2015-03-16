@@ -1,3 +1,5 @@
+% 
+%
 % To check consistency of the derivative, consider using DER_CHECK as done
 % in EKFS_BOT_DEMO
 %
@@ -22,6 +24,8 @@
 %      of function in form V(x,param).               (optional, default identity)
 % param - Parameters of h                            (optional, default empty)
 
+function quaternion_based_EKF(interpOrientation, interpAccel, interpAngVel, dt, newTime)    
+
 %% FUNCTIONS
 % Handles to measurement model and its derivative
 h_fun     = @acc_model;
@@ -34,7 +38,7 @@ stateDim = 4;
 % The following mapping of the [azimuth, pitch, roll] readings from
 % the phone sensor define the local orientation frame on the phone
 % which has z (azimuth) pointing up, x to the right (-pitch) and y (roll) according
-% to the right hand rule. Orientation is given in DEGREES. 
+% to the right hand rule. Orientation is given in DEGREES.
 M = quaternion.eulerangles('xyz', pi/180*[-interpOrientation(1,2), interpOrientation(1,3), interpOrientation(1,1)]);
 M = M.double;
 
@@ -53,7 +57,7 @@ R = measCov*eye(4);
 
 %% PREPARING FOR THE EKF
 % Transition Matrix
-% For the prediction step of the EKF we need matrices M, P, A and Q. 
+% For the prediction step of the EKF we need matrices M, P, A and Q.
 % The prior on M can be the initial (if known) orientation of the object as
 % already set before.
 using_lti_disc = 0;
@@ -79,24 +83,24 @@ PP = zeros(size(M,1), size(M,1), totSamples);
 disp('Performing batch predictions...');
 for k=1:totSamples
     % The discrete transition and covariance matrices in this case are
-    % functions of the angular velocity and process noise. 
+    % functions of the angular velocity and process noise.
     if (using_lti_disc)
         % I know what F is like, but I'm not entirely sure of what L should
         % be like!! How should the gyro noise be passed?
-        F = [0        -U(:,k)'; 
-             U(:,k)   -S(U(:,k)) ];
+        F = [0        -U(:,k)';
+            U(:,k)   -S(U(:,k)) ];
         L = eye(4);
         [A,Q] = lti_disc(F,L,Qc,dt);
     else
         [A,Q] = analyticalAQ(M, U(:,k), Qgyro, dt);
     end
     % EKF Prediction Step
-    [M,P] = ekf_predict1(M,P,A,Q);    
+    [M,P] = ekf_predict1(M,P,A,Q);
     % EKF Update Step
-%     yk = quaternion.eulerangles('xyz',Y(:,k));
-%     yk_d = yk.double;
+    %     yk = quaternion.eulerangles('xyz',Y(:,k));
+    %     yk_d = yk.double;
     % Measurement in Euler Angles in case measurement model and its
-    % derivative is expressed in terms of the 
+    % derivative is expressed in terms of the
     yk = [0; Y(:,k)];
     yk = quaternion(yk);
     yk = yk.normalize;
@@ -107,17 +111,18 @@ for k=1:totSamples
     M = M.normalize;
     M = M.double;
     MM(:,k) = M;
-    PP(:,:,k) = P; 
+    PP(:,:,k) = P;
 end
 
 %% Plot prediction results
 % In the next line I transform all the real orientations as given by the
-% IMU of the cellphone into quaternions. 
+% IMU of the cellphone into quaternions.
 % The following mapping of the [azimuth, pitch, roll] readings from
 % the phone sensor define the local orientation frame on the phone
 % which has z (azimuth) pointing up, x to the right (-pitch) and y (roll) according
-% to the right hand rule. Orientation is given in DEGREES. 
+% to the right hand rule. Orientation is given in DEGREES.
 interpOrientation_quat = quaternion.eulerangles('xyz', pi/180*[-interpOrientation(:,2), interpOrientation(:,3), interpOrientation(:,1)]);
 % interpOrientation_quat = quaternion([zeros(1,size(interpOrientation',2)); pi/180*interpOrientation']);
 MM_quat = quaternion(MM);
 plot_predictions(newTime, MM_quat, PP, interpOrientation_quat);
+end
