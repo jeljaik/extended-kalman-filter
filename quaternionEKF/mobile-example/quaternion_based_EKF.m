@@ -109,9 +109,11 @@ for k=1:totSamples
     M = quaternion(M);
     % The estimate of the EKF is not necessarily normalized.
     M = M.normalize;
+    M_eul  = M.EulerAngles('xyz');
     M = M.double;
     MM(:,k) = M;
     PP(:,:,k) = P;
+    
 end
 
 %% Plot prediction results
@@ -124,5 +126,6 @@ end
 interpOrientation_quat = quaternion.eulerangles('xyz', pi/180*[-interpOrientation(:,2), interpOrientation(:,3), interpOrientation(:,1)]);
 % interpOrientation_quat = quaternion([zeros(1,size(interpOrientation',2)); pi/180*interpOrientation']);
 MM_quat = quaternion(MM);
-plot_predictions(newTime, MM_quat, PP, interpOrientation_quat);
+PlotRotation(MM_quat,0.10);
+% plot_predictions(newTime, MM_quat, PP, interpOrientation_quat, 0);
 end

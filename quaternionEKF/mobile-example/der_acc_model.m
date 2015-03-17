@@ -11,6 +11,8 @@ end
 dt = param{1};
 g0 = param{2};
 qk = x;
+
+derivative = 'jia'; %'jia', 'ligorio', 'r_qk'
 %% The following uses the derivative of  the Quaternion Rotation Operator
 % The derivative of the rotated 3-dimentional vector g0 w.r.t. the
 % rotation is given  by the following expression. Reference: Yan-Bin Jian,

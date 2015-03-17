@@ -15,13 +15,16 @@ end
 
 dt = param{1};
 g0 = param{2};
-% TODO: The following line is wrong as the original intention was to conver
-% the zero-padded gravity vector into a quaternion to later multiply 
 g0_q = quaternion([0;g0]);
-sigmaMsmt = param{3};
 qk = quaternion(x);
 zk = product( product(qk,g0_q), inverse(qk) );
 zk = zk.double;
+
+% Psi = [-qk.vector'; qk.real*eye(3) - S(qk.vector)];
+% Xi  = [-qk.vector'; qk.real*eye(3) + S(qk.vector)];
+% 
+% zk = (Psi'*Xi)*g0;
+% zk = [0; zk];
 
 %% Using the hypothesis that I should take the inverse of the rotation matrix associated to the estimated quaternion
 %% ################### RIGHT WAY TO DO IT! #######################

@@ -49,6 +49,7 @@ stateDim = 4;
 % Each column corresponds to a sample
 Y = interpAccel';
 U = interpAngVel';
+% disp('ang. velo')
 
 %% Estimates with the EKF
 

@@ -23,7 +23,7 @@
 % Istituto Italiano di Tecnologia
 % iCub Facility. 2015
 
-function mainVisualizer(type, dataset, revAxis)
+function [Mstored] = mainVisualizer(type, dataset, revAxis)
 % dummy_flag = 1: Debugging visualization
 % dummy_flag = 2: Visualizing batched orientation
 % dummy_flag = 3: Visualizing online orientation estimation
@@ -111,7 +111,7 @@ if dummy_flag == 2
 end
 
 %% Filtering from recorded data
-dt = 0.020;
+dt = 0.010;
 if dummy_flag == 3
     load(dataset);
     % Interpolating data. Acceleration starts logging first.
@@ -143,13 +143,13 @@ if dummy_flag == 3
     quaternion_based_EKF(interpOrientation, interpAccel, interpAngVel, dt, newTime);
 end
 
-% Online visualization
+%% Online filtering and visualization
 if dummy_flag == 4
     disp('Make sure your Matlab Mobile application has been launched on your Android device and that you have setup the right IP address');
     % Create interface
     connector on;
     m = mobiledev;
-    loops = 1000;
+    loops = 500;
     
     if(m.Connected)
         disp('Phone connected to MATLAB');
@@ -204,6 +204,7 @@ if dummy_flag == 4
         
         %
         idx = 1;
+        Mstored = [];
         while(loops > 0) 
 %             startTime = tic;
             while(isempty(m.Acceleration))
@@ -217,7 +218,13 @@ if dummy_flag == 4
             
             [MM, PP] = online_quaternion_based_EKF([],currAcc, currAngVel, dt, M, P, Qgyro, R, MM, PP, param, idx);
             setOrientation(myView, MM);
+%             MM_quat = quaternion(MM);
+%             MM_eul = 180/pi*MM_quat.EulerAngles('xyz');
+%             MM_pyr = [-MM_eul(3), -MM_eul(1), MM_eul(2)];
+%             disp('[azimuth, pitch, roll]: ');
+%             disp(MM_pyr);
             loops = loops - 1;
+            Mstored = [Mstored, MM];
         end
         
     else

@@ -1,6 +1,6 @@
 % Inputs are in quaternion.
 
-function plot_predictions(time, MM, PP, realOrientation)
+function plot_predictions(time, MM, PP, realOrientation, plotReal)
     figure;
     % After transforming this series of quaternions into a 3D matrix of
     % doubles as done next ...
@@ -15,10 +15,12 @@ function plot_predictions(time, MM, PP, realOrientation)
     color3 = [190 219 57]/255;
     color4 = [253 116 0]/255;
     hold on;
+    if(plotReal)
     plot(time, realOrientation_double(1,:),'Color', color1', 'LineWidth',2);
     plot(time, realOrientation_double(2,:),'Color', color2', 'LineWidth',2);
     plot(time, realOrientation_double(3,:),'Color', color3', 'LineWidth',2);
     plot(time, realOrientation_double(4,:),'Color', color4', 'LineWidth',2); 
+    end
     
     plot(time, MM_double(1,:), 'Color', color1, 'LineWidth',2, 'LineStyle', ':');
     plot(time, MM_double(2,:), 'Color', color2, 'LineWidth',2, 'LineStyle', ':');
@@ -37,9 +39,11 @@ function plot_predictions(time, MM, PP, realOrientation)
     MM_euler = permute(MM_euler, [1 3 2]);
     
     % Plotting estimates
+    if(plotReal)
     plot(time, realOrientation_euler(1,:),'Color', color1', 'LineWidth',2);
     plot(time, realOrientation_euler(2,:),'Color', color2', 'LineWidth',2);
     plot(time, realOrientation_euler(3,:),'Color', color3', 'LineWidth',2);
+    end
     
     plot(time, MM_euler(1,:), 'Color', color1, 'LineWidth',2, 'LineStyle', ':');
     plot(time, MM_euler(2,:), 'Color', color2, 'LineWidth',2, 'LineStyle', ':');
