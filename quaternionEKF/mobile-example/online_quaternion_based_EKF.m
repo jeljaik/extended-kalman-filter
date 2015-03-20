@@ -24,7 +24,7 @@
 %      of function in form V(x,param).               (optional, default identity)
 % param - Parameters of h                            (optional, default empty)
 
-function [MM, PP] = online_quaternion_based_EKF(interpOrientation, interpAccel, interpAngVel, dt, M, P, Qgyro, R, MM, PP, param, idx)
+function [MM, PP] = online_quaternion_based_EKF(interpOrientation, interpAccel, interpAngVel, dt, MM, PP, Qgyro, R, param, idx)
 
 %% FUNCTIONS
 % Handles to measurement model and its derivative
@@ -55,22 +55,19 @@ U = interpAngVel';
 
 % The discrete transition and covariance matrices in this case are
 % functions of the angular velocity and its noise.
-M = M.double;
-[A,Q] = analyticalAQ(M, U, Qgyro, dt);
+[A,Q] = analyticalAQ(MM, U, Qgyro, dt);
 % EKF Prediction Step
-[M,P] = ekf_predict1(M,P,A,Q);
+[MM,PP] = ekf_predict1(MM,PP,A,Q);
 % Preparing measurement with zero padding
 yk = [0; Y];
 yk = quaternion(yk);
 yk = yk.normalize;
 yk_d = yk.double;
 % EKF Update
-[M,P] = ekf_update1(M,P,yk_d,dh_dx_fun,R,h_fun,[],param);
-M  = quaternion(M);
+[MM,PP] = ekf_update1(MM,PP,yk_d,dh_dx_fun,R,h_fun,[],param);
+MM  = quaternion(MM);
 % The estimate of the EKF is not necessarily normalized.
-M  = M.normalize;
-M  = M.double;
-MM = M;
-PP = P;
+MM  = MM.normalize;
+MM  = MM.double;
 
 end

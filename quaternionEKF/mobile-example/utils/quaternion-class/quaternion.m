@@ -1517,7 +1517,7 @@ methods
         or  = zeros(1,3);
         ax  = eye(3);
         alx = zeros( nel, 3, 3 );
-        figure;
+%         figure;
         for iel = 1 : nel
 %           plot3( [ or; ax(:,1).' ], [ or ; ax(:,2).' ], [ or; ax(:,3).' ], ':' );
             plot3( [ or; ax(1,:) ], [ or ; ax(2,:) ], [ or; ax(3,:) ], ':' );
@@ -1533,9 +1533,10 @@ methods
             plot3( [ or; nax(1,:) ], [ or ; nax(2,:) ], [ or; nax(3,:) ], '-', 'LineWidth', 2 );
 %           plot3( alx(1:iel,:,1), alx(1:iel,:,2), alx(1:iel,:,3), '*' );
             plot3( squeeze(alx(1:iel,1,:)), squeeze(alx(1:iel,2,:)), squeeze(alx(1:iel,3,:)), '*' );
-            if interval
-                pause( interval );
-            end
+%             if interval
+%                 pause( interval );
+%             end
+            drawnow;
             hold off
         end
     end % PlotRotation

@@ -58,7 +58,7 @@ end
 
 % Flags
 recordData = 0;
-myView = visualizer('visualizer');
+myView = visualizer2('visualizer');
 
 %% Test visualization. Mainly used for debugging axes orientation and such.
 if (recordData)
@@ -149,7 +149,7 @@ if dummy_flag == 4
     % Create interface
     connector on;
     m = mobiledev;
-    loops = 500;
+    loops = 200;
     
     if(m.Connected)
         disp('Phone connected to MATLAB');
@@ -175,17 +175,16 @@ if dummy_flag == 4
         disp(m.AngularVelocity);
         
         % Kalman dt
-        dt = 0.05;
+        dt = 0.03;
 
         % Gyro covariance matrix
-        stdGyro = 0.1;
+        stdGyro = 0.001;
         Qgyro = stdGyro*eye(3);
         
         % Measurement noise covariance
-        measCov = 0.1;
+        measCov = 0.00001;
         R = measCov*eye(4);
 
-        using_lti_disc = 0;
         param{1} = dt;
         % Param{2} is gravity in g units. This is convenient for the quaternion
         % representation. MEASUREMENTS SHOULD BE NORMALIZED THEN.
@@ -193,20 +192,19 @@ if dummy_flag == 4
         param{3} = measCov;
         
         % Prior on the process covariance matrix
-        P  = 1*eye(4);
-        % Initializing estimates;
-        MM = [];
-        PP = [];
-
+        PP  = 1*eye(4);
+        
         % Initial orientation
-        M = quaternion.eulerangles('xyz', pi/180*[0 0 0]');
-        M.double;
+        MM = quaternion.eulerangles('xyz', pi/180*[0 0 0]');
+        MM = MM.double;
         
         %
         idx = 1;
         Mstored = [];
-        while(loops > 0) 
-%             startTime = tic;
+%         quat_fig = figure;
+        startTime = tic;            
+        while(1) 
+            %% WAITING FOR BOTH MEASUREMENTS TO ARRIVE
             while(isempty(m.Acceleration))
 %                 disp('waiting for acc...');
             end
@@ -216,15 +214,17 @@ if dummy_flag == 4
             end
             currAngVel = m.AngularVelocity;
             
-            [MM, PP] = online_quaternion_based_EKF([],currAcc, currAngVel, dt, M, P, Qgyro, R, MM, PP, param, idx);
+            %% SENDING ACC. AT A DIFFERENT RATE FROM THE GYRO
+            m.Acceleration 
+            
+            
+            dt = toc(startTime);
+            [MM, PP] = online_quaternion_based_EKF([],currAcc, currAngVel, dt, MM, PP, Qgyro, R, param, idx);
+            startTime = tic;
             setOrientation(myView, MM);
-%             MM_quat = quaternion(MM);
-%             MM_eul = 180/pi*MM_quat.EulerAngles('xyz');
-%             MM_pyr = [-MM_eul(3), -MM_eul(1), MM_eul(2)];
-%             disp('[azimuth, pitch, roll]: ');
-%             disp(MM_pyr);
-            loops = loops - 1;
-            Mstored = [Mstored, MM];
+%             PlotRotation(quaternion(MM), []);
+%             loops = loops - 1;
+%             Mstored = [Mstored, MM];
         end
         
     else
