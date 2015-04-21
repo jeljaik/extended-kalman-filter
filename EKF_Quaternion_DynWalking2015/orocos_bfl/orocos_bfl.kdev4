@@ -1,0 +1,3 @@
+[Project]
+Manager=KDevCMakeManager
+Name=orocos_bfl
