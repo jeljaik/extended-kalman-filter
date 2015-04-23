@@ -15,10 +15,30 @@
  * Public License for more details
  */
 
-
 #include "quaternionEKFThread.h"
 
-quaternionEKFThread::quaternionEKFThread ( int period ) : RateThread ( period )
+quaternionEKFThread::quaternionEKFThread ( int period, 
+                                           yarp::os::Property &filterParams
+                                          )
+    : RateThread ( m_period ),
+      m_filterParams( filterParams )
 {
 
 }
+
+void quaternionEKFThread::run()
+{
+    
+}
+
+bool quaternionEKFThread::threadInit()
+{
+    return true;
+}
+
+void quaternionEKFThread::threadRelease()
+{
+    delete m_parser;
+    m_parser = NULL;
+}
+

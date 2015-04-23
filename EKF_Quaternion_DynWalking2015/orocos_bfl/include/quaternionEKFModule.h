@@ -18,13 +18,25 @@
 #ifndef __QUATERNIONEKFMODULE_H__
 #define __QUATERNIONEKFMODULE_H__
 
+#include <yarp/os/BufferedPort.h>
+#include <yarp/sig/Vector.h>
 #include <yarp/os/RFModule.h>
 #include <quaternionEKFThread.h>
 
 class quaternionEKFModule: public yarp::os::RFModule
 {
-    int period;
+    double period;
+    std::string robotName;
+    std::string local;
+    bool autoconnect;
+    std::string mode;
+    yarp::os::BufferedPort<yarp::sig::Vector> gyroMeasPort;
     quaternionEKFThread* quatEKFThread;
+    
+    // Parser parameters
+    dataDumperParser* m_parser;
+    currentData       m_currentData;
+    
 public:
     quaternionEKFModule();
     
