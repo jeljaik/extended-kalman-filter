@@ -18,11 +18,11 @@
 #include "quaternionEKFThread.h"
 
 quaternionEKFThread::quaternionEKFThread ( int period, 
-                                           yarp::os::Property &filterParams
-                                          )
+                                           yarp::os::Property &filterParams)
     : RateThread ( m_period ),
       m_filterParams( filterParams )
 {
+    
 
 }
 

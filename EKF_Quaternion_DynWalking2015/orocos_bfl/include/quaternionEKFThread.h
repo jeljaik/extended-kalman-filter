@@ -27,6 +27,7 @@
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Property.h>
 
+#include "nonLinearAnalyticConditionalGaussian.h"
 #include "dataDumperParser.h"
 //TODO The path to the original data file must be retrieved by the ResourceFinder.
 #define DATAFILE "/home/jorhabib/Software/extended-kalman-filter/EKF_Quaternion_DynWalking2015/orocos_bfl/data/dumper/icub/inertial/data.log"
@@ -38,8 +39,9 @@ class quaternionEKFThread: public yarp::os::RateThread
     dataDumperParser*  m_parser;
     // currentData struct defined in dataDumperParser.h
     currentData        m_currentData;
+//     BFL::nonLinearAnalyticConditionalGaussian m_sys_pdf;
 public:
-  quaternionEKFThread ( int period, yarp::os::Property &filterParams );
+  quaternionEKFThread ( int period, yarp::os::Property &filterParams);
   bool threadInit();
   void run();
   void threadRelease();

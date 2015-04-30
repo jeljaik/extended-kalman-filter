@@ -102,7 +102,6 @@ bool dataDumperParser::parseLine(currentData &currData)
     // Find Length of the line
     char del[] = "\n";
     int lengthLine = strcspn(m_pCurrent, del);
-//     yInfo(" [dataDumperParser::parseLine] Length of current line: %i", lengthLine);
     
     // Copy the current line
     char tmpLine[(size_t) lengthLine];
@@ -110,7 +109,8 @@ bool dataDumperParser::parseLine(currentData &currData)
     
     // Null character manually added
     tmpLine[lengthLine] = '\0';
-    yInfo(" [dataDumperParser::parseLine] Current line:\n %s", tmpLine);
+    //TODO Make this print optional if some VERBOSE flag is activated
+//     yInfo(" [dataDumperParser::parseLine] Current line:\n %s", tmpLine);
     
     // Divide line  in tokens
     char* tmp;
@@ -121,12 +121,7 @@ bool dataDumperParser::parseLine(currentData &currData)
     // TODO This can't  be hardcoded to 12 as this can vary according to the sensor that was dumped
     currData.measurement.resize(12);
     double tmpIdx;
-    while (tmp != NULL) {        
-        if (col == 0) {
-            tmpIdx = atof(tmp);
-            if (tmpIdx == 7014) 
-                int a = 0; // Dummy way to stop here
-        }
+    while (tmp != NULL) {
         if (col == 1) {
             currData.time = atof(tmp);
         }

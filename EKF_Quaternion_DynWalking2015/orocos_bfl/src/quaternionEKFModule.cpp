@@ -132,15 +132,16 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
 bool quaternionEKFModule::updateModule()
 {
     std::string tmp = "offline";
-    std::cout << "Module period" << this->getPeriod() << std::endl;
+//     std::cout << "Module period" << this->getPeriod() << std::endl;
     if (!tmp.compare(mode)) {
-        std::cout << "[quaternionEKFModule::updateModule] The module will parse the file" <<  std::endl;
-        // TODO Perform the estimates
         if(!m_parser->parseLine(m_currentData)) {
             yInfo("[ quaternionEKFThread::run] File was fully processed or it could not be opened. Quitting thread.");
             return false;
+        } else {
+        // TODO Perform the estimates
         }
     } else {
+        // TODO Perform the estimates
         return true;
     }
     return true;

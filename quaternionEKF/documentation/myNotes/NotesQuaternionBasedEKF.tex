@@ -3,6 +3,7 @@
 \usepackage{graphicx}        % standard LaTeX graphics tool
 \usepackage{amsmath}
 
+\DeclareMathOperator{\E}{\mathbb{E}}
 % Title Page
 \title{Notes on Quaternion-based EKF Orientation Estimation for a Mobile Phone }
 \author{Jorhabib Eljaik Gomez}
@@ -39,10 +40,11 @@ Where:
 Covariance matrices for the $w_k$ and $v_k$ vectors at time $t_k$ are given by $Q_k$ and $R_k$.
 
 \subsection{Kalman Filter}
+\label{sec:KalmanFilter}
 Here goes a summarized explanation of the Kalman Filter.
 \begin{figure}[!ht]
  \centering
- \includegraphics[width=0.85\textwidth]{./fig/kalman_loop.png}
+ \includegraphics[width=0.5\textwidth]{./fig/kalman_loop.png}
  % kalman_loop.png: 1157x570 pixel, 72dpi, 40.82x20.11 cm, bb=0 0 1157 570
  \caption{Kalman filter algorithm. Extracted from Introduction to Random Signals and Applied Kalman Filtering.}
  \label{fig:kalmanLoop}
@@ -51,18 +53,18 @@ Here goes a summarized explanation of the Kalman Filter.
 \subsection{Sensors Calibration}
 This is a very delicate and important issue that needs to be addressed. Good summarized information can be found in \cite{Cucu2012} and the selected choice described here.
 
-\section{Simplified Version}
+\section{Simplified Version (Gyroscope and Accelerometer)}
 In this simplified version we have the following description of the process:
 \begin{itemize}
- \item \textbf{State Space Model:} The state is the orientation of the sensor local frame \cal{\{S\}} with respect to the earth-fixed world reference frame \cal{\{W\}} corresponding to the east-north-up system (y-axis pointing north, z-axis pointing up). This orientation is what we want to estimate, and to do so, we will use the angular velocity provided by the gyroscope as input to the system, while the measurement equation will come from the model of the accelerometer.
+ \item \textbf{State Space Model:} The state is the orientation of the sensor local frame \cal{\{S\}} with respect to the earth-fixed world reference frame \cal{\{W\}} corresponding to the east-north-up system (y-axis pointing north, z-axis pointing up). This orientation is what we want to estimate, and to do so, we will use the angular velocity provided by the gyroscope as input to the system, while the measurement equation will come from the model of the accelerometer such that:
 
 \begin{align}
  x_k &= q^w_{s_k} \\
  u_k &= \omega^s_k \\
- y_k &= a^s_{k}
+ z_k &= f(a^s_{k})
 \end{align}
 
-In the previous equations $q^w_{s_k}$ stands for the quaternion in $rad$ at time $k$, representing the orientation between the sensor and the world reference frame, $\omega^s_k$ the angular velocity in $rad/s$ in the sensor reference frame while $a^s_{k}$ is actually the rotated gravity acceleration in \{W\} felt by the accelerometer in $m/s^2$. Recall that the accelerometer measures the acceleration acting \textbf{on} itself in its local reference frame \{S\}. We will assume also that the gravity acceleration \textbf{felt} by the accelerometer at rest in \{W\} is constant and equal to $g^w = [0 \quad 0 \quad 9.81]^T$ assuming that the body does not move too fast. 
+In the previous equations $q^w_{s_k}$ stands for the quaternion in $rad$ at time $k$, representing the orientation between the sensor and the world reference frame (quaternions in this document have the following structure: $q = [q_{\text{real}} \quad q_{\text{vec}}]$), $\omega^s_k$ the angular velocity in $rad/s$ in the sensor reference frame while $f(a^s_{k})$ is actually the rotated gravity acceleration in \{W\} felt by the accelerometer in $m/s^2$. Recall that the accelerometer measures the acceleration acting \textbf{on} itself in its local reference frame \{S\}. We will assume also that the gravity acceleration \textbf{felt} by the accelerometer at rest in \{W\} is constant and equal to $g^w = [0 \quad 0 \quad 9.81]^T$ and that the body does not move too fast. 
 
 \begin{figure}[h]
  \centering
@@ -73,7 +75,7 @@ In the previous equations $q^w_{s_k}$ stands for the quaternion in $rad$ at time
 \end{figure}
 
 
-\item \textbf{System Dynamics:} Since our state vector consists only of the quaternion $q^w_{s_k}$, its dynamics are given by the derivate of the quaternion, i.e. $\dot{q}^w_s = \frac{1}{2}\Omega(\omega^s)q^w_s$ in continuous time, which translates into a discrete update equation of the form:
+\item \textbf{System Dynamics:} Since our state vector consists only of the quaternion $q^w_{s_k}$, its dynamics are given by the derivate of the quaternion, i.e. $\dot{q}^w_s = \frac{1}{2}\Omega(\omega^s)q^w_s$ in continuous time. Assuming that the angular velocity remains constant over the integration time, the previus equation can be transformed into a discretized update equation of the form $q^w_{s_{k+1}} = \Phi_k q^w_{s_k}$ where $\Phi_k = e^{F\Delta T}$ and $F$ the transition matrix $\frac{1}{2}\Omega(\omega^s)$. Including the gyro noise $w$ with probability distribution $\cal{N}$ $(0,Q_c)$ and following a Taylor series expansion we get:
 
 \begin{align}
  q^w_{s_{k+1}} &= e^{\frac{1}{2}\Omega(\omega^s_k + w_k)\Delta T} q^w_{s_k} \\
@@ -86,10 +88,10 @@ Where the operators $\Omega$ and $\Xi$ are:
  \Omega(\omega^s_k) = \left[\begin{matrix}
                       0	        &  -(\omega^s_k)^T\\
                    \omega^s_k   &  -S(\omega^s_k)
-                  \end{matrix}\right]
+z                  \end{matrix}\right]
 \end{equation}
 
-\begin{equation}
+\begin{equation} 
  \Xi(q^w_{s_k}) = \left[\begin{matrix}
                    [-q^w_{s_k}]^T_{vec} \\
                     [q^w_{s_k}]_{real} I_{3\times3} + S([q^w_{s_k}]_{vec})
@@ -172,7 +174,7 @@ and
 Where $F_k$ will be assumed to be zero. The measurement equation however must be linearized! Once linearized, we can obtain also $H_k$. The measurement equation for the accelerometer can be linearized by taking its Jacobian and evaluating at the most recent estimate. However, as done in \cite{Ligorio2013}, the linearized measurement matrix $H_k$ can be obtained as:
 
 \begin{align}
- H_k = \Psi(q_k, g^0) &= \frac{\partial}{\partial q_k}  \left( q^{-1}_k \otimes \bar{g}^0 \otimes q_k \right)\\
+ H_k = \Psi(q_k, g^0) &= \frac{\partial}{\partial q_k}  \left( q_k \otimes \bar{g}^0 \otimes q^{-1}_k \right)\\
                       &= \bar{S}_R(q_k) \bar{S}_R(g^0)^T + \bar{S}^T_L(q_k) \bar{S}_L(g^0)^T \left[\begin{matrix} -I_3 & 0 \\0  & 1 
 			     \end{matrix}\right]
 \end{align}
@@ -199,13 +201,10 @@ Where
 
 And corresponding measurement noise covariance matrix 
 \begin{equation}
- R_k = \left[\begin{matrix}
-	      \Sigma_H &   0_3 \\
-	       0_3     &   \Sigma_a
-	     \end{matrix}\right]
+ R_k = \Sigma_a
 \end{equation}
 
-Where $\Sigma_H = I_3 \sigma_v^2$.
+Where $\Sigma_a = I_4 \sigma_v^2$.
 
 In this way, we finally obtain the linearized measurement equations such that
 \begin{equation}
@@ -220,7 +219,7 @@ NOTE: DON'T FORGET TO CHECK THAT ALL THE QUATERNION FUNCTIONS THAT I'M USING CON
 
 \end{itemize}
 
-
+\section{Estimating Orientation and Gyro Bias}
 
 \section{Simplified Version Using the QUaternionESTimator algorithm (QUEST)}
 \label{sect:questSection}
@@ -243,6 +242,56 @@ Depending on how noisy measurements are, the harder it becomes to minimize this 
 QUEST is just one efficient way to perform this minimization and will be described next. Many spacecraft attitude systems use this method to fuse the unit vector giving the direction to the sun or a star and the unit vector in the direction of the Earth's magnetic field. In this particular implementation we intend to do the same, with the gravity vector given by the accelerometer and the Earth's magnetic field direction provided by the magnetometer.
 
 \subsection{QUEST}
+
+\section{Multiplicative Kalman Filter}
+The Kalman Filter explained in Section \ref{sec:KalmanFilter} is known as a \emph{Direct Kalman Filter} 
+
+
+\section{Bayesian Interpretation of the Kalman Filter}
+The Kalman Filter can be seen as a special case of the sequential state estimation problem in iterative Bayesian filtering. In recursive Bayesian estimation, two assumptions are used to derive the recursive Bayesian filter: i) The state follows a first-order Markov process, meaning $p(x_n | x_{0:n-1}) = p(x_n | x_{n-1})$, ii) The observations are independent of the given states. From Bayes rule it can be obtained that the \textbf{conditional pdf} of $x_n$  is:
+
+\begin{equation}
+ p(x_n|y_{0:n}) = \frac{p(y_n|x_n)p(x_n|y_{0:n-1})}{p(y_n|y_{n-1})}
+\end{equation}
+
+In the previous equation the posterior probability is described by three terms:
+\begin{itemize}
+ \item \textbf{Prior:} $p(x_n|y_{0:n-1})$ and is also a function of the transition probability $p(x_{n+1}|x_n)$ (or $p(x_{n}|x_{n-1})$) which is further characterized by the transition matrix $F$ from the formulation of the discrete dynamic state-space problem. 
+ \item \textbf{Likelihood:} $p(y_n|x_n)$ which is characterized by a measurement equation $y_n = g(x_n, v_n)$ where $v_n$ is measurement noise (or its measurement matrix $H_n$).
+ \item \textbf{Evidence:} $p(y_n|y_{0:n-1})$
+\end{itemize}
+
+Kalman Filtering can be reduced to a Maximum A Posteriori (MAP) solution to
+\begin{equation}
+ \left.\frac{\partial \log p(x_n|y_{0:n})}{\partial x_n}\right\vert_{x_n = \hat{x}^{MAP}} = 0
+\end{equation}
+
+after calculating the means and covariances of the previously listed terms, i.e.
+\begin{equation}
+\begin{aligned}
+ \E[y_n|x_n]        &= G_n x_n\\
+ Cov[y_n|x_n]       &= \Sigma_v\\
+ \E[x_n|y_{0:n-1}]   &= Fx_{n-1}\\
+ Cov[x_n|y_{0:n-1}] &= Cov[x_n - \hat{x}_{n|n-1}]
+\end{aligned}
+\end{equation}
+
+
+And pdfs:
+
+\begin{align}
+ p(y_n|x_n)       &= A_1 \exp(-\frac{1}{2}(y_n - G_n x_n)^T \Sigma^{-1}_v (y_n - G_n x_n)) \\
+ p(x_n|y_{0:n-1}) &= A_2 \exp(\frac{1}{2}(x_n - \hat{x}_{n|n-1})^T \times P^{-1}_{n,n-1}(x_n - \hat{x}_{n|n-1}))\\
+\end{align}
+
+We can now obtain an expression for the posterior $p(x_n|y_{0:n})$ as:
+\begin{multline}
+ p(x_n|y_{0:n}) \propto A \exp\left(\frac{1}{2} (y_n - G_n x_n)^T) \Sigma^{-1}_v (y_n - G_n x_n) \\
+		 \left.- \frac{1}{2}(x_n - \hat{x}_{n|n-1})^T P^{-1}_{n,n-1}(x_n - \hat{x}_{n|n-1}\right)
+\end{multline}
+
+Where $A_1 = 2\pi^{-N_y/2}|\Sigma_v|^{-1/2}$, $A_2 = 2\pi^{-N_x/2}|P_{n,n-1}|^{-1/2}$ and $A=A_1 A_2$. 
+For more details on these derivations and further references please refer to \cite{Chen2003}.
 
 
 \bibliographystyle{plain} 
