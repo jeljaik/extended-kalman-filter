@@ -3,6 +3,12 @@
 #include"nonLinearAnalyticConditionalGaussian.h"
 
 namespace BFL {
+nonLinearAnalyticConditionalGaussian::nonLinearAnalyticConditionalGaussian(int dim) 
+        : AnalyticConditionalGaussianAdditiveNoise (dim, NUMBEROFCONDITIONALARGUMENTS)
+{
+
+}
+
 nonLinearAnalyticConditionalGaussian::nonLinearAnalyticConditionalGaussian ( const BFL::Gaussian& gaus) 
         : AnalyticConditionalGaussianAdditiveNoise ( gaus, NUMBEROFCONDITIONALARGUMENTS )
 {

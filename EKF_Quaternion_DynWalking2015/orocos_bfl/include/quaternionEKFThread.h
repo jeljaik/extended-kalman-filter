@@ -26,20 +26,35 @@
 
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Property.h>
+#include <yarp/os/Bottle.h>
 
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "dataDumperParser.h"
 //TODO The path to the original data file must be retrieved by the ResourceFinder.
 #define DATAFILE "/home/jorhabib/Software/extended-kalman-filter/EKF_Quaternion_DynWalking2015/orocos_bfl/data/dumper/icub/inertial/data.log"
+//TODO This should come from the configuration file
+#define STATEDIM 4
+//TODO In case you wanna add a different group in the configuration file
+#define FILTER_GROUP_PARAMS_NAME "EKFPARAMS"
+
 
 class quaternionEKFThread: public yarp::os::RateThread
 {
-    int m_period;
+    int                m_period;
     yarp::os::Property m_filterParams;
     dataDumperParser*  m_parser;
     // currentData struct defined in dataDumperParser.h
     currentData        m_currentData;
-//     BFL::nonLinearAnalyticConditionalGaussian m_sys_pdf;
+    BFL::nonLinearAnalyticConditionalGaussian m_sysPdf;
+    
+    // filter parameters read from configuration file
+    // TODO These should be put in some structure
+    int m_state_size;
+    int m_input_size;
+    int m_measurement_size;
+    double m_prior_state_cov;
+    double m_mu_system_noise;
+    double m_sigma_system_noise;
 public:
   quaternionEKFThread ( int period, yarp::os::Property &filterParams);
   bool threadInit();

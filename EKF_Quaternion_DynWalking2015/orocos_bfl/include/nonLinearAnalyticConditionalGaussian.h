@@ -9,6 +9,10 @@ namespace BFL
     class nonLinearAnalyticConditionalGaussian: public AnalyticConditionalGaussianAdditiveNoise 
     {
     public:
+        // Constructors
+        // Distribution not yet known
+        nonLinearAnalyticConditionalGaussian ( int dim = 0);
+        // Distribution known beforehand
         nonLinearAnalyticConditionalGaussian ( const Gaussian& gaus);
         virtual ~nonLinearAnalyticConditionalGaussian();
         
