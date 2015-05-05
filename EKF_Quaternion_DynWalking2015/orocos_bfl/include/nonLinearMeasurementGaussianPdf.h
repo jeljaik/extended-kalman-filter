@@ -28,6 +28,10 @@ namespace BFL {
     public:
         nonLinearMeasurementGaussianPdf(const BFL::Gaussian& additiveNoise);
         virtual ~nonLinearMeasurementGaussianPdf();
+        
+        // Redefinition of necessary virtual methods
+        virtual MatrixWrapper::ColumnVector    ExpectedValueGet()     const;
+        virtual MatrixWrapper::Matrix          dfGet(unsigned int i)  const;
     };
 }
 

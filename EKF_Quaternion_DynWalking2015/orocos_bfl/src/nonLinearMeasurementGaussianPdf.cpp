@@ -29,5 +29,29 @@ nonLinearMeasurementGaussianPdf::~nonLinearMeasurementGaussianPdf()
 
 }
 
+MatrixWrapper::ColumnVector nonLinearMeasurementGaussianPdf::ExpectedValueGet() const
+{
+    // This is pretty much the measurement model (Accelerometer in this particular case)
+    // State variables and input are private members of ConditionalPDF
+    MatrixWrapper::ColumnVector state = ConditionalArgumentGet(0);
+    MatrixWrapper::ColumnVector angVel = ConditionalArgumentGet(1);
+    
+    MatrixWrapper::ColumnVector expectedValue(4);
+    MatrixWrapper::Quaternion tmpQuat(state);
+    MatrixWrapper::Matrix Q(3,3);
+    Q = tmpQuat.toRotation();
+    cout << "[BFL::nonLinearMeasurementGaussianPdf::ExpectedValueGet] Rotation matrxi from quaternion: " << Q ;
+    MatrixWrapper::ColumnVector g0(3); g0(1) = 0; g0(2) = 0; g0(3) = 9.81;
+    expectedValue = Q*g0;
+    return expectedValue; 
+
+}
+
+MatrixWrapper::Matrix nonLinearMeasurementGaussianPdf::dfGet ( unsigned int i ) const
+{
+
+}
+
+
 } // BFL namespace
 
