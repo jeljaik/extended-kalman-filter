@@ -43,6 +43,7 @@ bool quaternionEKFThread::threadInit()
         m_prior_state_cov = outputParamsBottle.find("PRIOR_COV_STATE").asDouble();
         m_mu_system_noise = outputParamsBottle.find("MU_SYSTEM_NOISE").asDouble();
         m_sigma_system_noise = outputParamsBottle.find("SIGMA_SYSTEM_NOISE").asDouble();
+        m_sigma_measurement_noise = outputParamsBottle.find("SIGMA_MEASUREMENT_NOISE").asDouble();
     } else {
         yError("Filter parameters from configuration file could not be extracted");
         return false;
@@ -50,31 +51,49 @@ bool quaternionEKFThread::threadInit()
     
     // System Noise Mean
     MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
-    sys_noise_mu(1) = m_mu_system_noise;
-    sys_noise_mu(2) = m_mu_system_noise;
-    sys_noise_mu(3) = m_mu_system_noise;
-    sys_noise_mu(4) = m_mu_system_noise;
+    sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = m_mu_system_noise;
     
     // System Noise Covariance
     MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
-    sys_noise_cov(1,2) = sys_noise_cov(1,3) = sys_noise_cov(1,4) = 0.0;
-    sys_noise_cov(1,1) = m_sigma_system_noise;
-    sys_noise_cov(2,1) = sys_noise_cov(2,3) = sys_noise_cov(2,4) = 0.0;
-    sys_noise_cov(2,2) = m_sigma_system_noise;
-    sys_noise_cov(3,1) = sys_noise_cov(3,2) = sys_noise_cov(3,4) = 0.0;
-    sys_noise_cov(3,3) = m_sigma_system_noise;
-    sys_noise_cov(4,1) = sys_noise_cov(4,2) = sys_noise_cov(4,3) = 0.0;
-    sys_noise_cov(4,4) = m_sigma_system_noise;
+    sys_noise_cov = 0.0;
+    sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
     
-//     BFL::Gaussian system_uncertainty(sys_noise_mu, sys_noise_cov);
+    // System noise uncertainty
     m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
     m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
+    
+    // Creating the model
+    m_sys_model = new BFL::AnalyticSystemModelGaussianUncertainty(&m_sysPdf);
+    
+    // Creating measurement model for linear measurement model
+    // Measurement noise distribution
+    // Measurement noise mean
+    MatrixWrapper::ColumnVector meas_noise_mu(m_measurement_size);
+    // TODO Check that this is correct
+    meas_noise_mu = 0.0;                // Set all to zero
+    meas_noise_mu(4) = GRAVITY_ACC;
+    // Measurement noise covariance
+    MatrixWrapper::SymmetricMatrix meas_noise_cov(m_measurement_size);
+    meas_noise_cov = 0.0;
+    meas_noise_cov(1,1) = meas_noise_cov(2,2) = meas_noise_cov(3,3) = m_sigma_measurement_noise;
+    // Measurement noise uncertainty
+    m_measurement_uncertainty = new BFL::Gaussian(meas_noise_mu, meas_noise_cov);
+    // Nonlinear measurement model
+    MatrixWrapper::Matrix H(m_measurement_size, m_state_size);
+    H = 0.0;
     return true;
 }
 
 void quaternionEKFThread::threadRelease()
 {
-    delete m_parser;
+    if ( m_parser ) { 
+        delete m_parser;
+        m_parser = NULL;
+    }
     m_parser = NULL;
+    if(m_sys_model) {
+        delete m_sys_model;
+        m_sys_model = NULL;
+    }
 }
 

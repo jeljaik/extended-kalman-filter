@@ -36,7 +36,7 @@
 #define STATEDIM 4
 //TODO In case you wanna add a different group in the configuration file
 #define FILTER_GROUP_PARAMS_NAME "EKFPARAMS"
-
+#define GRAVITY_ACC 9.81
 
 class quaternionEKFThread: public yarp::os::RateThread
 {
@@ -45,8 +45,9 @@ class quaternionEKFThread: public yarp::os::RateThread
     dataDumperParser*  m_parser;
     // currentData struct defined in dataDumperParser.h
     currentData        m_currentData;
-    BFL::nonLinearAnalyticConditionalGaussian m_sysPdf;
-    
+    BFL::nonLinearAnalyticConditionalGaussian    m_sysPdf;
+    BFL::AnalyticSystemModelGaussianUncertainty* m_sys_model;
+    BFL::Gaussian*                               m_measurement_uncertainty;
     // filter parameters read from configuration file
     // TODO These should be put in some structure
     int m_state_size;
@@ -55,6 +56,8 @@ class quaternionEKFThread: public yarp::os::RateThread
     double m_prior_state_cov;
     double m_mu_system_noise;
     double m_sigma_system_noise;
+    double m_sigma_measurement_noise;
+    
 public:
   quaternionEKFThread ( int period, yarp::os::Property &filterParams);
   bool threadInit();
