@@ -16,6 +16,7 @@
  */
 
 #include "quaternionEKFThread.h"
+using namespace std;
 
 quaternionEKFThread::quaternionEKFThread ( int period, 
                                            yarp::os::Property &filterParams)
@@ -28,7 +29,19 @@ quaternionEKFThread::quaternionEKFThread ( int period,
 
 void quaternionEKFThread::run()
 {
+    // Get Input and measurement
+    // Read angular velocity. Read from port!
+    MatrixWrapper::ColumnVector input;
+    // Read Accelerometer. Read from port!
+    MatrixWrapper::ColumnVector measurement;
     
+    // Perform new estimation
+    m_filter->Update(m_sys_model, input, m_meas_model, measurement);
+    // Get the posterior of the updated filter. Result of all the system model and meaurement information
+    BFL::Pdf<BFL::ColumnVector> * posterior = m_filter->PostGet();
+    cout << "Posterior Mean: " << posterior->ExpectedValueGet() << endl;
+    cout << "Posterior Covariance: " << posterior->CovarianceGet() << endl;
+    cout << " " << endl; 
 }
 
 bool quaternionEKFThread::threadInit()
@@ -42,6 +55,8 @@ bool quaternionEKFThread::threadInit()
         m_mu_system_noise = outputParamsBottle.find("MU_SYSTEM_NOISE").asDouble();
         m_sigma_system_noise = outputParamsBottle.find("SIGMA_SYSTEM_NOISE").asDouble();
         m_sigma_measurement_noise = outputParamsBottle.find("SIGMA_MEASUREMENT_NOISE").asDouble();
+        m_prior_mu = outputParamsBottle.find("PRIOR_MU_STATE").asDouble();
+        m_prior_cov = outputParamsBottle.find("PRIOR_COV_STATE").asDouble();
     } else {
         yError("Filter parameters from configuration file could not be extracted");
         return false;
@@ -80,19 +95,54 @@ bool quaternionEKFThread::threadInit()
     //  Measurement model from the measurement PDF
     m_meas_model = new BFL::AnalyticMeasurementModelGaussianUncertainty(m_measPdf);
     
+    // Prior
+    // TODO We need a zero method in MatrixWrapper for both vectors and matrices
+    MatrixWrapper::ColumnVector prior_mu(m_state_size);
+    prior_mu(1) = prior_mu(2) = prior_mu(3) = 0.0; 
+    prior_mu(4) = m_prior_mu;
+    MatrixWrapper::SymmetricMatrix prior_cov(m_state_size);
+    // TODO Setting matrix to zero. This is specifically for BOOST
+    for (unsigned int i = 1; i < prior_cov.size1() + 1; ++i)
+        for (unsigned int j = 1; j < prior_cov.size2() + 1; ++j)
+            prior_cov(i,j) = 0;
+    prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_prior_cov;
+    m_prior = new BFL::Gaussian(m_prior_mu, m_prior_cov);
+    
+    // Construction of the filter
+    m_filter = new BFL::ExtendedKalmanFilter(m_prior);
     return true;
 }
 
 void quaternionEKFThread::threadRelease()
 {
-    if ( m_parser ) { 
+    if (m_parser) { 
         delete m_parser;
         m_parser = NULL;
     }
     m_parser = NULL;
-    if(m_sys_model) {
+    if (m_sys_model) {
         delete m_sys_model;
         m_sys_model = NULL;
+    }
+    if (m_measurement_uncertainty) {
+        delete m_measurement_uncertainty;
+        m_measurement_uncertainty = NULL;
+    }
+    if (m_measPdf) {
+        delete m_measPdf;
+        m_measPdf = NULL;
+    }
+    if (m_meas_model) {
+        delete m_meas_model;
+        m_meas_model = NULL;
+    }
+    if (m_prior) { 
+        delete m_prior;
+        m_prior = NULL;
+    }
+    if (m_filter) {
+        delete m_filter;
+        m_filter = NULL;
     }
 }
 

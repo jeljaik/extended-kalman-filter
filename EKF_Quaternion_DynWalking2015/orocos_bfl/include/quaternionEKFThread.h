@@ -41,11 +41,11 @@
 
 class quaternionEKFThread: public yarp::os::RateThread
 {
-    int                m_period;
-    yarp::os::Property m_filterParams;
-    dataDumperParser*  m_parser;
+    int                                          m_period;
+    yarp::os::Property                           m_filterParams;
+    dataDumperParser*                            m_parser;
     // currentData struct defined in dataDumperParser.h
-    currentData        m_currentData;
+    currentData                                  m_currentData;
     BFL::nonLinearAnalyticConditionalGaussian    m_sysPdf;
     BFL::AnalyticSystemModelGaussianUncertainty* m_sys_model;
     BFL::Gaussian*                               m_measurement_uncertainty;
@@ -60,6 +60,12 @@ class quaternionEKFThread: public yarp::os::RateThread
     double m_mu_system_noise;
     double m_sigma_system_noise;
     double m_sigma_measurement_noise;
+    // Priors
+    BFL::Gaussian*   m_prior;
+    double           m_prior_cov;
+    double           m_prior_mu;
+    // Filter
+    BFL::ExtendedKalmanFilter*  m_filter;
     
 public:
   quaternionEKFThread ( int period, yarp::os::Property &filterParams);
