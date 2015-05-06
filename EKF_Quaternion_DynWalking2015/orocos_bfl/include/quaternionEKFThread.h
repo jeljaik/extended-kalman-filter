@@ -29,6 +29,7 @@
 #include <yarp/os/Bottle.h>
 
 #include "nonLinearAnalyticConditionalGaussian.h"
+#include "nonLinearMeasurementGaussianPdf.h"
 #include "dataDumperParser.h"
 //TODO The path to the original data file must be retrieved by the ResourceFinder.
 #define DATAFILE "/home/jorhabib/Software/extended-kalman-filter/EKF_Quaternion_DynWalking2015/orocos_bfl/data/dumper/icub/inertial/data.log"
@@ -48,6 +49,8 @@ class quaternionEKFThread: public yarp::os::RateThread
     BFL::nonLinearAnalyticConditionalGaussian    m_sysPdf;
     BFL::AnalyticSystemModelGaussianUncertainty* m_sys_model;
     BFL::Gaussian*                               m_measurement_uncertainty;
+    BFL::nonLinearMeasurementGaussianPdf*        m_measPdf;
+    BFL::AnalyticMeasurementModelGaussianUncertainty* m_meas_model;
     // filter parameters read from configuration file
     // TODO These should be put in some structure
     int m_state_size;

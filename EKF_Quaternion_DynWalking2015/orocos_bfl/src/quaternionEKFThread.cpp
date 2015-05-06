@@ -16,7 +16,6 @@
  */
 
 #include "quaternionEKFThread.h"
-#include <../../example/game/game_server/Matrix.h>
 
 quaternionEKFThread::quaternionEKFThread ( int period, 
                                            yarp::os::Property &filterParams)
@@ -24,7 +23,6 @@ quaternionEKFThread::quaternionEKFThread ( int period,
       m_filterParams( filterParams ),
       m_sysPdf(STATEDIM)
 {
-    
 
 }
 
@@ -58,10 +56,9 @@ bool quaternionEKFThread::threadInit()
     sys_noise_cov = 0.0;
     sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
     
-    // System noise uncertainty
+    // Setting System noise uncertainty
     m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
     m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
-    
     // Creating the model
     m_sys_model = new BFL::AnalyticSystemModelGaussianUncertainty(&m_sysPdf);
     
@@ -78,9 +75,11 @@ bool quaternionEKFThread::threadInit()
     meas_noise_cov(1,1) = meas_noise_cov(2,2) = meas_noise_cov(3,3) = m_sigma_measurement_noise;
     // Measurement noise uncertainty
     m_measurement_uncertainty = new BFL::Gaussian(meas_noise_mu, meas_noise_cov);
-    // Nonlinear measurement model
-    MatrixWrapper::Matrix H(m_measurement_size, m_state_size);
-    H = 0.0;
+    // Probability density function (PDF) for the measurement
+    m_measPdf = new BFL::nonLinearMeasurementGaussianPdf(*m_measurement_uncertainty);
+    //  Measurement model from the measurement PDF
+    m_meas_model = new BFL::AnalyticMeasurementModelGaussianUncertainty(m_measPdf);
+    
     return true;
 }
 
