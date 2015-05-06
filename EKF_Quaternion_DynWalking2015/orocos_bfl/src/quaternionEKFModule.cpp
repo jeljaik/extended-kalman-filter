@@ -73,19 +73,19 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         yInfo(" [quaternionEKFModule::configure] Online estimation will be performed");
         std::string gyroMeasPortName = "/";
         gyroMeasPortName += "quaternionEKFModule";
-        gyroMeasPortName += "/gyro:i";
+        gyroMeasPortName += "/imu:i";
         if (!gyroMeasPort.open(gyroMeasPortName.c_str())) {
             yError("[quaternionEKFModule::configure] Could not open gyroMeasPort");
             return false;
         }
         
-        if (autoconnect) {
-            yarp::os::ConstString src = std::string("/" + robotName + "/inertial");
-            if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){
-                yError("Connection with %s was not possible", gyroMeasPortName.c_str());
-                return false;
-            }
-        }
+//         if (autoconnect) {
+//             yarp::os::ConstString src = std::string("/" + robotName + "/inertial");
+//             if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){
+//                 yError("Connection with %s was not possible", gyroMeasPortName.c_str());
+//                 return false;
+//             }
+//         }
         
         // Obtaining filter parameters from configuration file
         yarp::os::Property filterParams;
@@ -98,7 +98,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         }
         
         // ----------- THREAD INSTANTIATION AND CALLING -----------------
-        quatEKFThread = new quaternionEKFThread(period, filterParams);
+        quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, filterParams, &gyroMeasPort);
         if (!quatEKFThread->start()) {
             yError("Error starting quaternionEKFThread!");
             return false;

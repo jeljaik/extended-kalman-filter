@@ -27,6 +27,8 @@
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Property.h>
 #include <yarp/os/Bottle.h>
+#include <yarp/os/BufferedPort.h>
+#include <yarp/sig/Vector.h>
 
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
@@ -41,7 +43,13 @@
 
 class quaternionEKFThread: public yarp::os::RateThread
 {
+    // Ports for sensor readings
+    yarp::os::BufferedPort<yarp::sig::Vector>*   m_port_input;
+    yarp::os::BufferedPort<yarp::sig::Vector>*   m_gyroMeasPort;
     int                                          m_period;
+    std::string                                  m_moduleName;
+    std::string                                  m_robotName;
+    bool                                         m_autoconnect;
     yarp::os::Property                           m_filterParams;
     dataDumperParser*                            m_parser;
     // currentData struct defined in dataDumperParser.h
@@ -68,7 +76,13 @@ class quaternionEKFThread: public yarp::os::RateThread
     BFL::ExtendedKalmanFilter*  m_filter;
     
 public:
-  quaternionEKFThread ( int period, yarp::os::Property &filterParams);
+  quaternionEKFThread ( int period,
+                        std::string moduleName, 
+                        std::string robotName,
+                        bool autoconnect,
+                        yarp::os::Property &filterParams,
+                        yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort
+                      );
   bool threadInit();
   void run();
   void threadRelease();

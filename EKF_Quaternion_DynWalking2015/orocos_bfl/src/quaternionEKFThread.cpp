@@ -16,12 +16,24 @@
  */
 
 #include "quaternionEKFThread.h"
-using namespace std;
 
-quaternionEKFThread::quaternionEKFThread ( int period, 
-                                           yarp::os::Property &filterParams)
+using namespace std;
+using namespace yarp::os;
+using namespace yarp::sig;
+
+quaternionEKFThread::quaternionEKFThread ( int period,
+                                           std::string moduleName,
+                                           std::string robotName,
+                                           bool autoconnect,
+                                           yarp::os::Property &filterParams,
+                                           yarp::os::BufferedPort<yarp::sig::Vector>* gyroMeasPort
+                                         )
     : RateThread ( m_period ),
+      m_moduleName ( moduleName),
+      m_robotName ( robotName),
+      m_autoconnect ( autoconnect ),
       m_filterParams( filterParams ),
+      m_gyroMeasPort ( gyroMeasPort ),
       m_sysPdf(STATEDIM)
 {
 
@@ -30,10 +42,20 @@ quaternionEKFThread::quaternionEKFThread ( int period,
 void quaternionEKFThread::run()
 {
     // Get Input and measurement
-    // Read angular velocity. Read from port!
-    MatrixWrapper::ColumnVector input;
-    // Read Accelerometer. Read from port!
-    MatrixWrapper::ColumnVector measurement;
+    // Read port 
+    yarp::sig::Vector* imu_measurement = m_gyroMeasPort->read(false);
+    // Extract angular velocity. Read from port!
+    yarp::sig::Vector imu_linAcc = imu_measurement->subVector(3,5);
+    yarp::sig::Vector imu_angVel = imu_measurement->subVector(6,8);
+    MatrixWrapper::ColumnVector input(m_input_size);
+    input(1) = imu_angVel(0);
+    input(2) = imu_angVel(1);
+    input(3) = imu_angVel(2);
+    // Extract accelerometer. Read from port!
+    MatrixWrapper::ColumnVector measurement(m_measurement_size);
+    measurement(1) = imu_linAcc(0);
+    measurement(2) = imu_linAcc(1);
+    measurement(3) = imu_linAcc(2);
     
     // Perform new estimation
     m_filter->Update(m_sys_model, input, m_meas_model, measurement);
@@ -110,6 +132,19 @@ bool quaternionEKFThread::threadInit()
     
     // Construction of the filter
     m_filter = new BFL::ExtendedKalmanFilter(m_prior);
+    
+    // Sensor ports
+    // This port was opened by the module.
+    // TODO Pass this name to the thread!!!!
+    std::string gyroMeasPortName = string("/" + m_moduleName + "/imu:i");
+    
+    if (m_autoconnect) {
+        yarp::os::ConstString src = std::string("/" + m_robotName + "/inertial");
+        if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){
+            yError(" [quaternionEKFThread::threadInit()] Connection with %s was not possible", gyroMeasPortName.c_str());
+            return false;
+        }
+    }
     return true;
 }
 
