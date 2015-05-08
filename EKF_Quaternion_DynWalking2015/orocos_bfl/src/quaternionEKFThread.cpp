@@ -57,6 +57,49 @@ void quaternionEKFThread::run()
     measurement(2) = imu_linAcc(1);
     measurement(3) = imu_linAcc(2);
     
+    // Time-varying linear system model
+    // A = id(4) + 0.5*Omega(angVel)*period
+    MatrixWrapper::Matrix A(m_state_size,m_state_size);
+    // TODO This should be done in the Matrix wrapper
+    boost::numeric::ublas::identity_matrix<double> id(m_state_size);
+    MatrixWrapper::Matrix identity = MatrixWrapper::Matrix(id);
+    // Omega operator
+    MatrixWrapper::Matrix Omega(m_state_size, m_state_size);
+    Omega(1,1) = 0;          Omega(1,2) = -input(1);   Omega(1,3) = -input(2);   Omega(1,4) = -input(3);
+    Omega(2,1) = input(1);   Omega(2,2) =  0;          Omega(2,3) =  input(3);   Omega(2,4) = -input(2);
+    Omega(3,1) = input(2);   Omega(3,2) = -input(3);   Omega(3,3) =  0;          Omega(3,4) =  input(1);
+    Omega(4,1) = input(3);   Omega(4,3) =  input(2);   Omega(4,3) = -input(1);   Omega(4,4) =  0;
+    
+    A = identity + static_cast<MatrixWrapper::Matrix>(0.5*Omega*m_period);
+    boost::numeric::ublas::zero_matrix<double> B(m_input_size,m_input_size);
+    B = 0.0;
+    
+    vector<MatrixWrapper::Matrix> AB(2);
+    AB[0] = A;
+    AB[1] = static_cast<MatrixWrapper::Matrix>(B);
+    
+    // Noise gaussian
+    // System Noise Mean
+    MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
+    MatrixWrapper::ColumnVector noise_mu(m_state_size);
+    MatrixWrapper::ColumnVector Xi(static_cast<MatrixWrapper::ColumnVector>(boost::numeric::ublas::zero_vector<double>(m_state_size)));
+    // TODO Do this in a smarted way PLEASE!!!
+    
+    noise_mu = static_cast<MatrixWrapper::ColumnVector>( m_period/2*Xi*m_mu_gyro_noise );
+    sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = m_mu_system_noise;
+    
+    // System Noise Covariance
+    // TODO For now let's leave this constant as something to be tuned. 
+    // This covariance matrix however should be computed as done in the matlab
+    // utility ekfukf/lti_disc.m through Matrix Fraction Decomposition.
+    MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
+    sys_noise_cov = 0.0;
+    sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
+    
+    // Setting System noise uncertainty
+    m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
+    m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
+    
     // Perform new estimation
     m_filter->Update(m_sys_model, input, m_meas_model, measurement);
     // Get the posterior of the updated filter. Result of all the system model and meaurement information
@@ -79,6 +122,7 @@ bool quaternionEKFThread::threadInit()
         m_sigma_measurement_noise = outputParamsBottle.find("SIGMA_MEASUREMENT_NOISE").asDouble();
         m_prior_mu = outputParamsBottle.find("PRIOR_MU_STATE").asDouble();
         m_prior_cov = outputParamsBottle.find("PRIOR_COV_STATE").asDouble();
+        m_mu_gyro_noise = outputParamsBottle.find("MU_GYRO_NOISE").asDouble();
     } else {
         yError("Filter parameters from configuration file could not be extracted");
         return false;

@@ -68,6 +68,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     double m_mu_system_noise;
     double m_sigma_system_noise;
     double m_sigma_measurement_noise;
+    double m_mu_gyro_noise;
     // Priors
     BFL::Gaussian*   m_prior;
     double           m_prior_cov;

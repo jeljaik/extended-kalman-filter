@@ -27,10 +27,10 @@ MatrixWrapper::ColumnVector nonLinearAnalyticConditionalGaussian::ExpectedValueG
     state += static_cast<MatrixWrapper::ColumnVector>(0.5*OmegaOperator(angVel)) + AdditiveNoiseMuGet();
     
     // TODO The following lines are just a test
-    MatrixWrapper::Quaternion q(1,2,3,4);
-    cout << "Real part of the quaternion: " << q.real() << endl;
-    cout << "Imaginary part of the quaternion " << q.unreal() << endl;
-    cout << q + q;
+//     MatrixWrapper::Quaternion q(1,2,3,4);
+//     cout << "Real part of the quaternion: " << q.real() << endl;
+//     cout << "Imaginary part of the quaternion " << q.unreal() << endl;
+//     cout << q + q;
 }
 
 MatrixWrapper::Matrix nonLinearAnalyticConditionalGaussian::dfGet ( unsigned int i ) const
