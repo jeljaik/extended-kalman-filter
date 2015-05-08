@@ -81,12 +81,11 @@ void quaternionEKFThread::run()
     // Noise gaussian
     // System Noise Mean
     MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
-    MatrixWrapper::ColumnVector noise_mu(m_state_size);
     MatrixWrapper::ColumnVector Xi(static_cast<MatrixWrapper::ColumnVector>(boost::numeric::ublas::zero_vector<double>(m_state_size)));
-    // TODO Do this in a smarted way PLEASE!!!
+    // TODO Do this in a smarter way PLEASE!!!
     
-    noise_mu = static_cast<MatrixWrapper::ColumnVector>( m_period/2*Xi*m_mu_gyro_noise );
-    sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = m_mu_system_noise;
+    sys_noise_mu = static_cast<MatrixWrapper::ColumnVector>( m_period/2*Xi*m_mu_gyro_noise );
+//     sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = m_mu_system_noise;
     
     // System Noise Covariance
     // TODO For now let's leave this constant as something to be tuned. 
@@ -96,12 +95,13 @@ void quaternionEKFThread::run()
     sys_noise_cov = 0.0;
     sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
     
-    // Setting System noise uncertainty
-    m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
-    m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
+    // System model
+    BFL::Gaussian system_uncertainty(sys_noise_mu, sys_noise_cov);
+    BFL::LinearAnalyticConditionalGaussian sys_pdf(AB, system_uncertainty);
+    BFL::LinearAnalyticSystemModelGaussianUncertainty lin_sys_model(&sys_pdf);
     
     // Perform new estimation
-    m_filter->Update(m_sys_model, input, m_meas_model, measurement);
+    m_filter->Update(&lin_sys_model, input, m_meas_model, measurement);
     // Get the posterior of the updated filter. Result of all the system model and meaurement information
     BFL::Pdf<BFL::ColumnVector> * posterior = m_filter->PostGet();
     cout << "Posterior Mean: " << posterior->ExpectedValueGet() << endl;
