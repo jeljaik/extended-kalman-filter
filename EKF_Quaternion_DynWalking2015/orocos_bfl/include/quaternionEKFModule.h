@@ -22,6 +22,7 @@
 #include <yarp/sig/Vector.h>
 #include <yarp/os/RFModule.h>
 #include <quaternionEKFThread.h>
+#define FILTER_GROUP_PARAMS_NAME "EKFPARAMS"
 
 class quaternionEKFModule: public yarp::os::RFModule
 {

@@ -46,7 +46,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     // Ports for sensor readings
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_port_input;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_gyroMeasPort;
-    int                                          m_period;
+    int                                          m_period; // Period in ms
     std::string                                  m_moduleName;
     std::string                                  m_robotName;
     bool                                         m_autoconnect;

@@ -28,13 +28,14 @@ quaternionEKFThread::quaternionEKFThread ( int period,
                                            yarp::os::Property &filterParams,
                                            yarp::os::BufferedPort<yarp::sig::Vector>* gyroMeasPort
                                          )
-    : RateThread ( m_period ),
-      m_moduleName ( moduleName),
-      m_robotName ( robotName),
+    : RateThread ( period ),
+      m_period ( period ),
+      m_moduleName ( moduleName ),
+      m_robotName ( robotName ),
       m_autoconnect ( autoconnect ),
       m_filterParams( filterParams ),
       m_gyroMeasPort ( gyroMeasPort ),
-      m_sysPdf(STATEDIM)
+      m_sysPdf( STATEDIM )
 {
 
 }
@@ -43,19 +44,30 @@ void quaternionEKFThread::run()
 {
     // Get Input and measurement
     // Read port 
-    yarp::sig::Vector* imu_measurement = m_gyroMeasPort->read(false);
+    // When  using the simulator it's better to have a blocking reading as it's mainly done for debugging reasons and also because the simulator might not be running fast enough
+    bool reading = false;
+    if (!m_robotName.compare("icubGazeboSim"))
+        reading = true;
+    else
+        reading = false;
+    yarp::sig::Vector* imu_measurement = m_gyroMeasPort->read(reading);
+    cout << "read imu_measurement was: " << imu_measurement->toString().c_str() << endl;
     // Extract angular velocity. Read from port!
-    yarp::sig::Vector imu_linAcc = imu_measurement->subVector(3,5);
-    yarp::sig::Vector imu_angVel = imu_measurement->subVector(6,8);
+    yarp::sig::Vector imu_linAcc(3); 
+    imu_linAcc = imu_measurement->subVector(3,5);
+    yarp::sig::Vector imu_angVel(3);
+    imu_angVel = imu_measurement->subVector(6,8);
     MatrixWrapper::ColumnVector input(m_input_size);
     input(1) = imu_angVel(0);
     input(2) = imu_angVel(1);
     input(3) = imu_angVel(2);
+    cout << "VEL INPUT IS: " << input << endl;
     // Extract accelerometer. Read from port!
     MatrixWrapper::ColumnVector measurement(m_measurement_size);
     measurement(1) = imu_linAcc(0);
     measurement(2) = imu_linAcc(1);
     measurement(3) = imu_linAcc(2);
+    cout << "ACC INPUT IS: " << measurement << endl;
     
     // Time-varying linear system model
     // A = id(4) + 0.5*Omega(angVel)*period
@@ -69,9 +81,10 @@ void quaternionEKFThread::run()
     Omega(2,1) = input(1);   Omega(2,2) =  0;          Omega(2,3) =  input(3);   Omega(2,4) = -input(2);
     Omega(3,1) = input(2);   Omega(3,2) = -input(3);   Omega(3,3) =  0;          Omega(3,4) =  input(1);
     Omega(4,1) = input(3);   Omega(4,3) =  input(2);   Omega(4,3) = -input(1);   Omega(4,4) =  0;
-    
-    A = identity + static_cast<MatrixWrapper::Matrix>(0.5*Omega*m_period);
-    boost::numeric::ublas::zero_matrix<double> B(m_input_size,m_input_size);
+    cout << "PERIOD IS: " << m_period << endl;
+    A = identity + static_cast<MatrixWrapper::Matrix>(0.5*Omega*(m_period/1000));
+    boost::numeric::ublas::zero_matrix<double> tmpB(m_input_size,m_input_size);
+    MatrixWrapper::Matrix B(tmpB);
     B = 0.0;
     
     vector<MatrixWrapper::Matrix> AB(2);
@@ -101,7 +114,8 @@ void quaternionEKFThread::run()
     BFL::LinearAnalyticSystemModelGaussianUncertainty lin_sys_model(&sys_pdf);
     
     // Perform new estimation
-    m_filter->Update(&lin_sys_model, input, m_meas_model, measurement);
+    if(!m_filter->Update(&lin_sys_model, input, m_meas_model, measurement))
+        yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
     // Get the posterior of the updated filter. Result of all the system model and meaurement information
     BFL::Pdf<BFL::ColumnVector> * posterior = m_filter->PostGet();
     cout << "Posterior Mean: " << posterior->ExpectedValueGet() << endl;
@@ -111,20 +125,19 @@ void quaternionEKFThread::run()
 
 bool quaternionEKFThread::threadInit()
 {
-    yarp::os::Bottle outputParamsBottle = m_filterParams.findGroup(FILTER_GROUP_PARAMS_NAME);
-    if (!outputParamsBottle.isNull()) {
-        m_state_size = outputParamsBottle.find("STATE_SIZE").asInt();
-        m_input_size = outputParamsBottle.find("INPUT_SIZE").asInt();
-        m_measurement_size = outputParamsBottle.find("MEASUREMENT_SIZE").asInt();
-        m_prior_state_cov = outputParamsBottle.find("PRIOR_COV_STATE").asDouble();
-        m_mu_system_noise = outputParamsBottle.find("MU_SYSTEM_NOISE").asDouble();
-        m_sigma_system_noise = outputParamsBottle.find("SIGMA_SYSTEM_NOISE").asDouble();
-        m_sigma_measurement_noise = outputParamsBottle.find("SIGMA_MEASUREMENT_NOISE").asDouble();
-        m_prior_mu = outputParamsBottle.find("PRIOR_MU_STATE").asDouble();
-        m_prior_cov = outputParamsBottle.find("PRIOR_COV_STATE").asDouble();
-        m_mu_gyro_noise = outputParamsBottle.find("MU_GYRO_NOISE").asDouble();
+    if (!m_filterParams.isNull()) {
+        m_state_size = m_filterParams.find("STATE_SIZE").asInt();
+        m_input_size = m_filterParams.find("INPUT_SIZE").asInt();
+        m_measurement_size = m_filterParams.find("MEASUREMENT_SIZE").asInt();
+        m_prior_state_cov = m_filterParams.find("PRIOR_COV_STATE").asDouble();
+        m_mu_system_noise = m_filterParams.find("MU_SYSTEM_NOISE").asDouble();
+        m_sigma_system_noise = m_filterParams.find("SIGMA_SYSTEM_NOISE").asDouble();
+        m_sigma_measurement_noise = m_filterParams.find("SIGMA_MEASUREMENT_NOISE").asDouble();
+        m_prior_mu = m_filterParams.find("PRIOR_MU_STATE").asDouble();
+        m_prior_cov = m_filterParams.find("PRIOR_COV_STATE").asDouble();
+        m_mu_gyro_noise = m_filterParams.find("MU_GYRO_NOISE").asDouble();
     } else {
-        yError("Filter parameters from configuration file could not be extracted");
+        yError(" [quaternionEKFThread::threadInit] Filter parameters from configuration file could not be extracted");
         return false;
     }
     
@@ -149,7 +162,8 @@ bool quaternionEKFThread::threadInit()
     MatrixWrapper::ColumnVector meas_noise_mu(m_measurement_size);
     // TODO Check that this is correct
     meas_noise_mu = 0.0;                // Set all to zero
-    meas_noise_mu(4) = GRAVITY_ACC;
+    cout << "just a test: " << meas_noise_mu << endl;
+    meas_noise_mu(3) = GRAVITY_ACC;
     // Measurement noise covariance
     MatrixWrapper::SymmetricMatrix meas_noise_cov(m_measurement_size);
     meas_noise_cov = 0.0;
@@ -160,17 +174,14 @@ bool quaternionEKFThread::threadInit()
     m_measPdf = new BFL::nonLinearMeasurementGaussianPdf(*m_measurement_uncertainty);
     //  Measurement model from the measurement PDF
     m_meas_model = new BFL::AnalyticMeasurementModelGaussianUncertainty(m_measPdf);
-    
-    // Prior
-    // TODO We need a zero method in MatrixWrapper for both vectors and matrices
+    // Setting prior
     MatrixWrapper::ColumnVector prior_mu(m_state_size);
-    prior_mu(1) = prior_mu(2) = prior_mu(3) = 0.0; 
-    prior_mu(4) = m_prior_mu;
-    MatrixWrapper::SymmetricMatrix prior_cov(m_state_size);
-    // TODO Setting matrix to zero. This is specifically for BOOST
-    for (unsigned int i = 1; i < prior_cov.size1() + 1; ++i)
-        for (unsigned int j = 1; j < prior_cov.size2() + 1; ++j)
-            prior_cov(i,j) = 0;
+    prior_mu = 0.0;
+    prior_mu(4) = 0.01;
+    cout << "m_prior_mu: " << m_prior_mu << endl;
+    MatrixWrapper::SymmetricMatrix prior_cov(4);
+    cout << "size of this matrix " << prior_cov.size() <<endl;
+    prior_cov = 0.0;
     prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_prior_cov;
     m_prior = new BFL::Gaussian(m_prior_mu, m_prior_cov);
     
