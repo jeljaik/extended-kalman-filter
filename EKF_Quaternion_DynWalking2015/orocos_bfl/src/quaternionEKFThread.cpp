@@ -77,27 +77,29 @@ void quaternionEKFThread::run()
     MatrixWrapper::Matrix identity = MatrixWrapper::Matrix(id);
     // Omega operator
     MatrixWrapper::Matrix Omega(m_state_size, m_state_size);
-    Omega(1,1) = 0;          Omega(1,2) = -input(1);   Omega(1,3) = -input(2);   Omega(1,4) = -input(3);
-    Omega(2,1) = input(1);   Omega(2,2) =  0;          Omega(2,3) =  input(3);   Omega(2,4) = -input(2);
-    Omega(3,1) = input(2);   Omega(3,2) = -input(3);   Omega(3,3) =  0;          Omega(3,4) =  input(1);
-    Omega(4,1) = input(3);   Omega(4,3) =  input(2);   Omega(4,3) = -input(1);   Omega(4,4) =  0;
-    cout << "PERIOD IS: " << m_period << endl;
-    A = identity + static_cast<MatrixWrapper::Matrix>(0.5*Omega*(m_period/1000));
-    boost::numeric::ublas::zero_matrix<double> tmpB(m_input_size,m_input_size);
+    Omega(1,1) = 0.0;          Omega(1,2) = -input(1);   Omega(1,3) = -input(2);   Omega(1,4) = -input(3);
+    Omega(2,1) = input(1);   Omega(2,2) =  0.0;          Omega(2,3) =  input(3);   Omega(2,4) = -input(2);
+    Omega(3,1) = input(2);   Omega(3,2) = -input(3);   Omega(3,3) =  0.0;          Omega(3,4) =  input(1);
+    Omega(4,1) = input(3);   Omega(4,3) =  input(2);   Omega(4,3) = -input(1);   Omega(4,4) =  0.0;
+    MatrixWrapper::Matrix tmp = Omega*((double)(0.5*(m_period/1000.0)));
+    A = static_cast<MatrixWrapper::Matrix>(identity) + static_cast<MatrixWrapper::Matrix>(Omega*(0.5*m_period/1000.0));
+    cout << "Matrix A to be stored in AB: " << A << endl;
+    // NOTE B must be of size 4 \times 3 to be consistent with Ax + Bu
+    boost::numeric::ublas::zero_matrix<double> tmpB(m_state_size,m_input_size);
     MatrixWrapper::Matrix B(tmpB);
     B = 0.0;
     
     vector<MatrixWrapper::Matrix> AB(2);
     AB[0] = A;
-    AB[1] = static_cast<MatrixWrapper::Matrix>(B);
+    AB[1] = B;
     
     // Noise gaussian
     // System Noise Mean
     MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
     MatrixWrapper::ColumnVector Xi(static_cast<MatrixWrapper::ColumnVector>(boost::numeric::ublas::zero_vector<double>(m_state_size)));
     // TODO Do this in a smarter way PLEASE!!!
-    
-    sys_noise_mu = static_cast<MatrixWrapper::ColumnVector>( m_period/2*Xi*m_mu_gyro_noise );
+    cout << "sys_noise_mu" << sys_noise_mu << endl;
+    sys_noise_mu = static_cast<MatrixWrapper::ColumnVector>( Xi*(m_period/(1000.0*2.0))*m_mu_gyro_noise );
 //     sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = m_mu_system_noise;
     
     // System Noise Covariance
@@ -110,6 +112,8 @@ void quaternionEKFThread::run()
     
     // System model
     BFL::Gaussian system_uncertainty(sys_noise_mu, sys_noise_cov);
+    cout << "Matrix A is: " << AB[0] << endl;
+    cout << "Matrix B is: " << AB[1] << endl; 
     BFL::LinearAnalyticConditionalGaussian sys_pdf(AB, system_uncertainty);
     BFL::LinearAnalyticSystemModelGaussianUncertainty lin_sys_model(&sys_pdf);
     
@@ -183,7 +187,10 @@ bool quaternionEKFThread::threadInit()
     cout << "size of this matrix " << prior_cov.size() <<endl;
     prior_cov = 0.0;
     prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_prior_cov;
-    m_prior = new BFL::Gaussian(m_prior_mu, m_prior_cov);
+    cout << "Priors will be: " << endl;
+    cout << "m_prior_mu: " << m_prior_mu << endl;
+    cout << "m_prior_cov: " << m_prior_cov << endl;
+    m_prior = new BFL::Gaussian(prior_mu, prior_cov);
     
     // Construction of the filter
     m_filter = new BFL::ExtendedKalmanFilter(m_prior);
