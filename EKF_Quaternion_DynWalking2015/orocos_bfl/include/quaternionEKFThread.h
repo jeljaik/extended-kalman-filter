@@ -29,6 +29,7 @@
 #include <yarp/os/Bottle.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>
+#include <yarp/os/Time.h>
 
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
@@ -46,6 +47,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     // Ports for sensor readings
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_port_input;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_gyroMeasPort;
+    yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherFilteredOrientationPort;
     int                                          m_period; // Period in ms
     std::string                                  m_moduleName;
     std::string                                  m_robotName;
