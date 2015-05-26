@@ -35,7 +35,9 @@ quaternionEKFThread::quaternionEKFThread ( int period,
       m_autoconnect ( autoconnect ),
       m_filterParams( filterParams ),
       m_gyroMeasPort ( gyroMeasPort ),
-      m_sysPdf( STATEDIM )
+      m_sysPdf( STATEDIM ),
+      m_prior_mu_vec( STATEDIM ),
+      m_waitingTime( 0.0 )
 {
 
 }
@@ -43,24 +45,19 @@ quaternionEKFThread::quaternionEKFThread ( int period,
 void quaternionEKFThread::run()
 {
     // Get Input and measurement
-    // Read port 
-    // When  using the simulator it's better to have a blocking reading as it's mainly done for debugging reasons and also because the simulator might not be running fast enough
-    bool reading = false;
-    if (!m_robotName.compare("icubGazeboSim"))
-        reading = true;
-    else
-        reading = false;
+    bool reading = true;
     yarp::sig::Vector* imu_measurement = m_gyroMeasPort->read(reading);
-    cout << "read imu_measurement was: " << imu_measurement->toString().c_str() << endl;
-    // Extract angular velocity. Read from port!
+    // Extract linear acceleration in m/s^2
     yarp::sig::Vector imu_linAcc(3); 
     imu_linAcc = imu_measurement->subVector(3,5);
+    // NOTE The raw angular speed read from the IMU is in deg/s. In this module we will transform
+    // it to rad/s
     yarp::sig::Vector imu_angVel(3);
     imu_angVel = imu_measurement->subVector(6,8);
     MatrixWrapper::ColumnVector input(m_input_size);
-    input(1) = imu_angVel(0);
-    input(2) = imu_angVel(1);
-    input(3) = imu_angVel(2);
+    input(1) = PI/180*imu_angVel(0);
+    input(2) = PI/180*imu_angVel(1);
+    input(3) = PI/180*imu_angVel(2);
     cout << "VEL INPUT IS: " << input << endl;
     // Extract accelerometer. Read from port!
     MatrixWrapper::ColumnVector measurement(m_measurement_size);
@@ -68,39 +65,17 @@ void quaternionEKFThread::run()
     measurement(2) = imu_linAcc(1);
     measurement(3) = imu_linAcc(2);
     cout << "ACC INPUT IS: " << measurement << endl;
-    
-    // Time-varying linear system model
-    // A = id(4) + 0.5*Omega(angVel)*period
-    MatrixWrapper::Matrix A(m_state_size,m_state_size);
-    // TODO This should be done in the Matrix wrapper
-    boost::numeric::ublas::identity_matrix<double> id(m_state_size);
-    MatrixWrapper::Matrix identity = MatrixWrapper::Matrix(id);
-    // Omega operator
-    MatrixWrapper::Matrix Omega(m_state_size, m_state_size);
-    Omega(1,1) = 0.0;        Omega(1,2) = -input(1);   Omega(1,3) = -input(2);   Omega(1,4) = -input(3);
-    Omega(2,1) = input(1);   Omega(2,2) =  0.0;        Omega(2,3) =  input(3);   Omega(2,4) = -input(2);
-    Omega(3,1) = input(2);   Omega(3,2) = -input(3);   Omega(3,3) =  0.0;        Omega(3,4) =  input(1);
-    Omega(4,1) = input(3);   Omega(4,3) =  input(2);   Omega(4,3) = -input(1);   Omega(4,4) =  0.0;
-    A = static_cast<MatrixWrapper::Matrix>(identity) + static_cast<MatrixWrapper::Matrix>(Omega*(0.5*m_period/1000.0));
-    cout << "Matrix A to be stored in AB: " << A << endl;
-    // NOTE B must be of size 4 \times 3 to be consistent with Ax + Bu
-    boost::numeric::ublas::zero_matrix<double> tmpB(m_state_size,m_input_size);
-    MatrixWrapper::Matrix B(tmpB);
-    B = 0.0;
-    
-    vector<MatrixWrapper::Matrix> AB(2);
-    AB[0] = A;
-    AB[1] = B;
-    
+
     // Noise gaussian
     // System Noise Mean
     MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
-    MatrixWrapper::ColumnVector Xi(static_cast<MatrixWrapper::ColumnVector>(boost::numeric::ublas::zero_vector<double>(m_state_size)));
-    // TODO Do this in a smarter way PLEASE!!!
+    // TODO sys_noise_mu should not be left zero
+    sys_noise_mu = 0.0;
+    MatrixWrapper::Matrix Xi(m_state_size, 3);
+    XiOperator(m_posterior_state, &Xi);
     cout << "sys_noise_mu" << sys_noise_mu << endl;
-    sys_noise_mu = static_cast<MatrixWrapper::ColumnVector>( Xi*(m_period/(1000.0*2.0))*m_mu_gyro_noise );
-//     sys_noise_mu(1) = sys_noise_mu(2) = sys_noise_mu(3) = sys_noise_mu(4) = m_mu_system_noise;
-    
+//     sys_noise_mu = static_cast<MatrixWrapper::ColumnVector>( Xi*(m_period/(1000.0*2.0)) );
+
     // System Noise Covariance
     // TODO For now let's leave this constant as something to be tuned. 
     // This covariance matrix however should be computed as done in the matlab
@@ -109,33 +84,47 @@ void quaternionEKFThread::run()
     sys_noise_cov = 0.0;
     sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
     
-    //Creation of Linear System Model
-    BFL::Gaussian system_uncertainty(sys_noise_mu, sys_noise_cov);
-    cout << "Matrix A is: " << AB[0] << endl;
-    cout << "Matrix B is: " << AB[1] << endl; 
-    BFL::LinearAnalyticConditionalGaussian sys_pdf(AB, system_uncertainty);
-    BFL::LinearAnalyticSystemModelGaussianUncertainty lin_sys_model(&sys_pdf);
+    m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
+    m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
     
-    // Perform new estimation
-//     if(!m_filter->Update(&lin_sys_model, input, m_meas_model, measurement))
-//         yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
-    if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
-        yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
+    double elapsedTime = yarp::os::Time::now() - m_waitingTime;
+    cout << "Elapsed time: " << elapsedTime << endl;
+    
+    if (elapsedTime > 10.0) {
+        if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
+            yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
+    } else {
+            if(!m_filter->Update(m_sys_model, input))
+                yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
+    }
+    
     // Get the posterior of the updated filter. Result of all the system model and meaurement information
     BFL::Pdf<BFL::ColumnVector> * posterior = m_filter->PostGet();
-    MatrixWrapper::ColumnVector expectedValue(m_state_size);
+    // Posterior Expectation
+    m_posterior_state = posterior->ExpectedValueGet();
+    MatrixWrapper::Quaternion expectedValueQuat(m_posterior_state);
+    // Posterior Covariance
     MatrixWrapper::SymmetricMatrix covariance(m_state_size);
-    expectedValue = posterior->ExpectedValueGet();
-    covariance    = posterior->CovarianceGet();
-    cout << "Posterior Mean: " << expectedValue << endl;
+    covariance = posterior->CovarianceGet();
+    cout << "Posterior Mean: " << expectedValueQuat << endl;
     cout << "Posterior Covariance: " << posterior->CovarianceGet() << endl;
-    cout << " " << endl; 
+    cout << " " << endl;
+    MatrixWrapper::ColumnVector eulerAngles(3);
+    expectedValueQuat.getEulerAngles(string("xyz"), eulerAngles);
+    cout << "Posterior Mean in Euler Angles (degrees): " << eulerAngles  << endl;
     
     // Publish results to port
-    yarp::sig::Vector tmpVec(m_state_size); 
-    for (int i=1; i<expectedValue.size(); i++) {
-        tmpVec(i-1) = expectedValue(i);
+    yarp::sig::Vector tmpVec(m_state_size);
+    for (int i=1; i<m_posterior_state.size()+1; i++) {
+        tmpVec(i-1) = m_posterior_state(i);
     }
+    // Publish Euler Angles estimation to port
+    yarp::sig::Vector tmpEuler(3);
+    for (int i=1; i<eulerAngles.rows()+1; i++)
+        tmpEuler(i-1) = eulerAngles(i)*(180/PI);
+    yarp::sig::Vector& tmpPortEuler = m_publisherFilteredOrientationEulerPort->prepare();
+    tmpPortEuler = tmpEuler;
+    m_publisherFilteredOrientationEulerPort->write();
     yarp::sig::Vector& tmpPortRef = m_publisherFilteredOrientationPort->prepare();
     tmpPortRef = tmpVec;
     m_publisherFilteredOrientationPort->write();
@@ -159,9 +148,13 @@ bool quaternionEKFThread::threadInit()
         return false;
     }
     
-    // Open publisher port
+    // Open publisher port for estimate in quaternion
     m_publisherFilteredOrientationPort = new yarp::os::BufferedPort<yarp::sig::Vector>;
     m_publisherFilteredOrientationPort->open(string("/" + m_moduleName + "/filteredOrientation:o").c_str());
+    
+    // Open publisher port for estimate in euler angles
+    m_publisherFilteredOrientationEulerPort = new yarp::os::BufferedPort<yarp::sig::Vector>;
+    m_publisherFilteredOrientationEulerPort->open(string("/" + m_moduleName + "/filteredOrientationEuler:o").c_str());
     
     // System Noise Mean
     MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
@@ -197,18 +190,18 @@ bool quaternionEKFThread::threadInit()
     m_measPdf = new BFL::nonLinearMeasurementGaussianPdf(*m_measurement_uncertainty);
     //  Measurement model from the measurement PDF
     m_meas_model = new BFL::AnalyticMeasurementModelGaussianUncertainty(m_measPdf);
-    // Setting prior
+    // Setting prior. This is equivalent to a zero rotation
     MatrixWrapper::ColumnVector prior_mu(m_state_size);
     prior_mu = 0.0;
-    prior_mu(4) = 0.01;
-    cout << "m_prior_mu: " << m_prior_mu << endl;
+    prior_mu(1) = 1.0;
+    m_prior_mu_vec = prior_mu;
+    m_posterior_state = prior_mu;
     MatrixWrapper::SymmetricMatrix prior_cov(4);
-    cout << "size of this matrix " << prior_cov.size() <<endl;
     prior_cov = 0.0;
     prior_cov(1,1) = prior_cov(2,2) = prior_cov(3,3) = prior_cov(4,4) = m_prior_cov;
     cout << "Priors will be: " << endl;
-    cout << "m_prior_mu: " << m_prior_mu << endl;
-    cout << "m_prior_cov: " << m_prior_cov << endl;
+    cout << "State prior: " << prior_mu << endl;
+    cout << "Covariance prior: " << prior_cov << endl;
     m_prior = new BFL::Gaussian(prior_mu, prior_cov);
     
     // Construction of the filter
@@ -216,7 +209,6 @@ bool quaternionEKFThread::threadInit()
     
     // Sensor ports
     // This port was opened by the module.
-    // TODO Pass this name to the thread!!!!
     std::string gyroMeasPortName = string("/" + m_moduleName + "/imu:i");
     
     if (m_autoconnect) {
@@ -230,14 +222,45 @@ bool quaternionEKFThread::threadInit()
     cout << "Thread waiting five seconds before starting..." <<  endl;
     yarp::os::Time::delay(5);
     
+    
+    m_waitingTime = yarp::os::Time::now();
     return true;
 }
+
+void quaternionEKFThread::XiOperator ( MatrixWrapper::ColumnVector quat, MatrixWrapper::Matrix* Xi )
+{
+//     In  Matlab language this would be:
+//     Xi = [       -qk(2:4,:)'           ;
+//           qk(1)*eye(3) + S(qk(2:4,:)) ];
+    
+    MatrixWrapper::ColumnVector omg(3);
+    omg(1) = quat(2);    omg(2) = quat(3);    omg(3) = quat(4);
+    
+    (*Xi)(1,1) = -quat(2);    (*Xi)(1,2) = -quat(3);    (*Xi)(1,3) = -quat(4);
+    MatrixWrapper::Matrix eye(3,3);
+    eye.toIdentity();
+    MatrixWrapper::Matrix S(3,3);
+    SOperator(omg, &S);
+    Xi->sub(2,4,1,3) = eye*quat(1) + S;
+}
+
+void quaternionEKFThread::SOperator ( MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix* S )
+{
+    (*S)(1,1) = 0.0;    (*S)(1,2) = -omg(3); (*S)(1,3) = omg(2);
+    (*S)(2,1) = omg(3); (*S)(2,2) = 0.0    ; (*S)(2,3) = -omg(1);
+    (*S)(3,1) = -omg(2);(*S)(3,2) = omg(1) ; (*S)(3,3) = 0.0;
+}
+
 
 void quaternionEKFThread::threadRelease()
 {
     if (m_parser) { 
         delete m_parser;
         m_parser = NULL;
+    }
+    if (m_publisherFilteredOrientationEulerPort) {
+        delete m_publisherFilteredOrientationEulerPort;
+        m_publisherFilteredOrientationEulerPort = NULL;
     }
     if (m_publisherFilteredOrientationPort) {
         delete m_publisherFilteredOrientationPort;

@@ -38,9 +38,10 @@ MatrixWrapper::ColumnVector nonLinearMeasurementGaussianPdf::ExpectedValueGet() 
     MatrixWrapper::Quaternion tmpQuat(state);
     MatrixWrapper::Matrix Q(3,3);
     Q = tmpQuat.toRotation();
-    cout << "[BFL::nonLinearMeasurementGaussianPdf::ExpectedValueGet] Rotation matrxi from quaternion: " << Q ;
+//     cout << "[BFL::nonLinearMeasurementGaussianPdf::ExpectedValueGet] Rotation matrxi from quaternion: " << Q ;
     MatrixWrapper::ColumnVector g0(3); g0(1) = 0; g0(2) = 0; g0(3) = 9.81;
-    expectedValue = Q*g0;
+    // Transpose or inverse.
+    expectedValue = Q.transpose()*g0;
     
     return expectedValue + AdditiveNoiseMuGet(); 
 }

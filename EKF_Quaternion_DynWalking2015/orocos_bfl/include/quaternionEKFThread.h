@@ -30,6 +30,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>
 #include <yarp/os/Time.h>
+#include <../../example/game/game_server/Matrix.h>
 
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
@@ -41,6 +42,7 @@
 //TODO In case you wanna add a different group in the configuration file
 #define FILTER_GROUP_PARAMS_NAME "EKFPARAMS"
 #define GRAVITY_ACC 9.81
+#define PI 3.141592654
 
 class quaternionEKFThread: public yarp::os::RateThread
 {
@@ -48,6 +50,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_port_input;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_gyroMeasPort;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherFilteredOrientationPort;
+    yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherFilteredOrientationEulerPort;
     int                                          m_period; // Period in ms
     std::string                                  m_moduleName;
     std::string                                  m_robotName;
@@ -61,6 +64,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     BFL::Gaussian*                               m_measurement_uncertainty;
     BFL::nonLinearMeasurementGaussianPdf*        m_measPdf;
     BFL::AnalyticMeasurementModelGaussianUncertainty* m_meas_model;
+    MatrixWrapper::ColumnVector                  m_posterior_state;
     // filter parameters read from configuration file
     // TODO These should be put in some structure
     int m_state_size;
@@ -75,8 +79,11 @@ class quaternionEKFThread: public yarp::os::RateThread
     BFL::Gaussian*   m_prior;
     double           m_prior_cov;
     double           m_prior_mu;
+    MatrixWrapper::ColumnVector m_prior_mu_vec;
     // Filter
     BFL::ExtendedKalmanFilter*  m_filter;
+    // Others
+    double m_waitingTime;
     
 public:
   quaternionEKFThread ( int period,
@@ -89,6 +96,10 @@ public:
   bool threadInit();
   void run();
   void threadRelease();
+  // TODO Temporarily will put this method here but it should be in QuaternionWrapper
+  void XiOperator(MatrixWrapper::ColumnVector quat, MatrixWrapper::Matrix* Xi);
+  // TODO Temporarily putting this method here. Should be put in MatrixWrapper somewhere
+  void SOperator(MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix* S);
 };
 
 #endif
