@@ -111,7 +111,7 @@ void quaternionEKFThread::run()
     cout << " " << endl;
     MatrixWrapper::ColumnVector eulerAngles(3);
     expectedValueQuat.getEulerAngles(string("xyz"), eulerAngles);
-    cout << "Posterior Mean in Euler Angles (degrees): " << eulerAngles  << endl;
+    cout << "Posterior Mean in Euler Angles: " << eulerAngles  << endl;
     
     // Publish results to port
     yarp::sig::Vector tmpVec(m_state_size);
@@ -176,10 +176,10 @@ bool quaternionEKFThread::threadInit()
     // Measurement noise distribution
     // Measurement noise mean
     MatrixWrapper::ColumnVector meas_noise_mu(m_measurement_size);
-    // TODO Check that this is correct
+    // TODO Check that this is correct. Should meas_noise_mu be 9.8?
     meas_noise_mu = 0.0;                // Set all to zero
     cout << "just a test: " << meas_noise_mu << endl;
-    meas_noise_mu(3) = GRAVITY_ACC;
+    meas_noise_mu(3) = 0.0;
     // Measurement noise covariance
     MatrixWrapper::SymmetricMatrix meas_noise_cov(m_measurement_size);
     meas_noise_cov = 0.0;
