@@ -65,7 +65,7 @@ MatrixWrapper::Matrix nonLinearMeasurementGaussianPdf::dfGet ( unsigned int i ) 
         gravUnitVec(3) = 1.0;
         
         // Partial derivative of Q with respect to q0
-        dq(1,1) = 2.0*q0; dq(1,2) = -q3   ; dq(1,3) = -q2   ;
+        dq(1,1) = 2.0*q0; dq(1,2) = -q3   ; dq(1,3) =  q2   ;
         dq(2,1) =  q3   ; dq(2,2) = 2.0*q0; dq(2,3) = -q1   ;
         dq(3,1) = -q2   ; dq(3,2) =  q1   ; dq(3,3) = 2.0*q0;
         dQdq0 = (dq.sub(1,3,1,3))*2.0;
@@ -98,10 +98,7 @@ MatrixWrapper::Matrix nonLinearMeasurementGaussianPdf::dfGet ( unsigned int i ) 
         dhdq.setColumn(dhdq_col2, 2);
         dhdq.setColumn(dhdq_col3, 3);
         dhdq.setColumn(dhdq_col4, 4);
-        // TODO return the composition of the previously defined columns and return this 4x3 matrix
-        //                        >> here index is 0 <<
-        //                                  v
-//         boost::numeric::ublas::column(dhdq, 0) = boost::numeric::ublas::column(
+
         return dhdq;
     } else {
         if (i >= NumConditionalArgumentsGet()) {
