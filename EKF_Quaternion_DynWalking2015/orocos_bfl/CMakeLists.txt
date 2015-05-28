@@ -10,10 +10,10 @@ find_package(YARP   REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 message("** Proj source dir " ${CMAKE_CURRENT_SOURCE_DIR})
-# include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindMATRIX.cmake)
 # MATRIX also looks for Boost
 find_package(MATRIX REQUIRED)
 find_package(Boost REQUIRED COMPONENTS iostreams)
+find_package(XSens)
 
 # Find orocos-bfl package configuration file
 find_package(PkgConfig)
@@ -30,15 +30,19 @@ include_directories(SYSTEM ${YARP_INCLUDE_DIRS}
                            ${OROCOS_BFL_INCLUDEDIR}
                            ${Boost_INCLUDE_DIRS}
                            ${PROJECT_SOURCE_DIR}/include)
+include_directories(SYSTEM ${XSENS_INCLUDE_DIR})
 
 message("** Matrix include dirs are: " ${MATRIX_INCLUDE})
 message("** Orocos-bfl include dirs are: " ${OROCOS_BFL_INCLUDEDIR})
 message("** Boost include dirs are: " ${Boost_INCLUDE_DIRS})
 message("** Boost libraries are: ${Boost_LIBRARIES}")
+message("** XSens include dirs are in: " ${XSENS_INCLUDE_DIR})
+message("** XSens libraries are in: " ${XSENS_LIBRARIES})
 
 add_executable(${PROJECTNAME} ${source_dir} ${header_dir})
 target_link_libraries(${PROJECTNAME} 
                       orocos-bfl
 	              ${YARP_LIBRARIES}
 	              ${MATRIX_LIBS}
-	              ${Boost_LIBRARIES})
+	              ${Boost_LIBRARIES}
+	              ${XSENS_LIBRARIES})

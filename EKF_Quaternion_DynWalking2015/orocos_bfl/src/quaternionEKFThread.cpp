@@ -90,13 +90,19 @@ void quaternionEKFThread::run()
     double elapsedTime = yarp::os::Time::now() - m_waitingTime;
     cout << "Elapsed time: " << elapsedTime << endl;
     
-    if (elapsedTime > 10.0) {
-        if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
-            yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
-    } else {
-            if(!m_filter->Update(m_sys_model, input))
-                yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
-    }
+    double intpart = 0.0;
+    
+//     // NOTE Let's include the measurement roughly every ten seconds
+//     if (modf(elapsedTime/10, &intpart) < 0.001) {
+//         if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
+//             yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
+//     } else {
+//             if(!m_filter->Update(m_sys_model, input))
+//                 yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
+//     }
+    
+    if(!m_filter->Update(m_sys_model, input))
+        yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
     
     // Get the posterior of the updated filter. Result of all the system model and meaurement information
     BFL::Pdf<BFL::ColumnVector> * posterior = m_filter->PostGet();
@@ -143,6 +149,8 @@ bool quaternionEKFThread::threadInit()
         m_prior_mu = m_filterParams.find("PRIOR_MU_STATE").asDouble();
         m_prior_cov = m_filterParams.find("PRIOR_COV_STATE").asDouble();
         m_mu_gyro_noise = m_filterParams.find("MU_GYRO_NOISE").asDouble();
+        m_smoother = m_filterParams.find("smoother").asBool();
+        m_external_imu = m_filterParams.find("externalimu").asBool();
     } else {
         yError(" [quaternionEKFThread::threadInit] Filter parameters from configuration file could not be extracted");
         return false;

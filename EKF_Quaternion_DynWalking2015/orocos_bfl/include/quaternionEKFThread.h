@@ -32,6 +32,20 @@
 #include <yarp/os/Time.h>
 #include <../../example/game/game_server/Matrix.h>
 
+#include <xsens/xsresultvalue.h>
+#include <xsens/xsbytearray.h>
+#include <xsens/xsmessagearray.h>
+#include <xsens/xsdeviceid.h>
+#include <xsens/xsportinfo.h>
+#include <xsens/xsoutputmode.h>
+#include <xsens/xsoutputsettings.h>
+#include <xsens/xsoutputconfigurationarray.h>
+
+#include <xcommunication/protocolhandler.h>
+#include <xcommunication/usbinterface.h>
+#include <xcommunication/serialinterface.h>
+#include <xcommunication/streaminterface.h>
+
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
 #include "dataDumperParser.h"
@@ -75,6 +89,8 @@ class quaternionEKFThread: public yarp::os::RateThread
     double m_sigma_system_noise;
     double m_sigma_measurement_noise;
     double m_mu_gyro_noise;
+    bool m_smoother;
+    bool m_external_imu;
     // Priors
     BFL::Gaussian*   m_prior;
     double           m_prior_cov;
