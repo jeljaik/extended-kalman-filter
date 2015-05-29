@@ -1,0 +1,43 @@
+2009-07-26  Jay A. St. Pierre  <Jay.A.St.Pierre at Colorado.EDU>
+
+	* Version 1.3 released
+
+	* Scrubbed mlint warnings
+
+2009-07-24  Jay A. St. Pierre  <Jay.A.St.Pierre at Colorado.EDU>
+
+	* Changed license from GPL to BSD for MATLAB Central posting.
+
+	* Renamed qvxform and qvrot to qcvq and qvqc and aliased qvxform
+	and qvrot to these functions.  Added explanatory text and
+	reference to Wertz.
+
+	* Improved robustness of the dcm2q algorithm.  Thanks to
+	Tatsuki Kashitani for pointing out the problem.
+
+2002-01-20  Jay A. St. Pierre  <Jay.St.Pierre at Colorado.EDU>
+
+	* Version 1.2.2 released.
+	
+	* Contents.m, dcm2q.m, q2dcm.m, qvrot.m, qvxform.m: Improved help
+	information.
+
+2001-12-18  Jay A. St. Pierre  <Jay.St.Pierre at Colorado.EDU>
+
+	* Version 1.2.1 released.
+	
+	* Added check for test_tools toolbox in unit_test.m 
+
+2001-05-01  Jay A. St. Pierre  <Jay.St.Pierre at Colorado.EDU>
+
+	* Version 1.2 released.
+	
+	* qdecomp.m: Properly fixed behavior for input quaternions contain
+	both zero and non zero rotation descriptions.  Updated unit test
+	to verify this.
+
+2001-03-29  Jay A. St. Pierre  <Jay.St.Pierre at Colorado.EDU>
+
+	* qdecomp.m: Fixed behavior for an input vector of quaternions
+	where several of the component quaternions are [0 0 0 1].
+
