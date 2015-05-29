@@ -33,15 +33,20 @@ namespace BFL
         nonLinearAnalyticConditionalGaussian ( const Gaussian& gaus);
         virtual ~nonLinearAnalyticConditionalGaussian();
         
-        // Redefinition of virtual methods
+        // Implementation of virtual methods
         virtual MatrixWrapper::ColumnVector    ExpectedValueGet()     const;
         virtual MatrixWrapper::Matrix          dfGet(unsigned int i)  const;
         
+        void setPeriod(int period);
         // Necessary operators
-        MatrixWrapper::ColumnVector OmegaOperator(const MatrixWrapper::ColumnVector omg) const;
+        bool OmegaOperator(const MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix& output) const;
         // TODO This should take as input a Quaternion! To be added to the MatrixWrapper class
         MatrixWrapper::Matrix       XiOperator(const MatrixWrapper::Quaternion) const;
+    private:
+        double m_threadPeriod; // in seconds!!!
+        MatrixWrapper::Matrix m_localA;   // F Matrix (or A in my notes) for a linear system
     };
+
 }
 
 
