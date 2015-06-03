@@ -114,6 +114,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     double m_waitingTime;
     DeviceClass*         m_xsens;
     XsPortInfo           m_mtPort;
+    yarp::sig::Vector*   imu_measurement;
     
 public:
   quaternionEKFThread ( int period,

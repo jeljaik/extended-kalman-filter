@@ -47,7 +47,7 @@ quaternionEKFThread::quaternionEKFThread ( int period,
 void quaternionEKFThread::run()
 {
     // Get Input and measurement
-    yarp::sig::Vector* imu_measurement;
+//     yarp::sig::Vector* imu_measurement;
     imu_measurement = new yarp::sig::Vector(12);
     if ( !m_usingxsens ) {
         bool reading = true;
@@ -145,7 +145,7 @@ void quaternionEKFThread::run()
     tmpPortRef = tmpVec;
     m_publisherFilteredOrientationPort->write();
     
-    delete imu_measurement;
+//     delete imu_measurement;
 }
 
 bool quaternionEKFThread::threadInit()
@@ -170,6 +170,9 @@ bool quaternionEKFThread::threadInit()
     
     // XSens device
     m_xsens = new DeviceClass;
+    
+    // imu Measurement vector
+    imu_measurement = new yarp::sig::Vector(12);
     
     // Open publisher port for estimate in quaternion
     m_publisherFilteredOrientationPort = new yarp::os::BufferedPort<yarp::sig::Vector>;
@@ -533,6 +536,10 @@ void quaternionEKFThread::threadRelease()
     if (m_filter) {
         delete m_filter;
         m_filter = NULL;
+    }
+    if (imu_measurement) { 
+        delete imu_measurement;
+        imu_measurement = NULL;
     }
 }
 
