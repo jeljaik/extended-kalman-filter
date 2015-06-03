@@ -63,6 +63,13 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         return false;
     }
     
+    if ( rf.check("usingXSens") ) {
+        usingxsens = rf.find("usingXSens").asBool();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for usingXSens was found.");
+        return false;
+    }
+    
     // ------------ IMU PORT ---------------------------------------
     /*TODO This should be configurable! The number of input ports
      depending on the amount of sensor readings.*/
@@ -78,15 +85,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
             yError("[quaternionEKFModule::configure] Could not open gyroMeasPort");
             return false;
         }
-        
-//         if (autoconnect) {
-//             yarp::os::ConstString src = std::string("/" + robotName + "/inertial");
-//             if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){
-//                 yError("Connection with %s was not possible", gyroMeasPortName.c_str());
-//                 return false;
-//             }
-//         }
-        
+
         // Obtaining filter parameters from configuration file
         yarp::os::Property filterParams;
         if( !rf.check(FILTER_GROUP_PARAMS_NAME) )  {
@@ -98,7 +97,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         }
         
         // ----------- THREAD INSTANTIATION AND CALLING -----------------
-        quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, filterParams, &gyroMeasPort);
+        quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, filterParams, &gyroMeasPort);
         if (!quatEKFThread->start()) {
             yError("Error starting quaternionEKFThread!");
             return false;
