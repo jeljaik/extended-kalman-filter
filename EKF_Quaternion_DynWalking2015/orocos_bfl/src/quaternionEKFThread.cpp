@@ -55,8 +55,10 @@ void quaternionEKFThread::run()
     } else {
         readDataFromXSens(imu_measurement);
     }
-    cout << "Full imu_measurement vec: " << endl;
-    cout << imu_measurement->toString().c_str() << endl;
+    if (VERBOSE) {
+        cout << "Full imu_measurement vec: " << endl;
+        cout << imu_measurement->toString().c_str() << endl;
+    }
     // Extract linear acceleration in m/s^2
     yarp::sig::Vector imu_linAcc(3); 
     imu_linAcc = imu_measurement->subVector(3,5);
@@ -68,39 +70,53 @@ void quaternionEKFThread::run()
     input(1) = PI/180*imu_angVel(0);
     input(2) = PI/180*imu_angVel(1);
     input(3) = PI/180*imu_angVel(2);
-    cout << "VEL INPUT IS: " << input << endl;
+    if (VERBOSE)
+        cout << "VEL INPUT IS: " << input << endl;
     // Extract accelerometer. Read from port!
     MatrixWrapper::ColumnVector measurement(m_measurement_size);
     measurement(1) = imu_linAcc(0);
     measurement(2) = imu_linAcc(1);
     measurement(3) = imu_linAcc(2);
-    cout << "ACC INPUT IS: " << measurement << endl;
+    if (VERBOSE)
+        cout << "ACC INPUT IS: " << measurement << endl;
 
     // Noise gaussian
     // System Noise Mean
     MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
     // TODO sys_noise_mu should not be left zero
     sys_noise_mu = 0.0;
-    MatrixWrapper::Matrix Xi(m_state_size, 3);
+    MatrixWrapper::Matrix Xi(m_state_size, m_input_size);
     XiOperator(m_posterior_state, &Xi);
-    cout << "sys_noise_mu" << sys_noise_mu << endl;
-//     sys_noise_mu = static_cast<MatrixWrapper::ColumnVector>( Xi*(m_period/(1000.0*2.0)) );
-
+    
     // System Noise Covariance
     // TODO For now let's leave this constant as something to be tuned. 
     // This covariance matrix however should be computed as done in the matlab
     // utility ekfukf/lti_disc.m through Matrix Fraction Decomposition.
     MatrixWrapper::SymmetricMatrix sys_noise_cov(m_state_size);
     sys_noise_cov = 0.0;
-    sys_noise_cov(1,1) = sys_noise_cov(2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = m_sigma_system_noise;
+
+    MatrixWrapper::Matrix Sigma_gyro(m_input_size,m_input_size);
+    Sigma_gyro = 0.0;
+    Sigma_gyro(1,1) = Sigma_gyro(2,2) = Sigma_gyro(3,3) = m_sigma_gyro;
+
+    MatrixWrapper::Matrix tmp = Xi*Sigma_gyro*Xi.transpose();
+    MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
+    tmp.convertToSymmetricMatrix(tmpSym);
+    sys_noise_cov = (tmpSym)*pow(m_period/(1000.0*2.0),2);
+    // TODO Just for debugging, setting sys_noise_cov to zero
+    sys_noise_cov = 0.0;
+    sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
     
+    if (VERBOSE)
+        cout << "System covariance matrix will be: " << sys_noise_cov << endl;
+
     m_sysPdf.AdditiveNoiseMuSet(sys_noise_mu);
     m_sysPdf.AdditiveNoiseSigmaSet(sys_noise_cov);
-    
+
     double elapsedTime = yarp::os::Time::now() - m_waitingTime;
-    cout << "Elapsed time: " << elapsedTime << endl;
+//     cout << "Elapsed time: " << elapsedTime << endl;
     
-    double intpart = 0.0;
+//     double intpart = 0.0;
     
 //     // NOTE Let's include the measurement roughly every ten seconds
 //     if (modf(elapsedTime/10, &intpart) < 0.001) {
@@ -111,7 +127,7 @@ void quaternionEKFThread::run()
 //                 yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
 //     }
     
-    if(!m_filter->Update(m_sys_model, input))
+    if(!m_filter->Update(m_sys_model, input, m_meas_model, measurement))
         yError(" [quaternionEKFThread::run] Update step of the Kalman Filter could not be performed\n");
     
     // Get the posterior of the updated filter. Result of all the system model and meaurement information
@@ -122,13 +138,15 @@ void quaternionEKFThread::run()
     // Posterior Covariance
     MatrixWrapper::SymmetricMatrix covariance(m_state_size);
     covariance = posterior->CovarianceGet();
-    cout << "Posterior Mean: " << expectedValueQuat << endl;
-    cout << "Posterior Covariance: " << posterior->CovarianceGet() << endl;
-    cout << " " << endl;
+    if (VERBOSE) {
+        cout << "Posterior Mean: " << expectedValueQuat << endl;
+        cout << "Posterior Covariance: " << posterior->CovarianceGet() << endl;
+        cout << " " << endl;
+    }
     MatrixWrapper::ColumnVector eulerAngles(3);
     expectedValueQuat.getEulerAngles(string("xyz"), eulerAngles);
-    cout << "Posterior Mean in Euler Angles: " << eulerAngles  << endl;
-    
+    if (VERBOSE)
+        cout << "Posterior Mean in Euler Angles: " << (180/PI)*eulerAngles  << endl;
     // Publish results to port
     yarp::sig::Vector tmpVec(m_state_size);
     for (int i=1; i<m_posterior_state.size()+1; i++) {
@@ -144,8 +162,7 @@ void quaternionEKFThread::run()
     yarp::sig::Vector& tmpPortRef = m_publisherFilteredOrientationPort->prepare();
     tmpPortRef = tmpVec;
     m_publisherFilteredOrientationPort->write();
-    
-//     delete imu_measurement;
+
 }
 
 bool quaternionEKFThread::threadInit()
@@ -158,6 +175,7 @@ bool quaternionEKFThread::threadInit()
         m_mu_system_noise = m_filterParams.find("MU_SYSTEM_NOISE").asDouble();
         m_sigma_system_noise = m_filterParams.find("SIGMA_SYSTEM_NOISE").asDouble();
         m_sigma_measurement_noise = m_filterParams.find("SIGMA_MEASUREMENT_NOISE").asDouble();
+        m_sigma_gyro = m_filterParams.find("SIGMA_GYRO_NOISE").asDouble();
         m_prior_mu = m_filterParams.find("PRIOR_MU_STATE").asDouble();
         m_prior_cov = m_filterParams.find("PRIOR_COV_STATE").asDouble();
         m_mu_gyro_noise = m_filterParams.find("MU_GYRO_NOISE").asDouble();
@@ -202,7 +220,6 @@ bool quaternionEKFThread::threadInit()
     // Measurement noise distribution
     // Measurement noise mean
     MatrixWrapper::ColumnVector meas_noise_mu(m_measurement_size);
-    // TODO Check that this is correct. Should meas_noise_mu be 9.8?
     meas_noise_mu = 0.0;                // Set all to zero
     meas_noise_mu(3) = 0.0;
     // Measurement noise covariance
@@ -239,7 +256,7 @@ bool quaternionEKFThread::threadInit()
     if (m_autoconnect && !m_usingxsens) {
         yarp::os::ConstString src = std::string("/" + m_robotName + "/inertial");
         if(!yarp::os::Network::connect(src, gyroMeasPortName,"tcp")){
-            yError(" [quaternionEKFThread::threadInit()] Connection with %s was not possible", gyroMeasPortName.c_str());
+            yError(" [quaternionEKFThread::threadInit()] Connection with %s was not possible. Is the robotInterface running? or XSens IMU connected?", gyroMeasPortName.c_str());
             return false;
         }
     }
@@ -257,6 +274,7 @@ bool quaternionEKFThread::threadInit()
     
     
     m_waitingTime = yarp::os::Time::now();
+    cout << "Thread is running ... " << endl;
     return true;
 }
 
@@ -275,6 +293,8 @@ void quaternionEKFThread::XiOperator ( MatrixWrapper::ColumnVector quat, MatrixW
     MatrixWrapper::Matrix S(3,3);
     SOperator(omg, &S);
     Xi->sub(2,4,1,3) = eye*quat(1) + S;
+    if (VERBOSE)
+        cout << "Debugging Xi Operator in [quaternionEKFThread::XiOperator]: " << (*Xi) << endl;
 }
 
 void quaternionEKFThread::SOperator ( MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix* S )
@@ -456,22 +476,30 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
         
         // Convert packet to euler
         XsEuler euler = packet.orientationEuler();
-        std::cout << ",Roll:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_roll
-        << ", Pitch:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_pitch
-        << ", Yaw:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_yaw
-        <<std::endl;
+        if (VERBOSE) {
+            std::cout << ",Roll:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_roll
+            << ", Pitch:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_pitch
+            << ", Yaw:" << std::setw(7) << std::fixed << std::setprecision(2) << euler.m_yaw
+            <<std::endl;
+        }
         
         XsVector linAcc = packet.calibratedAcceleration();
-        std::cout << "Accelerometer" << std::endl;
-        std::cout << "x: " << linAcc[0] << " y: " << linAcc[1] << " z: " << linAcc[2] << std::endl;
+        if (VERBOSE) {
+            std::cout << "Accelerometer" << std::endl;
+            std::cout << "x: " << linAcc[0] << " y: " << linAcc[1] << " z: " << linAcc[2] << std::endl;
+        }
         
         XsVector angVel = packet.calibratedGyroscopeData();
-        std::cout << "Angular velocity" << std::endl;
-        std::cout << "x: " << angVel[0] << " y: " << angVel[1] << " z: " << angVel[2] << std::endl;
+        if (VERBOSE) {
+            std::cout << "Angular velocity" << std::endl;
+            std::cout << "x: " << angVel[0] << " y: " << angVel[1] << " z: " << angVel[2] << std::endl;
+        }
         
         XsVector magField = packet.calibratedMagneticField();
-        std::cout << "Magnetic Field" << std::endl;
-        std::cout << "x: " << magField[0] << " y: " << magField[1] << " z: " << magField[2] << std::endl;
+        if (VERBOSE) {
+            std::cout << "Magnetic Field" << std::endl;
+            std::cout << "x: " << magField[0] << " y: " << magField[1] << " z: " << magField[2] << std::endl;
+        }
         
         // Push euler angles
         output->push_back(static_cast<double>(euler.m_roll));
@@ -506,10 +534,12 @@ void quaternionEKFThread::threadRelease()
         m_xsens = NULL;
     }
     if (m_publisherFilteredOrientationEulerPort) {
+        m_publisherFilteredOrientationEulerPort->interrupt();
         delete m_publisherFilteredOrientationEulerPort;
         m_publisherFilteredOrientationEulerPort = NULL;
     }
     if (m_publisherFilteredOrientationPort) {
+        m_publisherFilteredOrientationPort->interrupt();
         delete m_publisherFilteredOrientationPort;
         m_publisherFilteredOrientationPort = NULL;
     }

@@ -69,6 +69,8 @@
 #define GRAVITY_ACC 9.81
 #define PI 3.141592654
 
+#define VERBOSE false
+
 class quaternionEKFThread: public yarp::os::RateThread
 {
     // Ports for sensor readings
@@ -100,6 +102,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     double m_mu_system_noise;
     double m_sigma_system_noise;
     double m_sigma_measurement_noise;
+    double m_sigma_gyro;
     double m_mu_gyro_noise;
     bool m_smoother;
     bool m_external_imu;
