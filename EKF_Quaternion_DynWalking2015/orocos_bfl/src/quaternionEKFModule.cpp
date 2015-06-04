@@ -153,10 +153,12 @@ bool quaternionEKFModule::close()
         if (quatEKFThread) {
             yInfo(" [quaternionEKFModule::close] Closing thread ...");
             quatEKFThread->stop();
+            yInfo(" [quaternionEKFModule::close] Thread was stopped ...");
             delete quatEKFThread;
-            quatEKFThread = 0;
+            quatEKFThread = NULL;
             yInfo(" [quaternionEKFModule::close] Thread closed");
         }
+        gyroMeasPort.interrupt();
     }
     return true;
 }

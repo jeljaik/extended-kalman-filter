@@ -40,8 +40,10 @@ dataDumperParser::dataDumperParser(std::string srcFile): m_srcFile(srcFile)
 }
 dataDumperParser::~dataDumperParser()
 {
-    delete m_mmap;
-    m_mmap = NULL;
+    if (m_mmap) {
+        delete m_mmap;
+        m_mmap = NULL;
+    }
 }
 
 void dataDumperParser::parseFile() { 

@@ -103,7 +103,7 @@ void quaternionEKFThread::run()
     MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
     tmp.convertToSymmetricMatrix(tmpSym);
     sys_noise_cov = (tmpSym)*pow(m_period/(1000.0*2.0),2);
-    // TODO Just for debugging, setting sys_noise_cov to zero
+    // TODO Just for debugging, setting sys_noise_cov to all
     sys_noise_cov = 0.0;
     sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
     
@@ -525,51 +525,62 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
 
 void quaternionEKFThread::threadRelease()
 {
-    if (m_parser) { 
-        delete m_parser;
-        m_parser = NULL;
-    }
+//     if (m_parser) { 
+//         delete m_parser;
+//         m_parser = NULL;
+//         cout << "m_parser deleted" << endl;
+//     }
     if (m_xsens) {
         delete m_xsens;
         m_xsens = NULL;
+        cout << "m_xsens deleted" << endl;
     }
     if (m_publisherFilteredOrientationEulerPort) {
         m_publisherFilteredOrientationEulerPort->interrupt();
         delete m_publisherFilteredOrientationEulerPort;
         m_publisherFilteredOrientationEulerPort = NULL;
+        cout << "m_publisherFilteredOrientationEulerPort deleted" << endl;
     }
     if (m_publisherFilteredOrientationPort) {
         m_publisherFilteredOrientationPort->interrupt();
         delete m_publisherFilteredOrientationPort;
         m_publisherFilteredOrientationPort = NULL;
+        cout << "m_publisherFilteredOrientationPort deleted" << endl;
     }
     if (m_sys_model) {
         delete m_sys_model;
         m_sys_model = NULL;
+        cout << "m_sys_model deleted" << endl;
     }
     if (m_measurement_uncertainty) {
         delete m_measurement_uncertainty;
         m_measurement_uncertainty = NULL;
+        cout << "m_measurement_uncertainty deleted" << endl;
     }
     if (m_measPdf) {
         delete m_measPdf;
         m_measPdf = NULL;
+        cout << "m_measPdf deleted" << endl;
     }
     if (m_meas_model) {
         delete m_meas_model;
         m_meas_model = NULL;
+        cout << "m_meas_model deleted" << endl;
     }
     if (m_prior) { 
         delete m_prior;
         m_prior = NULL;
+        cout << "m_prior deleted" << endl;
     }
     if (m_filter) {
         delete m_filter;
         m_filter = NULL;
+        cout << "m_filter deleted" << endl;
     }
     if (imu_measurement) { 
         delete imu_measurement;
         imu_measurement = NULL;
+        cout << "imu_measurement deleted" << endl;
     }
 }
 
