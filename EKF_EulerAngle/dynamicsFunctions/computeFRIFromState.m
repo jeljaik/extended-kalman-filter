@@ -1,12 +1,12 @@
 function [x,y] = computeFRIFromState(XUpt,P,tK,idx)
 
-    muo_x_B = XUpt(idx:end,10); muo_x_sigma = squeeze(2*sqrt(P(10,10,idx:end)))';
-    muo_y_B = XUpt(idx:end,11); muo_y_sigma = squeeze(2*sqrt(P(11,11,idx:end)))';
-    muo_z_B = XUpt(idx:end,12); muo_z_sigma = squeeze(2*sqrt(P(12,12,idx:end)))';
+    muo_x_B = XUpt(idx:end,10); muo_x_B_sigma = squeeze(2*sqrt(P(10,10,idx:end)))';
+    muo_y_B = XUpt(idx:end,11); muo_y_B_sigma = squeeze(2*sqrt(P(11,11,idx:end)))';
+    muo_z_B = XUpt(idx:end,12); muo_z_B_sigma = squeeze(2*sqrt(P(12,12,idx:end)))';
 
-    muc_x_B = XUpt(idx:end,16); muc_x_sigma = squeeze(2*sqrt(P(16,16,idx:end)))';
-    muc_y_B = XUpt(idx:end,17); muc_y_sigma = squeeze(2*sqrt(P(17,17,idx:end)))';
-    muc_z_B = XUpt(idx:end,18); muc_z_sigma = squeeze(2*sqrt(P(18,18,idx:end)))';
+    muc_x_B = XUpt(idx:end,16); muc_x_B_sigma = squeeze(2*sqrt(P(16,16,idx:end)))';
+    muc_y_B = XUpt(idx:end,17); muc_y_B_sigma = squeeze(2*sqrt(P(17,17,idx:end)))';
+    muc_z_B = XUpt(idx:end,18); muc_z_B_sigma = squeeze(2*sqrt(P(18,18,idx:end)))';
 
     b_p_foot =[0 0 0.18102]';
     b_p_eqn = b_p_foot;
@@ -32,20 +32,22 @@ function [x,y] = computeFRIFromState(XUpt,P,tK,idx)
 
     fo_x_B = XUpt(idx:end,7); fo_x_B_sigma = squeeze(2*sqrt(P(7,7,idx:end)))';
     fo_y_B= XUpt(idx:end,8); fo_y_B_sigma = squeeze(2*sqrt(P(8,8,idx:end)))';
-    fo_z_B = XUpt(idx:end,9); fo_z_sigma = squeeze(2*sqrt(P(9,9,idx:end)))';
+    fo_z_B = XUpt(idx:end,9); fo_z_B_sigma = squeeze(2*sqrt(P(9,9,idx:end)))';
 
 
     mu_o_B = [muo_x_B muo_y_B muo_z_B];
-    %mu_o_B_sigma = [muo_x_B_sigma muo_y_B_sigma muo_z_B_sigma]:
+    mu_o_B_sigma = [muo_x_B_sigma;muo_y_B_sigma;muo_z_B_sigma];
 
     mu_c_B = [muc_x_B muc_y_B muc_z_B];
     %mu_c_B_sigma = [muc_x_B_sigma;muc_y_B_sigma;muc_z_B_sigma]:
 
     f_o_B = [fo_x_B fo_y_B fo_z_B];
-    %f_o_B_sigma = [fo_x_B_sigma;fo_y_B_sigma;fo_z_B_sigma];
+    f_o_B_sigma = [fo_x_B_sigma;fo_y_B_sigma;fo_z_B_sigma];
 
     f_c_B = [fc_x_B fc_y_B fc_z_B];
     %f_c_B_sigma = [fc_x_B_sigma;fc_y_B_sigma;fc_z_B_sigma];
+    
+    %muo_x_sigma(i),muo_y_sigma(i),fo_z_B_sigma(i))
 
     %mu_o = -SK*f_o_B' + mu_o_B';
     %mu_c = -SK*f_c_B' + mu_c_B';
@@ -53,6 +55,8 @@ function [x,y] = computeFRIFromState(XUpt,P,tK,idx)
     [fo_muo_eqn] = foot_adjT_b * [f_o_B mu_o_B]';
     %[fc_muc_eqn] = eqn_adjT_b * [f_c_B mu_c_B]';
 
+   % [fo_muo_eqn_sigma] = (foot_adjT_b * [f_o_B_sigma;mu_o_B_sigma]')' * foot_adjT_b';
+    
     f_o = fo_muo_eqn(1:3,:);
     mu_o = fo_muo_eqn(4:6,:);
 
@@ -84,7 +88,7 @@ function [x,y] = computeFRIFromState(XUpt,P,tK,idx)
         %[pcop_expect(i,:),pcop_covariance(i,:,:)] = computeCOP(muc_x(i),muc_y(i),fc_z(i),...
         %    muc_x_sigma(i),muc_y_sigma(i),fc_z_sigma(i)) ;
         [pfri_expect_eqn(i,1:2),pfri_covariance_eqn(i,:,:)] = computeFRI(muo_x(i),muo_y(i),fo_z(i),...
-            muo_x_sigma(i),muo_y_sigma(i),fo_z_sigma(i));
+            muo_x_B_sigma(i),muo_y_B_sigma(i),fo_z_B_sigma(i));
         w(i) = squeeze(2*sqrt(pfri_covariance(i,1,1)));
         h(i) = squeeze(2*sqrt(pfri_covariance(i,2,2)));
     end
