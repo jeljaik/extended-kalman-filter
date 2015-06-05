@@ -55,10 +55,13 @@ void quaternionEKFThread::run()
     } else {
         readDataFromXSens(imu_measurement);
     }
+    
     if (VERBOSE) {
         cout << "Full imu_measurement vec: " << endl;
         cout << imu_measurement->toString().c_str() << endl;
     }
+    // XSens orientation
+    yarp::sig::Vector realOrientation = imu_measurement->subVector(0,2);
     // Extract linear acceleration in m/s^2
     yarp::sig::Vector imu_linAcc(3); 
     imu_linAcc = imu_measurement->subVector(3,5);
@@ -83,7 +86,6 @@ void quaternionEKFThread::run()
     // Noise gaussian
     // System Noise Mean
     MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
-    // TODO sys_noise_mu should not be left zero
     sys_noise_mu = 0.0;
     MatrixWrapper::Matrix Xi(m_state_size, m_input_size);
     XiOperator(m_posterior_state, &Xi);
@@ -102,9 +104,9 @@ void quaternionEKFThread::run()
     MatrixWrapper::Matrix tmp = Xi*Sigma_gyro*Xi.transpose();
     MatrixWrapper::SymmetricMatrix tmpSym(m_state_size);
     tmp.convertToSymmetricMatrix(tmpSym);
-    sys_noise_cov = (tmpSym)*pow(m_period/(1000.0*2.0),2);
-    // TODO Just for debugging, setting sys_noise_cov to all
-    sys_noise_cov = 0.0;
+    sys_noise_cov = (MatrixWrapper::SymmetricMatrix) tmp*pow(m_period/(1000.0*2.0),2);
+    // TODO 
+//     sys_noise_cov = 0.0;
     sys_noise_cov(1,1) = sys_noise_cov (2,2) = sys_noise_cov(3,3) = sys_noise_cov(4,4) = 0.000001;
     
     if (VERBOSE)
@@ -162,7 +164,13 @@ void quaternionEKFThread::run()
     yarp::sig::Vector& tmpPortRef = m_publisherFilteredOrientationPort->prepare();
     tmpPortRef = tmpVec;
     m_publisherFilteredOrientationPort->write();
-
+    
+    //  Publish XSens orientation just for debugging
+    if (m_xsens) {
+        yarp::sig::Vector& tmpXSensEuler = m_publisherXSensEuler->prepare();
+        tmpXSensEuler = realOrientation;
+        m_publisherXSensEuler->write();
+    }
 }
 
 bool quaternionEKFThread::threadInit()
@@ -199,6 +207,11 @@ bool quaternionEKFThread::threadInit()
     // Open publisher port for estimate in euler angles
     m_publisherFilteredOrientationEulerPort = new yarp::os::BufferedPort<yarp::sig::Vector>;
     m_publisherFilteredOrientationEulerPort->open(string("/" + m_moduleName + "/filteredOrientationEuler:o").c_str());
+    
+    if (m_usingxsens) {
+        m_publisherXSensEuler = new yarp::os::BufferedPort<yarp::sig::Vector>;
+        m_publisherXSensEuler->open(string("/xsens/euler:o").c_str());
+    }
     
     // System Noise Mean
     MatrixWrapper::ColumnVector sys_noise_mu(m_state_size);
@@ -283,7 +296,7 @@ void quaternionEKFThread::XiOperator ( MatrixWrapper::ColumnVector quat, MatrixW
 //     In  Matlab language this would be:
 //     Xi = [       -qk(2:4,:)'           ;
 //           qk(1)*eye(3) + S(qk(2:4,:)) ];
-    
+    (*Xi) = 1.0;
     MatrixWrapper::ColumnVector omg(3);
     omg(1) = quat(2);    omg(2) = quat(3);    omg(3) = quat(4);
     
@@ -292,7 +305,8 @@ void quaternionEKFThread::XiOperator ( MatrixWrapper::ColumnVector quat, MatrixW
     eye.toIdentity();
     MatrixWrapper::Matrix S(3,3);
     SOperator(omg, &S);
-    Xi->sub(2,4,1,3) = eye*quat(1) + S;
+    MatrixWrapper::Matrix tmpAdd = eye*quat(1) + S;
+    Xi->setSubMatrix(tmpAdd,2,4,1,3);
     if (VERBOSE)
         cout << "Debugging Xi Operator in [quaternionEKFThread::XiOperator]: " << (*Xi) << endl;
 }
@@ -373,7 +387,8 @@ bool quaternionEKFThread::configureXSens()
                 //TODO HERE In our case we want ORIENTATION | ACCELERATION | ANGULAR VELOCITY
                 XsOutputMode outputMode = XOM_Orientation | XOM_Calibrated; // output orientation data
 //                 XsOutputMode outputMode = XOM_Calibrated; // Rate of turn, acceleration, magnetic field
-                XsOutputSettings outputSettings = XOS_OrientationMode_Quaternion | XOS_CalibratedMode_All; // output orientation data as quaternion
+//                 XsOutputSettings outputSettings = XOS_OrientationMode_Quaternion | XOS_CalibratedMode_All; // output orientation data as quaternion
+                XsOutputSettings outputSettings = XOS_OrientationMode_Euler | XOS_CalibratedMode_All; // output orientation data as quaternion
                 
                 // set the device configuration
                 if (!m_xsens->setDeviceMode(outputMode, outputSettings))
@@ -383,7 +398,7 @@ bool quaternionEKFThread::configureXSens()
             }
             else if (m_mtPort.deviceId().isMtMk4())
             {
-                XsOutputConfiguration quat(XDI_Quaternion, freq);
+                XsOutputConfiguration quat(XDI_EulerAngles, freq);
                 XsOutputConfigurationArray configArray;
                 configArray.push_back(quat);
                 
@@ -438,7 +453,6 @@ bool quaternionEKFThread::configureXSens()
 
 void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
 {
-//     output->zero();
     XsByteArray data;
     XsMessageArray msgs;
 
@@ -457,7 +471,7 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
             lpacket.setMessage((*it));
             lpacket.setXbusSystem(false, false);
             lpacket.setDeviceId(m_mtPort.deviceId(), 0);
-            lpacket.setDataFormat(XOM_Orientation | XOM_Calibrated, XOS_OrientationMode_Quaternion | XOS_CalibratedMode_All,0);       //lint !e534
+            lpacket.setDataFormat(XOM_Orientation | XOM_Calibrated, XOS_OrientationMode_Euler | XOS_CalibratedMode_All,0);       //lint !e534
             XsDataPacket_assignFromXsLegacyDataPacket(&packet, &lpacket, 0);
         }
         else if ((*it).getMessageId() == XMID_MtData2) {
@@ -465,14 +479,16 @@ void quaternionEKFThread::readDataFromXSens(yarp::sig::Vector* output)
             packet.setDeviceId(m_mtPort.deviceId());
         }
         
-//         // Get the quaternion data
-//         XsQuaternion quaternion = packet.orientationQuaternion();
-//         std::cout << "\r"
-//         << "W:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_w
-//         << ",X:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_x
-//         << ",Y:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_y
-//         << ",Z:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_z
-//         ;
+        // Get the quaternion data
+        XsQuaternion quaternion = packet.orientationQuaternion();
+        if (VERBOSE) {
+            std::cout << "\r"
+            << "W:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_w
+            << ",X:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_x
+            << ",Y:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_y
+            << ",Z:" << std::setw(5) << std::fixed << std::setprecision(2) << quaternion.m_z
+            ;
+        }
         
         // Convert packet to euler
         XsEuler euler = packet.orientationEuler();
@@ -546,6 +562,12 @@ void quaternionEKFThread::threadRelease()
         delete m_publisherFilteredOrientationPort;
         m_publisherFilteredOrientationPort = NULL;
         cout << "m_publisherFilteredOrientationPort deleted" << endl;
+    }
+    if (m_publisherXSensEuler) { 
+        m_publisherXSensEuler->interrupt();
+        delete m_publisherXSensEuler;
+        m_publisherXSensEuler = NULL;
+        cout << "m_publisherXSensEuler deleted" << endl;
     }
     if (m_sys_model) {
         delete m_sys_model;

@@ -78,6 +78,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_gyroMeasPort;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherFilteredOrientationPort;
     yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherFilteredOrientationEulerPort;
+    yarp::os::BufferedPort<yarp::sig::Vector>*   m_publisherXSensEuler;
     int                                          m_period; // Period in ms
     std::string                                  m_moduleName;
     std::string                                  m_robotName;
