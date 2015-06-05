@@ -32,6 +32,8 @@
 #include <yarp/os/Time.h>
 #include <../../example/game/game_server/Matrix.h>
 
+#include <iomanip> //setw
+
 #include <xsens/xsresultvalue.h>
 #include <xsens/xsbytearray.h>
 #include <xsens/xsmessagearray.h>
@@ -41,6 +43,13 @@
 #include <xsens/xsoutputsettings.h>
 #include <xsens/xsoutputconfigurationarray.h>
 
+#include <xsens/xsportinfoarray.h>
+#include <xsens/xsdatapacket.h>
+#include <xsens/xstime.h>
+#include <xcommunication/legacydatapacket.h>
+#include <xcommunication/int_xsdatapacket.h>
+#include <xcommunication/enumerateusbdevices.h>
+
 #include <xcommunication/protocolhandler.h>
 #include <xcommunication/usbinterface.h>
 #include <xcommunication/serialinterface.h>
@@ -49,6 +58,8 @@
 #include "nonLinearAnalyticConditionalGaussian.h"
 #include "nonLinearMeasurementGaussianPdf.h"
 #include "dataDumperParser.h"
+#include "deviceclass.h"
+
 //TODO The path to the original data file must be retrieved by the ResourceFinder.
 #define DATAFILE "/home/jorhabib/Software/extended-kalman-filter/EKF_Quaternion_DynWalking2015/orocos_bfl/data/dumper/icub/inertial/data.log"
 //TODO This should come from the configuration file
@@ -57,6 +68,8 @@
 #define FILTER_GROUP_PARAMS_NAME "EKFPARAMS"
 #define GRAVITY_ACC 9.81
 #define PI 3.141592654
+
+#define VERBOSE false
 
 class quaternionEKFThread: public yarp::os::RateThread
 {
@@ -69,6 +82,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     std::string                                  m_moduleName;
     std::string                                  m_robotName;
     bool                                         m_autoconnect;
+    bool                                         m_usingxsens;
     yarp::os::Property                           m_filterParams;
     dataDumperParser*                            m_parser;
     // currentData struct defined in dataDumperParser.h
@@ -88,6 +102,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     double m_mu_system_noise;
     double m_sigma_system_noise;
     double m_sigma_measurement_noise;
+    double m_sigma_gyro;
     double m_mu_gyro_noise;
     bool m_smoother;
     bool m_external_imu;
@@ -100,12 +115,16 @@ class quaternionEKFThread: public yarp::os::RateThread
     BFL::ExtendedKalmanFilter*  m_filter;
     // Others
     double m_waitingTime;
+    DeviceClass*         m_xsens;
+    XsPortInfo           m_mtPort;
+    yarp::sig::Vector*   imu_measurement;
     
 public:
   quaternionEKFThread ( int period,
                         std::string moduleName, 
                         std::string robotName,
                         bool autoconnect,
+                        bool usingxsens,
                         yarp::os::Property &filterParams,
                         yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort
                       );
@@ -116,6 +135,9 @@ public:
   void XiOperator(MatrixWrapper::ColumnVector quat, MatrixWrapper::Matrix* Xi);
   // TODO Temporarily putting this method here. Should be put in MatrixWrapper somewhere
   void SOperator(MatrixWrapper::ColumnVector omg, MatrixWrapper::Matrix* S);
+  // When directly plugging the XSens to the USB port this method configures it
+  bool configureXSens();
+  void readDataFromXSens(yarp::sig::Vector* output);
 };
 
 #endif

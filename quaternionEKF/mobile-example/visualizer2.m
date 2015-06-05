@@ -44,7 +44,7 @@ classdef visualizer2 < handle
                     'CameraTarget',[0,0,0],...
                     'CameraUpVector',[0,0,1],...
                     'Parent',self.m_fig);
-                set(self.m_fig, 'HandleVisibility', 'off');
+%                 set(self.m_fig, 'HandleVisibility', 'off');
                 set(self.m_fig, 'name', name);
                 self.m_hgt = hgtransform('Parent',  self.m_axis);
             end
@@ -63,6 +63,7 @@ classdef visualizer2 < handle
                 'LineWidth', 2, 'Color', 'r');
             axis(self.m_axis, kron(1.5*[1 1 1], [-1 1]));
             view(self.m_axis,[-37.5, 30]);
+            grid on;
             axis(self.m_axis, 'off');
             self.m_hBox = fill3(self.m_xBox, self.m_yBox, self.m_zBox, 'k',...
                 'Parent', self.m_hgt);
@@ -88,21 +89,11 @@ classdef visualizer2 < handle
         % Set quaternion orientation
         function setOrientation(self,q)
             R = self.Qq(q);
-%             for i=1:3
-%                 foo = R * self.m_axisPos{i};
-%                 set(self.m_coordAxis(i), 'XData', foo(1, :),...
-%                     'YData', foo(2, :),...
-%                     'ZData', foo(3, :));
-%             end
             set(self.m_hgt, 'Matrix', [R, zeros(3,1); 
-                                  [0 0 0 1]]);
-%             x = self.m_xBox*R(1, 1) + self.m_yBox*R(1, 2) + self.m_zBox*R(1, 3);
-%             y = self.m_xBox*R(2, 1) + self.m_yBox*R(2, 2) + self.m_zBox*R(2, 3);
-%             z = self.m_xBox*R(3, 1) + self.m_yBox*R(3, 2) + self.m_zBox*R(3, 3);
-%             for i=1:6
-%                 set(self.m_hBox(i),...
-%                     'XData', x(:, i), 'YData', y(:, i), 'ZData', z(:, i));
-%             end
+                                      [0  0  0  1]]);
+%             R2 = [R(:,1), R(:,2), [0 0 1]'];
+%             set(self.m_hgt, 'Matrix', [R2, zeros(3,1);
+%                                       [0   0   0   1]]);
             drawnow;
         end
         

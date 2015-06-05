@@ -63,6 +63,11 @@ yk = [0; Y];
 yk = quaternion(yk);
 yk = yk.normalize;
 yk_d = yk.double;
+% Update Measurement Noise Covariance Matrix R
+k0 = 0.0001; k1 = 0.001 ; k2 = 0.0001;
+Rvar = k0 + k1*(sqrt(U(1)^2 + U(2)^2 + U(3)^2)) + k2*abs(9.81 - norm(Y));
+R = Rvar*eye(3);
+R = [[Rvar 0 0 0]; [0 0 0]' R];
 % EKF Update
 [MM,PP] = ekf_update1(MM,PP,yk_d,dh_dx_fun,R,h_fun,[],param);
 MM  = quaternion(MM);

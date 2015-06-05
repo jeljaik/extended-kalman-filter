@@ -5,25 +5,18 @@
 # XSENS_LINCLUDE_DIRS
 # XSENS_LIBRARIES
 
-IF (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    SET (SYS_ARCH 64)
-ELSE (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    SET (SYS_ARCH 32)
-ENDIF (CMAKE_SIZEOF_VOID_P EQUAL 8)
+# IF (CMAKE_SIZEOF_VOID_P EQUAL 8)
+#     SET (SYS_ARCH 64)
+# ELSE (CMAKE_SIZEOF_VOID_P EQUAL 8)
+#     SET (SYS_ARCH 32)
+# ENDIF (CMAKE_SIZEOF_VOID_P EQUAL 8)
 
 STRING(COMPARE EQUAL "Linux" ${CMAKE_SYSTEM_NAME} LINUX_FOUND)
 IF (LINUX_FOUND)
     MESSAGE("FindXsens.cmake module running in a Linux machine. We can proceed")
 
-    set(XSENS_FOUND FALSE)
-
-    IF (SYS_ARCH EQUAL 64)
-        MESSAGE("LIBRARIES FOR 64BIT OS")
-        set(XSENS_POSSIBLE_LIBRARY_PATHS /usr/local/xsens/lib64)
-    ELSE (SYS_ARCH EQUAL 64)
-        SET(XSENS_POSSIBLE_LIBRARY_PATHS /usr/local/xsens/lib32)
-    ENDIF(SYS_ARCH EQUAL 64)
-
+    SET(XSENS_FOUND FALSE)
+    SET(XSENS_POSSIBLE_LIBRARY_PATHS /usr/local/xsens/examples/mtsdk/src_cpp)
     set(XSENS_POSSIBLE_INCLUDE_DIRS /usr/local/xsens/public/include)
 
     # Find Include dirs. In the original installation of XSens there are more
@@ -44,20 +37,19 @@ IF (LINUX_FOUND)
     ENDIF (XSENS_CACHE)
 
     # Find libraries
-    find_library(XSENS_DEVICEAPI_LIB
-                NAMES xsensdeviceapi
-                HINTS ${XSENS_POSSIBLE_LIBRARY_PATHS}
-                DOC   "Location of the xsensdeviceapi library")
-    message("XSENS_DEVICEAPI_LIB IS: " ${XSENS_DEVICEAPI_LIB})
+    find_library(XSENS_COMMUNICATION
+                NAMES xcommunication
+                HINTS ${XSENS_POSSIBLE_LIBRARY_PATHS}/xcommunication
+                DOC   "Location of the xcommunication static library")
+    message("XSENS_COMMUNICATION IS: " ${XSENS_COMMUNICATION})
 
     find_library(XSENS_XSTYPES_LIB
                 NAMES xstypes
-                HINTS ${XSENS_POSSIBLE_LIBRARY_PATHS}
-                DOC   "Location of the xsenstypes library")
+                HINTS ${XSENS_POSSIBLE_LIBRARY_PATHS}/xstypes
+                DOC   "Location of the xsenstypes static library")
     message("XSENS_XSTYPES_LIB IS: " ${XSENS_XSTYPES_LIB})
-    
-#   THE TWO LIBRARIES PREVIOUSLY FOUND MUST BE PUT IN ONE SINGLE VARIABLE XSENS_LIBRARIES. APPENDED SOMEHOW!
-    SET(XSENS_LIBRARIES ${XSENS_DEVICEAPI_LIB} ${XSENS_XSTYPES_LIB})
+
+    SET(XSENS_LIBRARIES ${XSENS_COMMUNICATION} ${XSENS_XSTYPES_LIB})
 
     IF (XSENS_LIBRARIES)
         MESSAGE("-- Looking for XSens Libraries - found!")

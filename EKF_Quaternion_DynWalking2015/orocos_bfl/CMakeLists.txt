@@ -37,9 +37,10 @@ message("** Orocos-bfl include dirs are: " ${OROCOS_BFL_INCLUDEDIR})
 message("** Boost include dirs are: " ${Boost_INCLUDE_DIRS})
 message("** Boost libraries are: ${Boost_LIBRARIES}")
 message("** XSens include dirs are in: " ${XSENS_INCLUDE_DIR})
-message("** XSens libraries are in: " ${XSENS_LIBRARIES})
+message("** XSens all static libraries: ${XSENS_LIBRARIES}")
 
 add_executable(${PROJECTNAME} ${source_dir} ${header_dir})
+
 target_link_libraries(${PROJECTNAME} 
                       orocos-bfl
 	              ${YARP_LIBRARIES}
