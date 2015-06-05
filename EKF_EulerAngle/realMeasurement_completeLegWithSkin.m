@@ -23,6 +23,9 @@ if (nargin<6)
     whichSkin = 'right';
 end
 
+fakeIMU = 'false';%'true';
+fakeAccl = [ 0 ; 0 ; 9.8];
+
 %skin_data = importdata('./robotData/backwardTipping/dumperTippingSetup01/icub/skin/right_foot/data.log ');
 %% Params
    %% new model parameters from robot 
@@ -50,7 +53,9 @@ model.I = Ic;
 %model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);zeros(3,1)];
 model.gRot = [-1;0;0];
 model.phi0 = [0,0.5*pi,0]';
-model.acclSign = -1;
+%model.acclSign = -1;
+
+model.acclSign = [-1 0 0;0 -1 0;0 0 -1];
 
 %% OFFSETS. 
 % Left leg
@@ -156,7 +161,7 @@ muc_pre_calib = interp1(foot_ft.t,foot_ft.mu,tCalib);
 delta_pre_calib = interp1(skin.t,skin.data,tCalib);
 a_omega_pre_calib = interp1(inertial.t,inertial.data,tCalib);
 
-a_pre_calib = model.acclSign*a_omega_pre_calib(:,4:6);
+a_pre_calib = (model.acclSign*a_omega_pre_calib(:,4:6)')';
 omega_pre_calib = a_omega_pre_calib(:,7:9);
 
 %omega_pre_calib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
@@ -188,6 +193,14 @@ mu_calib_delta = (0.5)*mean(-muo_calib + muc_calib,2);
 a_calib = (com_R_imu*a_pre_calib');
 %omegaCentered = omega_calib - repmat(omegaOffset,size(omega_pre_proc,1),1);
 omega_calib = (com_R_imu*omega_pre_calib')*(pi/180);
+% 
+% if(strcmp(fakeIMU,'true') == 1)
+%     aPerfect = fakeAccl*ones(1,size(a_calib,2));
+%     omegaPerfect= zeros(size(omega_calib));
+%     a_calib = aPerfect;
+%     omega_calib = omegaPerfect;
+% end
+
 
 yCalib = [a_calib;omega_calib;fo_calib;muo_calib;fc_calib;muc_calib;fc_z_calib]';
 
@@ -204,7 +217,7 @@ delta_pre_proc = interp1(skin.t,skin.data,t);
 a_omega_pre_proc = interp1(inertial.t,inertial.data,t);
 
 %% IMU and skin
-a_pre_proc = model.acclSign*a_omega_pre_proc(:,4:6);
+a_pre_proc = (model.acclSign*a_omega_pre_proc(:,4:6)')';
 omega_pre_proc = a_omega_pre_proc(:,7:9);
 
 %omegaCalib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
@@ -242,6 +255,13 @@ omegaCentered = (omega_pre_proc')' - repmat(omegaOffset',size(omega_pre_proc,1),
 omega = (com_R_imu*omegaCentered')'.*(pi/180);
 
 
+if(strcmp(fakeIMU,'true') == 1)
+
+    aPerfect = fakeAccl*ones(1,size(a,2));
+    omegaPerfect= zeros(size(omega));
+    a = aPerfect;
+    omega = omegaPerfect;
+end
 
     %% plotting raw and corrected data
     if(plots == 0)

@@ -3,7 +3,7 @@ function plotAndSaveFigs(dataBaseFolder,plotFigBaseFolder)
 
     %plotFigBaseFolder = 'plots/irosMain/';
     %dataBaseFolder = './data/acclTests/';
-    if(~exist(plotFigBaseFolder))
+    if(~exist(plotFigBaseFolder,'dir'))
         mkdir(plotFigBaseFolder);
     end
 
