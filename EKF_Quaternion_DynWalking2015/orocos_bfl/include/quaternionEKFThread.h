@@ -69,8 +69,6 @@
 #define GRAVITY_ACC 9.81
 #define PI 3.141592654
 
-#define VERBOSE false
-
 class quaternionEKFThread: public yarp::os::RateThread
 {
     // Ports for sensor readings
@@ -84,6 +82,7 @@ class quaternionEKFThread: public yarp::os::RateThread
     std::string                                  m_robotName;
     bool                                         m_autoconnect;
     bool                                         m_usingxsens;
+    bool                                         m_verbose;
     yarp::os::Property                           m_filterParams;
     dataDumperParser*                            m_parser;
     // currentData struct defined in dataDumperParser.h
@@ -126,6 +125,7 @@ public:
                         std::string robotName,
                         bool autoconnect,
                         bool usingxsens,
+                        bool verbose,
                         yarp::os::Property &filterParams,
                         yarp::os::BufferedPort<yarp::sig::Vector>* m_gyroMeasPort
                       );

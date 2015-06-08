@@ -70,6 +70,13 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         return false;
     }
     
+    if ( rf.check("verbose") ) {
+        verbose = rf.find("verbose").asBool();
+    } else {
+        yError ("[quaternionEKFModule::configure] Configuration failed. No value for verbose was found.");
+        return false;
+    }
+    
     // ------------ IMU PORT ---------------------------------------
     /*TODO This should be configurable! The number of input ports
      depending on the amount of sensor readings.*/
@@ -97,7 +104,7 @@ bool quaternionEKFModule::configure ( yarp::os::ResourceFinder& rf )
         }
         
         // ----------- THREAD INSTANTIATION AND CALLING -----------------
-        quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, filterParams, &gyroMeasPort);
+        quatEKFThread = new quaternionEKFThread(period, local, robotName, autoconnect, usingxsens, verbose, filterParams, &gyroMeasPort);
         if (!quatEKFThread->start()) {
             yError("Error starting quaternionEKFThread!");
             return false;
@@ -137,10 +144,10 @@ bool quaternionEKFModule::updateModule()
             yInfo("[ quaternionEKFThread::run] File was fully processed or it could not be opened. Quitting thread.");
             return false;
         } else {
-        // TODO Perform the estimates
+        // TODO Perform the offline estimates
         }
     } else {
-        // TODO Perform the estimates
+        // TODO Perform the offline estimates
         return true;
     }
     return true;
