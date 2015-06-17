@@ -2,7 +2,7 @@
 
 %imuDel1 = imuDel(1);
 %imuDel2 = imuDel(2);
-aPreProcMeanTest = [-0.1779   -9.8068    0.1441]';%-[  -0.1898   -9.8090    0.1452]';
+aPreProcMeanTest = -[-0.1779   -9.8068    0.1441]';%-[  -0.1898   -9.8090    0.1452]';
 %omegaPreProcTest =  [-1.7197    0.8664    4.2135]';
 %omegaRising = [-3.2080    0.3657    4.7032]';%[-0.0396    0.0185   -0.0064]';
 omegaRisingPreProc= [ -0.9806    0.3700    2.5726]';
@@ -21,15 +21,16 @@ for ctr1 = 1:length(delRange)%imuDel1 = delRange
     for ctr2 = 1:length(delRange)
         imuDel1 = delRange(ctr1);
         imuDel2 = delRange(ctr2);
-        com_R_imu = euler2dcm([pi/2+imuDel1,pi/2+imuDel2,-pi/2]);
+        com_R_imu = euler2dcm([pi/2+imuDel1,pi/2+imuDel2,pi/2]);
 
         a = (com_R_imu) * aPreProcMeanTest;
 
-        model.gRot = [-1;0;0];
+        %model.gRot = [-1;0;0];
         model.phi0 = [0,0.5*pi,0]';
-        model.g = 9.81;
+        model.g  = -euler2dcm(model.phi0)'*[0 0 9.8]';
+        %model.g = 9.81;
 
-        diffG = a - model.g*euler2dcm(model.phi0)*model.gRot;
+        diffG = a - [0 0 9.8]';%model.g*euler2dcm(model.phi0)*model.gRot;
         T(ctr1,ctr2) = diffG(1).^2+diffG(2).^2;
       %  ctr2 = ctr2+1;        
     end
@@ -49,7 +50,6 @@ end
 %[t1,id1]=min(T) 
 %[t2,id2]=min(t1)
 
-
 figure;
 surf(delRange,delRange,T);
 %surf(delRange,delRange,diffG(:,:,2));
@@ -58,9 +58,9 @@ surf(delRange,delRange,T);
 [min_val,idx]=min(T(:))
 [row,col]=ind2sub(size(T),idx)
 
-com_R_imu = euler2dcm([pi/2+delRange(row),pi/2+delRange(col),-pi/2])
+com_R_imu = euler2dcm([pi/2+delRange(row),pi/2+delRange(col),pi/2])
 
-aDiff = (com_R_imu) * aPreProcMeanTest- model.g*euler2dcm(model.phi0)*model.gRot;
+aDiff = (com_R_imu) * aPreProcMeanTest- [0; 0 ; 9.8];%model.g*euler2dcm(model.phi0)*model.gRot;
 fprintf('aDiff : ');
 disp(aDiff)
 

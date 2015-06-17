@@ -23,79 +23,20 @@ if (nargin<6)
     whichSkin = 'right';
 end
 
-fakeIMU = 'false';%'true';
+fakeIMU = 'true';
 fakeAccl = [ 0 ; 0 ; 9.8];
+acclSign = -1;
+
+fakeFT = 'false';
+fakeMu_o = [0;0;0];
+fakeF_o = [0;0;0];
 
 %skin_data = importdata('./robotData/backwardTipping/dumperTippingSetup01/icub/skin/right_foot/data.log ');
 %% Params
    %% new model parameters from robot 
-model.m = 4.9580;
+ [model,tMax,leg_ft,foot_ft,skin,inertial,transforms] = modelSensorParams_completeLeg(whichLeg,whichSkin,numberOfExperiment,t_max);
 
-
-%% obtaining mass-matrix from mexWBIModel (stored in utils)
-
-load('./utils/MIni','M_at_q0');
-
-%% TODO We need to extract foot's instead.
-Mjts = M_at_q0(7:end,7:end);            % Leg mass matrix 
-%MI_at_thigh = Mjts(14:16,14:16);
-
-%%% checkup if this is for left leg or right leg. Not entirely sure if it will be different
-%Tl = [0 1 0; 1 0 0 ; 0 0 -1];
-%% Transformation of the mass matrix to COM reference frame
-%Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
-MI_at_thigh_r = Mjts(20:22,20:22);
- Tl_r = [0 -1 0; 1 0 0 ; 0 0 1];
- Ic = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
-
-% disp(Ic);
-model.I = Ic;
-%model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);zeros(3,1)];
-model.gRot = [-1;0;0];
-model.phi0 = [0,0.5*pi,0]';
-%model.acclSign = -1;
-
-model.acclSign = [-1 0 0;0 -1 0;0 0 -1];
-
-%% OFFSETS. 
-% Left leg
-FT2 = [-4.11735 111.148 -131.104 -13.423 1.36924 -1.04304];
-% LEft Foot
-FT3 = [-52.0296 -5.64247 -18.0923 -0.516052 9.91345 0.717567];
-% Right Leg
-FT4 = [-5.65084 -10.5031 -24.6174 1.95779 2.61084 0.0036913];
-% Right foot
-FT5 = [-17.4992 -0.910681 18.0613 -0.824831 3.32657 -0.252851];
-
-left_leg_ft_offset = FT2;
-right_leg_ft_offset = FT4;
-left_foot_ft_offset = FT3;
-right_foot_ft_offset = FT5;
-
-%%
-expPath     = ['./robotData/backwardTipping/dumperTippingSetup0' ...
-                num2str(numberOfExperiment) '/icub/'];
-leg_choice  = whichLeg;
-skin_choice = whichSkin;
-
-% Leg F/T analog sensor
-leg_ft_data   = importdata(strcat(expPath,leg_choice,'_leg/analog:o/data.log'));
-% Foot F/T analog sensor
-foot_ft_data  = importdata(strcat(expPath,leg_choice,'_foot/analog:o/data.log'));
-% Foot skin data
-skin_data     = importdata(strcat(expPath,'skin/',skin_choice,'_foot/data.log'));
-% Inertial sensor attached to the foot (right)
-inertial_data = importdata(strcat(expPath,'inertial/data.log'));
-
-
-if(strcmp(leg_choice,'left')==1)
-    leg_ft_offset = left_leg_ft_offset;
-    foot_ft_offset = left_foot_ft_offset;
-else
-    leg_ft_offset = right_leg_ft_offset;
-    foot_ft_offset = right_foot_ft_offset;
-end
- 
+ model.dtKalman = dtKalman;
 %% Rototranslation definitions
 % % leg to ankle
 % leg_p_ankle = [0 0 0.4776]';%[0.4776 0 0]' ;
@@ -106,12 +47,6 @@ end
 % com_adj_ankle = [eye(3) zeros(3) ; -eye(3)*S(ankle_p_com) eye(3) ];
 % ankle_adj_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_ankle) eye(3) ]; 
 % com_adj_leg = com_adj_ankle * ankle_adj_leg;
-
-leg_p_com = [0 0 0.18102]';
-ankle_p_com = [0 0 -0.18102]';
-
-com_adjT_ankle = [eye(3) zeros(3) ; -eye(3)*S(ankle_p_com) eye(3) ];
-com_adjT_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_com) eye(3) ];
 
 % 
 % com_R_imu = [  -1  0   0 ;...
@@ -125,29 +60,6 @@ com_adjT_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_com) eye(3) ];
 %imuDel1 = 0.25*pi;%0.5*pi-0.35*pi;%-0.1*pi
 %imuDel2 = 0.0;%0.01*pi;%0.005*pi;
 %com_R_imu = euler2dcm([pi/2+imuDel1,pi/2+imuDel2,-pi/2])
-load('IMUOffset.mat','com_R_imu');
-
-leg_ft.t = leg_ft_data(:,2)-leg_ft_data(1,2);
-leg_ft.idx = leg_ft_data(:,1) - leg_ft_data(1,1);
-leg_ft_data(:,3:8) = leg_ft_data(:,3:8) - repmat(leg_ft_offset,size(leg_ft_data,1),1);
-leg_ft.f = leg_ft_data(:,3:5);
-leg_ft.mu = leg_ft_data(:,6:8);
-
-foot_ft.t = foot_ft_data(:,2)-foot_ft_data(1,2);
-foot_ft.idx = foot_ft_data(:,1) - foot_ft_data(1,1);
-foot_ft_data(:,3:8) = foot_ft_data(:,3:8) - repmat(foot_ft_offset,size(foot_ft_data,1),1);
-foot_ft.f = foot_ft_data(:,3:5);
-foot_ft.mu = foot_ft_data(:,6:8);
-
-skin.t = skin_data(:,2) - skin_data(1,2);
-skin.idx = skin_data(:,1) - skin_data(1,1);
-skin.data = skin_data(:,3:end);
-
-inertial.t = inertial_data(:,2)-inertial_data(1,2);
-inertial.idx = inertial_data(:,1) - inertial_data(1,1);
-inertial.data = inertial_data(:,3:end);
-
-tMax = min([leg_ft.t(end),foot_ft.t(end),skin.t(end),inertial.t(end),t_max]);
 t = linspace(t_min,tMax,(tMax - t_min)/dtKalman);
 
 tCalib = linspace(0,t_min,(t_min)/dtKalman);
@@ -161,7 +73,7 @@ muc_pre_calib = interp1(foot_ft.t,foot_ft.mu,tCalib);
 delta_pre_calib = interp1(skin.t,skin.data,tCalib);
 a_omega_pre_calib = interp1(inertial.t,inertial.data,tCalib);
 
-a_pre_calib = (model.acclSign*a_omega_pre_calib(:,4:6)')';
+a_pre_calib = acclSign*a_omega_pre_calib(:,4:6);
 omega_pre_calib = a_omega_pre_calib(:,7:9);
 
 %omega_pre_calib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
@@ -174,25 +86,25 @@ delta_proc_calib = dataPostProcessing(delta_pre_calib, 'normalForces');
 fc_z_calib = computeTotalForce(delta_proc_calib, 'normalForces')';
 
 %% Forces and torques
-fo_muo_calib = com_adjT_leg * [fo_pre_calib';muo_pre_calib'];
+fo_muo_calib = transforms.B_adjT_leg * [fo_pre_calib';muo_pre_calib'];
 fo_calib = fo_muo_calib(1:3,:);
 muo_calib = fo_muo_calib(4:6,:);
 
-fc_muc_calib = com_adjT_ankle * [fc_pre_calib';muc_pre_calib'];
+fc_muc_calib = transforms.B_adjT_ankle * [fc_pre_calib';muc_pre_calib'];
 fc_calib = fc_muc_calib(1:3,:);
 muc_calib = fc_muc_calib(4:6,:);
 
 
 %% Force offsets corrected to calibration dataset
-f_calib_delta = (0.5)*( mean(-fo_calib+fc_calib,2) - model.m*9.81 * euler2dcm(model.phi0)*model.gRot);
-mu_calib_delta = (0.5)*mean(-muo_calib + muc_calib,2);
+f_calib_delta = (0.5)*( mean(+fc_calib-fo_calib,2) + model.m* euler2dcm(model.phi0)*model.G_g);
+mu_calib_delta = (0.5)*mean(+muc_calib - muo_calib,2);
 
 
 
 %% IMU
-a_calib = (com_R_imu*a_pre_calib');
+a_calib = (transforms.B_R_imu*a_pre_calib');
 %omegaCentered = omega_calib - repmat(omegaOffset,size(omega_pre_proc,1),1);
-omega_calib = (com_R_imu*omega_pre_calib')*(pi/180);
+omega_calib = (transforms.B_R_imu*omega_pre_calib')*(pi/180);
 % 
 % if(strcmp(fakeIMU,'true') == 1)
 %     aPerfect = fakeAccl*ones(1,size(a_calib,2));
@@ -217,7 +129,7 @@ delta_pre_proc = interp1(skin.t,skin.data,t);
 a_omega_pre_proc = interp1(inertial.t,inertial.data,t);
 
 %% IMU and skin
-a_pre_proc = (model.acclSign*a_omega_pre_proc(:,4:6)')';
+a_pre_proc = acclSign*(a_omega_pre_proc(:,4:6)')';
 omega_pre_proc = a_omega_pre_proc(:,7:9);
 
 %omegaCalib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
@@ -230,13 +142,17 @@ delta = dataPostProcessing(delta_pre_proc, 'normalForces');
 fc_z = computeTotalForce(delta, 'normalForces')';
 
 %% Forces and torques
-fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
-fo = fo_muo(1:3,:) + f_calib_delta*ones(1,length(t));
-muo = fo_muo(4:6,:) + mu_calib_delta*ones(1,length(t));
+fo_muo = transforms.B_adjT_leg * [fo_pre_proc';muo_pre_proc'];
+fo = fo_muo(1:3,:) - f_calib_delta*ones(1,length(t));
+%muo = fo_muo(4:6,:) - mu_calib_delta*ones(1,length(t));
+muo = fo_muo(4:6,:) - mean(muo_calib,2)*ones(1,length(t));
 
-fc_muc = com_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
-fc = fc_muc(1:3,:)  - f_calib_delta*ones(1,length(t));
-muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
+fc_muc = transforms.B_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
+fc = fc_muc(1:3,:)  + f_calib_delta*ones(1,length(t));
+%muc = fc_muc(4:6,:) + mu_calib_delta*ones(1,length(t));
+muc = fc_muc(4:6,:) - mean(muc_calib,2)*ones(1,length(t));
+
+
 % 
 % fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
 % fo = fo_muo(1:3,:);
@@ -250,18 +166,10 @@ muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
 fc_zDelta = (mean(fc_z_calib - (fc_calib(3,:) - f_calib_delta(3)*ones(1,length(tCalib)))));
 fc_z = fc_z - fc_zDelta;
 %% IMU
-a = (com_R_imu*a_pre_proc');
+a = (transforms.B_R_imu*a_pre_proc');
 omegaCentered = (omega_pre_proc')' - repmat(omegaOffset',size(omega_pre_proc,1),1);
-omega = (com_R_imu*omegaCentered')'.*(pi/180);
+omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
 
-
-if(strcmp(fakeIMU,'true') == 1)
-
-    aPerfect = fakeAccl*ones(1,size(a,2));
-    omegaPerfect= zeros(size(omega));
-    a = aPerfect;
-    omega = omegaPerfect;
-end
 
     %% plotting raw and corrected data
     if(plots == 0)
@@ -325,7 +233,7 @@ end
             title('fc');
 
             subplot(2,2,4);
-            plot(t,muc);
+            plot(t,muc); 
             xlabel('time (sec)');
             ylabel('torque (Nm)');
             legend('muX', 'muY', 'muZ');
@@ -383,7 +291,74 @@ end
     end
   %  idx = t>t_min;
   %  yMeas = [a(:,idx);omega(:,idx);fo(:,idx);muo(:,idx);fc(:,idx);muc(:,idx);fc_x(:,idx)]';
-    yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
+   
+  if(strcmp(fakeIMU,'true') == 1)
+
+        aPerfect = fakeAccl*ones(1,size(a,2));
+        omegaPerfect= zeros(size(omega));
+        a = aPerfect;
+        omega = omegaPerfect;
+        
+        if(plots == 0)
+            figure(5);
+                subplot(2,1,1); hold on;
+                plot(t,a,'lineWidth',2.0);
+                xlabel('time (sec)');
+                ylabel('m/sec^2');
+                legend('accX', 'accY', 'accZ');
+                axis tight;
+                title('Linear Acceleration a_{com}');
+
+                subplot(2,1,2); hold on;
+                plot(t,omega,'lineWidth',2.0);
+                xlabel('time (sec)');
+                ylabel('rad/sec');
+                legend('gyrX', 'gyrY', 'gyrZ');
+                axis tight;
+                title('Angular Velocity \omega _{com}');
+        end
+    end
+
+    if(strcmp(fakeFT,'true') == 1)
+       foPerfect = fakeF_o * ones(1,size(fo,2));
+       fcPerfect =  model.m*euler2dcm(model.phi0)*model.G_g * ones(1,size(fc,2));
+       %fcPerfect =  model.m.*model.B0_g * ones(1,size(fc,2));
+
+       fczPerfect = fcPerfect(3,:);
+       muoPerfect = fakeMu_o * ones(1,size(muo,2));
+       mucPerfect = -fakeMu_o * ones(1,size(muc,2));
+
+       fo = foPerfect; 
+       fc = fcPerfect;
+       fc_z = fczPerfect;
+       muo = muoPerfect;
+       muc = mucPerfect;
+       
+       if(plots == 0)
+        
+           figure(2);
+            subplot(2,2,3);
+            hold on; plot(t,fc,'lineWidth',2.0);
+            xlabel('time (sec)');
+            ylabel('force (N)');
+            legend('fX', 'fY', 'fZ');            
+            axis tight;
+            title('fc');
+            
+            figure(3);hold on;
+            %plot(t,(TFoot.ans'*del')');
+            plot(t,fc_z,'lineWidth',2.0);
+            xlabel('time (sec)');
+            ylabel('force (N)');
+            title('Normal Force with Foot Skin');
+            legend('fZ');
+            axis tight;
+            
+       
+       end
+    end
+
+  yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
     tMeas = t;
 %a(:,1)
 %a(:,1) - model.g*euler2dcm(model.phi0)*model.gRot

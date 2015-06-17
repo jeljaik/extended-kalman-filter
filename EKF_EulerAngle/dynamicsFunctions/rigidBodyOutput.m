@@ -32,15 +32,15 @@ end
 f_B_c_z = f_B_c(3,1);
 
 phi     = x(19:21, 1);
-R    = euler2dcm(phi);
+B_R_G    = euler2dcm(phi);
 m    = p.m;
-g    = p.g;
+G_g    = p.G_g;
 
-dv_B     =          -(1/m)*S(omega_B) *(m*v_B) + (1/m) *( -f_B_o + f_B_c )- g.*R*p.gRot;
+dv_B     =          -(1/m)*S(omega_B) *(m*v_B) + (1/m) *( +f_B_o - f_B_c )+ B_R_G*G_g;
 % domega_B =   I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_t);
 
 %y  = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
-y  = [(dv_B+g.*R*p.gRot); omega_B; f_B_o; mu_B_o; f_B_c; mu_B_c; f_B_c_z];
+y  = [(dv_B-B_R_G*G_g); omega_B; f_B_o; mu_B_o; f_B_c; mu_B_c; f_B_c_z];
 %y  = [R'*dv_B; omega_B; f_B_o; mu_B_o; f_B_c; mu_B_c; f_B_c_z];
 %y  = [dv_B; omega_B; f_B_o; mu_B_o; f_B_c; mu_B_c; f_B_c_z];
 %y  = [dv_B; f_B_1; f_B_2; mu_B_1;mu_B_2];

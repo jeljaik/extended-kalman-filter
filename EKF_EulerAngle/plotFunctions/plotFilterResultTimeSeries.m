@@ -16,7 +16,7 @@ for i = 1:numSubFig
     
     if(~isempty(y))
         hold on
-        plot(t, y(:,idx(i)), '--b','linewidth',2);
+        plot(t, y(:,idx(i)), '--k','linewidth',2);
     end
     title(plotText.titleText{i});
     xlabel(plotText.xlabelText{i});

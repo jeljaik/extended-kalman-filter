@@ -49,7 +49,7 @@ if(isempty(f_Bo_t))
  mu_B_t_o  = x(10:12, 1);
  f_B_t_c   = x(13:15, 1);
  mu_B_t_c  = x(16:18, 1);
-else
+ elsez
     f_B_t_o = f_Bo_t(t);
     
     mu_B_t_o = mu_Bo_t(t);

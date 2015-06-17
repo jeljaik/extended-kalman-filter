@@ -72,77 +72,38 @@ realKalman.sigma_a = 1.25;%1.5;       % output error variance (acceleration)
 realKalman.sigma_omega = 4.5;%1.00;
 realKalman.sigma_skin = 25.75;
 
-realKalman.a_Q  = 0.5;%4.5;
-realKalman.omega_Q  = 2.5;%4.0;%4.75;
-realKalman.f_Q  = 0.5;%6.5;
-realKalman.mu_Q = 1.0;%2.5;%6.5; 
-realKalman.phi_Q = 1.5;%2.50;
+realKalman.a_Q  = 4.0;%4.5;
+realKalman.omega_Q  = 10.0;%4.0;%4.75;
+realKalman.f_Q  = 5.0;%0.5;%6.5;
+realKalman.mu_Q = 8.0;%2.5;%6.5; 
+realKalman.phi_Q = 0.5;%1.5;%2.50;
 
 %realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
 %realKalman.P =5.0* diag([300*ones(3,1);50*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1)]);
-realKalman.P =5.0* diag([10.0*ones(3,1);85.0*ones(3,1); 10.0*ones(3,1);10.0*ones(3,1); 25.0*ones(3,1);25.0*ones(3,1); 25*ones(3,1)]);
+%realKalman.P =250*diag([5.0*ones(3,1);5.0*ones(3,1); 10.0*ones(3,1);10.0*ones(3,1); 5.0*ones(3,1);5.0*ones(3,1); 1.0*ones(3,1)]);
+realKalman.P = 150*diag([realKalman.a_Q*ones(3,1);realKalman.omega_Q*ones(3,1);realKalman.f_Q*ones(3,1);realKalman.mu_Q*ones(3,1);realKalman.f_Q*ones(3,1);realKalman.mu_Q*ones(3,1);realKalman.phi_Q*ones(3,1)]);
 %realKalman.P = realKalman.P- 1*ones(size(realKalman.P)) + 5*rand(size(realKalman.P));
-%% SimSensor parameters
-
-simKalman.sigma_f = 0.25;       % output error variance (forces)
-simKalman.sigma_u = 0.025;      % output error variance (torques)
-simKalman.sigma_a = 0.5;       % output error variance (acceleration)
-simKalman.sigma_omega = 0.5;
-simKalman.sigma_skin = 0.5;
-
-simKalman.a_Q  = 0.1;
-simKalman.f_Q  = 0.1;
-simKalman.mu_Q = 0.1; 
-simKalman.skin_f_mu_Q = 0.1;
-simKalman.phi_Q = 0.1;
-simKalman.P = diag(50*[100*ones(6,1); ones(6,1); ones(6,1); ones(3,1)]);
 
 %P = diag([simKalman.sigma_a.*ones(1,3),simKalman.sigma_f.*ones(1,3), simKalman.sigma_f.*ones(1,3), simKalman.sigma_u.*ones(1,3), simKalman.sigma_u.*ones(1,3)]);
 
 %% Model Parameters
-model.I   = diag([0.05 0.02 0.03]);
-model.m   = 0.761;%7;
 model.dtInvDyn = 0.00001;
 model.dtForDyn = 0.0001;
 model.dtKalman = 0.01;%0.05;%0.0025;%0.01;
-model.g   = 9.81;
-
-model.bck = false;
 
 t_min = 4.0;%4.5;%61;%42;
 t_max = 5.0;
 %t_max = 8.0;%8.0;%8.25;%64;%43;
 
-
-
-%% chose source of data (simulation or real-robot)
-if(source ==1) 
-    kalman = simKalman;
-    R =diag([kalman.sigma_a.*ones(1,3),kalman.sigma_omega.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_skin*ones(1,1)]);
-    tKalman = 0:model.dtKalman:T;
-   [yMeas,model] = simulatedMeasurement(tKalman,R,model,'forceSim',1); % set the last parameter to empty to use saved simulation data if exists
-   % [yMeas,model] = simulatedMeasurement(tKalman,R,model,[],1); % set the last parameter to empty to use saved simulation data if exists
-    
-    
-else
-    [yMeas,tMeas,model,RData] = realMeasurement_completeLegWithSkin(model.dtKalman,model,0,t_min,t_max);
-    T = tMeas(end);
-   tKalman = tMeas;
-   % numSamples = length(tKalman) - 4000;
-   %numJump = 1;%10;
-    
-  %  yMeas = yMeas(numSamples:end,:);tKalman = tKalman(numSamples:end);
-  % yMeas = yMeas(1:numJump:end,:);
-  % tKalman = tKalman(1:numJump:end);
-  kalman = realKalman;
-end
-% remove next line later
-%kalman.P = diag([kalman.sigma_a.*ones(1,3),kalman.sigma_f.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_u.*ones(1,3)]);
+[yMeas,tMeas,model,RData] = realMeasurement_completeLegWithSkin(model.dtKalman,model,0,t_min,t_max);
+T = tMeas(end);
+tKalman = tMeas;
+kalman = realKalman;
 
 
 %% KALMAN FILTER IMPLEMENTATION
-Q  = 0.001*diag([kalman.a_Q*ones(3,1);
-           kalman.omega_Q*ones(3,1);
+Q  = diag([kalman.a_Q*ones(3,1);
+          kalman.omega_Q*ones(3,1);
            kalman.f_Q*ones(6,1); 
            kalman.mu_Q*ones(6,1); 
            kalman.phi_Q*ones(3,1)]);
@@ -150,7 +111,7 @@ Q  = 0.001*diag([kalman.a_Q*ones(3,1);
 
 
 %if(~exist('RData'))       
-    R =1.0*diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
+    R =0.0001*diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
 %else 
 %    disp('Using real data covariance matrix');
 %    RData(19,19) = 35.63;
@@ -170,8 +131,8 @@ P = zeros(size(Ph,1), size(Ph,2),length(tKalman));
 disp('Starting Kalman Filter prediction');
 drawnow;
 
-fprintf('initial : \n');
-disp(model.x0(1:3)'); disp(kalman.P(1:6,1:3));
+%fprintf('initial : \n');
+%disp(model.x0(1:3)'); disp(kalman.P(1:6,1:3));
 
 for i = 1:length(tKalman)
     if(mod(i,25)==0)
@@ -222,44 +183,46 @@ if(~exist(dataBaseFolder))
     mkdir(dataBaseFolder);
 end
 
-finalVersion =0;
+finalVersion =1;
 if(finalVersion == 1)
     close all;
 end
+
+%plotResultsOutput_withSkin([],Xupdt, Xhat,Ph, tKalman, yMeas,source)
 % 
  save(strcat(dataBaseFolder,'filter_result_data.mat'),'tKalman','yMeas','Xupdt','Xhat','P');
  plotAndSaveFigs(dataBaseFolder,plotFigBaseFolder);
-% %         
-% if(source == 1)
-%     figure(3);
-%     set(gca,'FontSize',12);
-%        set(gcf,'Renderer','OpenGL')
-%     print('-depsc2','-r200',strcat(plotFigBaseName,'Force_sim'),'-opengl');
-%     figure(4);
-%     set(gca,'FontSize',12);
-%        set(gcf,'Renderer','OpenGL')
-%     print('-depsc2','-r200',strcat(plotFigBaseName,'Torque_sim'),'-opengl');
-%     figure(5);
-%     set(gca,'FontSize',12);
-%        set(gcf,'Renderer','OpenGL')
-%     print('-depsc2','-r200',strcat(plotFigBaseName,'Velocitites_sim'),'-opengl');
-%     figure(6);
-%     set(gca,'FontSize',12);
-%        set(gcf,'Renderer','OpenGL')
-%     print('-depsc2','-r200',strcat(plotFigBaseName,'Orientation_sim'),'-opengl');
-%     
-%     figure(8);
-%     set(gca,'FontSize',12);
-%        set(gcf,'Renderer','OpenGL')
-%     print('-depsc2','-r200',strcat(plotFigBaseName,'UpdatedFRI_sim'),'-opengl');
-% end
+% % %         
+% % if(source == 1)
+% %     figure(3);
+% %     set(gca,'FontSize',12);
+% %        set(gcf,'Renderer','OpenGL')
+% %     print('-depsc2','-r200',strcat(plotFigBaseName,'Force_sim'),'-opengl');
+% %     figure(4);
+% %     set(gca,'FontSize',12);
+% %        set(gcf,'Renderer','OpenGL')
+% %     print('-depsc2','-r200',strcat(plotFigBaseName,'Torque_sim'),'-opengl');
+% %     figure(5);
+% %     set(gca,'FontSize',12);
+% %        set(gcf,'Renderer','OpenGL')
+% %     print('-depsc2','-r200',strcat(plotFigBaseName,'Velocitites_sim'),'-opengl');
+% %     figure(6);
+% %     set(gca,'FontSize',12);
+% %        set(gcf,'Renderer','OpenGL')
+% %     print('-depsc2','-r200',strcat(plotFigBaseName,'Orientation_sim'),'-opengl');
+% %     
+% %     figure(8);
+% %     set(gca,'FontSize',12);
+% %        set(gcf,'Renderer','OpenGL')
+% %     print('-depsc2','-r200',strcat(plotFigBaseName,'UpdatedFRI_sim'),'-opengl');
+% % end
 
 
 
 %Smoother
 %[Xhats,Ps] = etf_smooth1(Xhat',P,yMeas',db_dx_func,Q,b_func,[],model, dh_dx_func,R,h_func,[],model, 1, 1);
-% [M,P] =        ETF_SMOOTH1(M,P,Y,          A,Q,ia,W,aparam,H,R,h,V,hparam,same_p_a,same_p_h)
 % plotResults(x, Xhats', Ps, t, 4)
+%plotResultsOutput_withSkin('',Xhats', Xhats',Ps, tKalman, yMeas,source)
 
 %figure(8); figure(7);figure(9);
 %close(5);

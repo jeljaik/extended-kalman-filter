@@ -10,7 +10,6 @@ if(nargin<2)
     tMin = tK(1);
 end
 
-figPreN = figure();
 idx = 1;
 
 % wrench above foot
@@ -40,7 +39,7 @@ cols = {'b','b','g','g','r','r'};
 plotFilterResultTimeSeries(tK(idx:end),XUpt(idx:end,:),yM(idx:end,:),P(:,:,idx:end),stateVar,pT,cols,[3,2]);
 
 % wrench below foot
-stateVar = 13:17;
+stateVar = 13:18;
 pT.titleText = {'Expectation of force f_c',...
                 'Expectation of Momment u_c',...
                 '',...
@@ -69,7 +68,8 @@ pT.ylabelText = {'E(v_B_x) m/sec',...
                  'E(\omega_B_z) rad/sec'
 };
 cols = {'b','b','g','g','r','r'};
-plotFilterResultTimeSeries(tK(idx:end),XUpt(idx:end,:),yM(idx:end,:),P(:,:,idx:end),stateVar,pT,cols,[3,2]);
+%plotFilterResultTimeSeries(tK(idx:end),XUpt(idx:end,:),yM(idx:end,:),P(:,:,idx:end),stateVar,pT,cols,[3,2]);
+plotFilterResultTimeSeries(tK(idx:end),XUpt(idx:end,:),[],P(:,:,idx:end),stateVar,pT,cols,[3,2]);
 
 % orientation
 stateVar = 19:21;
@@ -87,9 +87,8 @@ plotFilterResultTimeSeries(tK(idx:end),XUpt(idx:end,:),[],P(:,:,idx:end),stateVa
 
 % FRI
 if(source==2)
-    ind = figure();
-    plot_FRI(XUpt,P,XPred, P,tK, idx,length(tK));%,'b',index+5+figPreN);
-end
+     plot_FRI(XUpt,P,XPred, P,tK, idx,length(tK));%,'b',index+5+figPreN);
+ end
 
 
 end

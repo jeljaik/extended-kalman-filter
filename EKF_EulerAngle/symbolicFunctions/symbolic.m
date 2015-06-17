@@ -1,9 +1,11 @@
- clear all
+
+
+clear all
 close all
 clc
 
 syms I_B f_B_o mu_B_o f_B_c mu_B_c m real
-syms I_Bxx I_Byy I_Bzz I_Bxy I_Byz I_Bxz g gRot1 gRot2 gRot3 gRot real
+syms I_Bxx I_Byy I_Bzz I_Bxy I_Byz I_Bxz G_g1 G_g2 G_g3  real%G_g1 G_g2 G_g3 real
 syms v_Bx v_By v_Bz real
 syms f_B_ox f_B_oy f_B_oz real
 syms f_B_cx f_B_cy f_B_cz real
@@ -29,11 +31,11 @@ f_B_c   = [    f_B_cx     f_B_cy     f_B_cz]';
 mu_B_o  = [    mu_B_ox    mu_B_oy    mu_B_oz]';
 mu_B_c  = [    mu_B_cx    mu_B_cy    mu_B_cz]';
 phi     = [    phi1       phi2       phi3]';
-R       = euler2dcm(phi);
-gRot = [gRot1;gRot2;gRot3];
+B_R_G       = euler2dcm(phi);
+G_g = [G_g1;G_g2;G_g3];
 
-dv_B     = -S(omega_B) * v_B - 1/m * f_B_o + 1/m*f_B_c - g.*R*gRot;
-domega_B =  I_B \ (-S(omega_B) * (I_B * omega_B) - mu_B_o + mu_B_c);
+dv_B     = -S(omega_B) * v_B + 1/m * f_B_o - 1/m*f_B_c + B_R_G*G_g;
+domega_B =  I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_o - mu_B_c);
 df_B_o   =  [0 0 0]';
 dmu_B_o  =  [0 0 0]';
 df_B_c   =  [0 0 0]';
@@ -48,7 +50,7 @@ dmu_B_c  =  [0 0 0]';
 dphi     =  (Tomega_dphi(phi))\omega_B;
 
 
-h_imu = [(dv_B + g.*R*gRot); omega_B];
+h_imu = [(dv_B - B_R_G*G_g); omega_B];
 %h_imu = [R'*dv_B ; omega_B];
 h_fto = [f_B_o; mu_B_o];
 h_ftc = [f_B_c; mu_B_c];
@@ -73,6 +75,6 @@ model.I  = I_B;
 %matlabFunction(df_dx,'file','./symbolic/rigidBodyDynamicsDerivatives','vars',[x; dI; m; g]);
 
 %matlabFunction(dh_dx,'file','./symbolic/rigidBodyOutputsDerivatives','vars',[x; dI; m; g]);
-matlabFunction(df_dx,'file','./symbolicFunctions/rigidBodyDynamicsDerivatives','vars',[x; dI; m; g; gRot]);
+matlabFunction(df_dx,'file','./symbolicFunctions/rigidBodyDynamicsDerivatives','vars',[x; dI; m; G_g]);
 
-matlabFunction(dh_dx,'file','./symbolicFunctions/rigidBodyOutputsDerivatives','vars',[x; dI; m; g; gRot]);
+matlabFunction(dh_dx,'file','./symbolicFunctions/rigidBodyOutputsDerivatives','vars',[x; dI; m; G_g]);
