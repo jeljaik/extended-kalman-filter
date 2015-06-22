@@ -111,7 +111,7 @@ Q  = diag([kalman.a_Q*ones(3,1);
 
 
 %if(~exist('RData'))       
-    R =0.0001*diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
+    R =diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
 %else 
 %    disp('Using real data covariance matrix');
 %    RData(19,19) = 35.63;
@@ -183,7 +183,7 @@ if(~exist(dataBaseFolder))
     mkdir(dataBaseFolder);
 end
 
-finalVersion =1;
+finalVersion =0;
 if(finalVersion == 1)
     close all;
 end

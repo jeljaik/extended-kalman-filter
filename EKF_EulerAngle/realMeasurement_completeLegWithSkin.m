@@ -1,3 +1,4 @@
+
 function [yMeas,tMeas,model,R] = realMeasurement_completeLegWithSkin(dtKalman, model, plots, t_min, t_max, numberOfExperiment, whichLeg, whichSkin)
 % REALMEASUREMENT_WITHSKIN loads data from the backward tipping experiments
 %   including the feet skin to post-process these data.
@@ -23,11 +24,12 @@ if (nargin<6)
     whichSkin = 'right';
 end
 
-fakeIMU = 'true';
+fakeIMU = 'false';
 fakeAccl = [ 0 ; 0 ; 9.8];
 acclSign = -1;
 
-fakeFT = 'false';
+fakeFT_f = 'false';
+fakeFT_mu = 'true';
 fakeMu_o = [0;0;0];
 fakeF_o = [0;0;0];
 
@@ -96,10 +98,11 @@ muc_calib = fc_muc_calib(4:6,:);
 
 
 %% Force offsets corrected to calibration dataset
-f_calib_delta = (0.5)*( mean(+fc_calib-fo_calib,2) + model.m* euler2dcm(model.phi0)*model.G_g);
+f_calib_delta = (0.5)*( mean(+fc_calib-fo_calib,2) - model.m* euler2dcm(model.phi0)*model.G_g);
 mu_calib_delta = (0.5)*mean(+muc_calib - muo_calib,2);
 
-
+%f_calib_delta = zeros(size(f_calib_delta));
+%mu_calib_delta = zeros(size(mu_calib_delta));
 
 %% IMU
 a_calib = (transforms.B_R_imu*a_pre_calib');
@@ -143,12 +146,12 @@ fc_z = computeTotalForce(delta, 'normalForces')';
 
 %% Forces and torques
 fo_muo = transforms.B_adjT_leg * [fo_pre_proc';muo_pre_proc'];
-fo = fo_muo(1:3,:) - f_calib_delta*ones(1,length(t));
+fo = fo_muo(1:3,:) + f_calib_delta*ones(1,length(t));
 %muo = fo_muo(4:6,:) - mu_calib_delta*ones(1,length(t));
-muo = fo_muo(4:6,:) - mean(muo_calib,2)*ones(1,length(t));
+muo = fo_muo(4:6,:) + mean(muo_calib,2)*ones(1,length(t));
 
 fc_muc = transforms.B_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
-fc = fc_muc(1:3,:)  + f_calib_delta*ones(1,length(t));
+fc = fc_muc(1:3,:)  - f_calib_delta*ones(1,length(t));
 %muc = fc_muc(4:6,:) + mu_calib_delta*ones(1,length(t));
 muc = fc_muc(4:6,:) - mean(muc_calib,2)*ones(1,length(t));
 
@@ -319,20 +322,17 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
         end
     end
 
-    if(strcmp(fakeFT,'true') == 1)
+    if(strcmp(fakeFT_f,'true') == 1)
        foPerfect = fakeF_o * ones(1,size(fo,2));
-       fcPerfect =  model.m*euler2dcm(model.phi0)*model.G_g * ones(1,size(fc,2));
+       
+       fgPerfect = model.m*euler2dcm(model.phi0)*model.G_g * ones(1,size(fc,2));
+       fcPerfect =   0.5*fgPerfect;
+       foPerfect = -fcPerfect; %fakeF_o * ones(1,size(fo,2));
+       
        %fcPerfect =  model.m.*model.B0_g * ones(1,size(fc,2));
 
        fczPerfect = fcPerfect(3,:);
-       muoPerfect = fakeMu_o * ones(1,size(muo,2));
-       mucPerfect = -fakeMu_o * ones(1,size(muc,2));
-
-       fo = foPerfect; 
-       fc = fcPerfect;
-       fc_z = fczPerfect;
-       muo = muoPerfect;
-       muc = mucPerfect;
+       
        
        if(plots == 0)
         
@@ -356,6 +356,18 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
             
        
        end
+       fo = foPerfect; 
+       fc = fcPerfect;
+       fc_z = fczPerfect;
+    end
+    if(strcmp(fakeFT_mu,'true') == 1)
+       muoPerfect = fakeMu_o * ones(1,size(muo,2));
+       mucPerfect = -fakeMu_o * ones(1,size(muc,2));
+
+
+       muo = muoPerfect;
+       muc = mucPerfect;
+       
     end
 
   yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
@@ -365,6 +377,23 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
     % model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);[0,0.5*pi,0]']; %% corresponds to -9.81 accln on Z
     model.x0 = [zeros(3,1);zeros(3,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);model.phi0]; %% corresponds to -9.81 accln on Z
 
+    %% testing forces and torques
+    
+    %fprintf('Force test \n');
+   
+    %fprintf('[  fc   fo   m*B_R_G*G_g fo+m*B_g-fc ] ');
+    %[fc(:,1) fo(:,1) model.m* euler2dcm(model.phi0)*model.G_g -fc(:,1)+fo(:,1)+model.m* euler2dcm(model.phi0)*model.G_g ]
+    
+    fprintf('Acceleration test \n');
+    fprintf(' [ accl , gyrs] ');
+    
+    [a(1:3,1)  omega(1,1:3)'] 
+    
+    
+    disp('loaded measurement data');
+    
+    
+    
     %model.m = 0.761;
     
     %model.I = [0.00253893, -4.51893e-6, -0.000903578;...
