@@ -91,8 +91,8 @@ model.dtInvDyn = 0.00001;
 model.dtForDyn = 0.0001;
 model.dtKalman = 0.01;%0.05;%0.0025;%0.01;
 
-t_min = 4.0;%4.5;%61;%42;
-t_max = 5.0;
+t_min = 6.0;%4.5;%61;%42;
+t_max = 7.5;
 %t_max = 8.0;%8.0;%8.25;%64;%43;
 
 [yMeas,tMeas,model,RData] = realMeasurement_completeLegWithSkin(model.dtKalman,model,0,t_min,t_max);

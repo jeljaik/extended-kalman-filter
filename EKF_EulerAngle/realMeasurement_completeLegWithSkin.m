@@ -29,7 +29,7 @@ fakeAccl = [ 0 ; 0 ; 9.8];
 acclSign = -1;
 
 fakeFT_f = 'false';
-fakeFT_mu = 'true';
+fakeFT_mu = 'false';
 fakeMu_o = [0;0;0];
 fakeF_o = [0;0;0];
 
@@ -147,12 +147,12 @@ fc_z = computeTotalForce(delta, 'normalForces')';
 %% Forces and torques
 fo_muo = transforms.B_adjT_leg * [fo_pre_proc';muo_pre_proc'];
 fo = fo_muo(1:3,:) + f_calib_delta*ones(1,length(t));
-%muo = fo_muo(4:6,:) - mu_calib_delta*ones(1,length(t));
-muo = fo_muo(4:6,:) + mean(muo_calib,2)*ones(1,length(t));
+%muo = fo_muo(4:6,:) + mu_calib_delta*ones(1,length(t));
+muo = fo_muo(4:6,:) - mean(muo_calib,2)*ones(1,length(t));
 
 fc_muc = transforms.B_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
 fc = fc_muc(1:3,:)  - f_calib_delta*ones(1,length(t));
-%muc = fc_muc(4:6,:) + mu_calib_delta*ones(1,length(t));
+%muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
 muc = fc_muc(4:6,:) - mean(muc_calib,2)*ones(1,length(t));
 
 
@@ -379,16 +379,19 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
 
     %% testing forces and torques
     
-    %fprintf('Force test \n');
+    fprintf('Force test \n');
    
-    %fprintf('[  fc   fo   m*B_R_G*G_g fo+m*B_g-fc ] ');
-    %[fc(:,1) fo(:,1) model.m* euler2dcm(model.phi0)*model.G_g -fc(:,1)+fo(:,1)+model.m* euler2dcm(model.phi0)*model.G_g ]
+    fprintf('[  fc   fo   m*B_R_G*G_g fo+m*B_g-fc ] ');
+    [fc(:,1) fo(:,1) model.m* euler2dcm(model.phi0)*model.G_g -fc(:,1)+fo(:,1)+model.m* euler2dcm(model.phi0)*model.G_g ]
     
+    
+    fprintf('Momment test\n');
+    fprintf('[  muc   muo  ]');
+    [muc(:,1) muo(:,1)]
     fprintf('Acceleration test \n');
     fprintf(' [ accl , gyrs] ');
     
     [a(1:3,1)  omega(1,1:3)'] 
-    
     
     disp('loaded measurement data');
     
