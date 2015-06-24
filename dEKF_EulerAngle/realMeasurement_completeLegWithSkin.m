@@ -148,12 +148,12 @@ fc_z = computeTotalForce(delta, 'normalForces')';
 fo_muo = transforms.B_adjT_leg * [fo_pre_proc';muo_pre_proc'];
 fo = fo_muo(1:3,:) + f_calib_delta*ones(1,length(t));
 %muo = fo_muo(4:6,:) + mu_calib_delta*ones(1,length(t));
-muo = fo_muo(4:6,:) - mean(muo_calib,2)*ones(1,length(t));
+muo = fo_muo(4:6,:); % - mean(muo_calib,2)*ones(1,length(t));
 
 fc_muc = transforms.B_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
 fc = fc_muc(1:3,:)  - f_calib_delta*ones(1,length(t));
 %muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
-muc = fc_muc(4:6,:) - mean(muc_calib,2)*ones(1,length(t));
+muc = fc_muc(4:6,:); % - mean(muc_calib,2)*ones(1,length(t));
 
 
 % 
