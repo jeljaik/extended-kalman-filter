@@ -46,7 +46,7 @@ B_R_G       = euler2dcm(phi);
 G_g = [G_g1;G_g2;G_g3];
 
 dv_B     = -S(omega_B) * v_B + 1/m * f_B_o - 1/m*f_B_c + B_R_G*G_g;
-domega_B =  I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_o - mu_B_c + (K_B*phi));
+domega_B =  I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_o - mu_B_c + (K_B.'*K_B*phi));
 df_B_o   =  [0 0 0]';
 dmu_B_o  =  [0 0 0]';
 df_B_c   =  [0 0 0]';
@@ -90,6 +90,6 @@ model.I  = I_B;
 %matlabFunction(df_dx,'file','./symbolic/rigidBodyDynamicsDerivatives','vars',[x; dI; m; g]);
 
 %matlabFunction(dh_dx,'file','./symbolic/rigidBodyOutputsDerivatives','vars',[x; dI; m; g]);
-% matlabFunction(F,'file','./symbolicFunctions/rigidBodyDynamicsDerivatives','vars',[x; w; dI; m; G_g]);
+matlabFunction(F,'file','./symbolicFunctions/rigidBodyDynamicsDerivatives','vars',[x; w; dI; m; G_g]);
 % 
-% matlabFunction(H,'file','./symbolicFunctions/rigidBodyOutputsDerivatives','vars',[x; w; dI; m; G_g]);
+matlabFunction(H,'file','./symbolicFunctions/rigidBodyOutputsDerivatives','vars',[x; w; dI; m; G_g]);

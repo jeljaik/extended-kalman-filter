@@ -147,14 +147,12 @@ fc_z = computeTotalForce(delta, 'normalForces')';
 fo_muo = transforms.B_adjT_leg * [fo_pre_proc';muo_pre_proc'];
 fo = fo_muo(1:3,:) + f_calib_delta*ones(1,length(t));
 %muo = fo_muo(4:6,:) + mu_calib_delta*ones(1,length(t));
-% muo = fo_muo(4:6,:) - mean(muo_calib,2)*ones(1,length(t));
-muo = fo_muo(4:6,:);
+muo = fo_muo(4:6,:); %- mean(muo_calib,2)*ones(1,length(t));
 
 fc_muc = transforms.B_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
 fc = fc_muc(1:3,:)  - f_calib_delta*ones(1,length(t));
 %muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
-muc = fc_muc(4:6,:); 
-% muc = fc_muc(4:6,:)- mean(muc_calib,2)*ones(1,length(t));
+muc = fc_muc(4:6,:); %- mean(muc_calib,2)*ones(1,length(t));
 
 
 % 
@@ -381,10 +379,9 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
 %     PHI = kron(model.phi0.',eye(3));
 %     K0 = pinv(PHI)*(muo(:,1) - muc(:,1));
 %     K_ini = 0.2225;
-%     K_ini = 1.65;
-K_ini = 1.75;
-    model.K = K_ini*eye(3);
-%       model.K = K_ini*reshape(ones(9,1),3,3);
+    K_ini = 1.65;
+%     model.K = K_ini*eye(3);
+      model.K = K_ini*reshape(ones(9,1),3,3);
     K0 = reshape(model.K,9,1);
     - muc(:,1) + muo(:,1)
     
