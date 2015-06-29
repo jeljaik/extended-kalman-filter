@@ -29,7 +29,7 @@ model.phi0 = [0,0.5*pi,0]';
 %model.acclSign = -1;
 
 %% world gravity
-model.B0_g = [0;0;9.8]
+model.B0_g = [0;0;9.8];
 B_R_G = euler2dcm(model.phi0);
 model.G_g = -B_R_G'*model.B0_g;
 

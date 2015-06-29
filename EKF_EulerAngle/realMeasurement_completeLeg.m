@@ -1,5 +1,5 @@
 
-function [yMeas,tMeas,model,R] = realMeasurement_completeLegWithSkin(dtKalman, model, plots, t_min, t_max, numberOfExperiment, whichLeg, whichSkin)
+function [yMeas,tMeas,model,R] = realMeasurement_completeLeg(dtKalman, model, plots, t_min, t_max, measurementType,numberOfExperiment ,whichLeg, whichSkin)
 % REALMEASUREMENT_WITHSKIN loads data from the backward tipping experiments
 %   including the feet skin to post-process these data.
 %
@@ -11,6 +11,7 @@ function [yMeas,tMeas,model,R] = realMeasurement_completeLegWithSkin(dtKalman, m
 disp('processing skin and other data');
 
 if(nargin<1)
+    measurementType = 'withSkin';
     dtKalman = 0.01;
     model = struct();
     plots = 0;
@@ -19,6 +20,7 @@ if(nargin<1)
 end
 
 if (nargin<6)
+    measurementType = 'withSkin';
     numberOfExperiment = 7;
     whichLeg  = 'right';
     whichSkin = 'right';
@@ -36,32 +38,12 @@ fakeF_o = [0;0;0];
 %skin_data = importdata('./robotData/backwardTipping/dumperTippingSetup01/icub/skin/right_foot/data.log ');
 %% Params
    %% new model parameters from robot 
+ kIniTemp = model.kIni;
  [model,tMax,leg_ft,foot_ft,skin,inertial,transforms] = modelSensorParams_completeLeg(whichLeg,whichSkin,numberOfExperiment,t_max);
-
+ model.kIni = kIniTemp;
  model.dtKalman = dtKalman;
 %% Rototranslation definitions
-% % leg to ankle
-% leg_p_ankle = [0 0 0.4776]';%[0.4776 0 0]' ;
-% %leg_T_ankle = [eye(3) leg_p_ankle ; zeros(3,1),1];
-% ankle_p_com = [0.024069 -0.000613931 0.0425846]';
-% %ankle_T_com = [eye(3) ankle_p_com ; zeros(3,1),1];
-% 
-% com_adj_ankle = [eye(3) zeros(3) ; -eye(3)*S(ankle_p_com) eye(3) ];
-% ankle_adj_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_ankle) eye(3) ]; 
-% com_adj_leg = com_adj_ankle * ankle_adj_leg;
 
-% 
-% com_R_imu = [  -1  0   0 ;...
-%                0   0  -1 ;...
-%                0   1   0 ];
-
-% com_R_imu = [  1    0   0 ;...
-%                0    0   1 ;...
-%                0   -1   0 ];
-
-%imuDel1 = 0.25*pi;%0.5*pi-0.35*pi;%-0.1*pi
-%imuDel2 = 0.0;%0.01*pi;%0.005*pi;
-%com_R_imu = euler2dcm([pi/2+imuDel1,pi/2+imuDel2,-pi/2])
 t = linspace(t_min,tMax,(tMax - t_min)/dtKalman);
 
 tCalib = linspace(0,t_min,(t_min)/dtKalman);
@@ -78,7 +60,6 @@ a_omega_pre_calib = interp1(inertial.t,inertial.data,tCalib);
 a_pre_calib = acclSign*a_omega_pre_calib(:,4:6);
 omega_pre_calib = a_omega_pre_calib(:,7:9);
 
-%omega_pre_calib = interp1(inertial.t,inertial.data(:,7:9),tCalib);
 omegaOffset = mean((omega_pre_calib'),2);
 
 %% Total Normal Force through the skin
@@ -108,19 +89,16 @@ mu_calib_delta = (0.5)*mean(+muc_calib - muo_calib,2);
 a_calib = (transforms.B_R_imu*a_pre_calib');
 %omegaCentered = omega_calib - repmat(omegaOffset,size(omega_pre_proc,1),1);
 omega_calib = (transforms.B_R_imu*omega_pre_calib')*(pi/180);
-% 
-% if(strcmp(fakeIMU,'true') == 1)
-%     aPerfect = fakeAccl*ones(1,size(a_calib,2));
-%     omegaPerfect= zeros(size(omega_calib));
-%     a_calib = aPerfect;
-%     omega_calib = omegaPerfect;
-% end
-
-
 yCalib = [a_calib;omega_calib;fo_calib;muo_calib;fc_calib;muc_calib;fc_z_calib]';
 
-covMat = cov(yCalib);
-R = covMat;
+%covMat = cov(yCalib);
+
+%R = covMat;
+yCalibMean = mean(yCalib,1);
+yCalibBar = yCalib - repmat(yCalibMean,size(yCalib,1),1);
+R = (1/size(yCalib,2))*(yCalibBar'*yCalibBar); 
+
+
 
 
 %% pre-processed interpolated data
@@ -146,24 +124,22 @@ fc_z = computeTotalForce(delta, 'normalForces')';
 
 %% Forces and torques
 fo_muo = transforms.B_adjT_leg * [fo_pre_proc';muo_pre_proc'];
-fo = fo_muo(1:3,:) + f_calib_delta*ones(1,length(t));
-%muo = fo_muo(4:6,:) + mu_calib_delta*ones(1,length(t));
-muo = fo_muo(4:6,:) - mean(muo_calib,2)*ones(1,length(t));
-
 fc_muc = transforms.B_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
+
+if(strcmp(measurementType,'dualState')~=1)
+   %% recomputing momment offsets to have zero initial angular acceleration if its not dualState
+    muo = fo_muo(4:6,:) - mean(muo_calib,2)*ones(1,length(t));
+    muc = fc_muc(4:6,:) - mean(muc_calib,2)*ones(1,length(t));
+else
+    %% leaving offsets as they are to have an initial compliance momment
+    %muo = fo_muo(4:6,:) + mu_calib_delta*ones(1,length(t));
+    %muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
+    muo = fo_muo(4:6,:);
+    muc = fc_muc(4:6,:);
+end
+    
+fo = fo_muo(1:3,:) + f_calib_delta*ones(1,length(t));
 fc = fc_muc(1:3,:)  - f_calib_delta*ones(1,length(t));
-%muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
-muc = fc_muc(4:6,:) - mean(muc_calib,2)*ones(1,length(t));
-
-
-% 
-% fo_muo = com_adjT_leg * [fo_pre_proc';muo_pre_proc'];
-% fo = fo_muo(1:3,:);
-% muo = fo_muo(4:6,:);
-% 
-% fc_muc = com_adjT_ankle * [fc_pre_proc';muc_pre_proc'];
-% fc = fc_muc(1:3,:);
-% muc = fc_muc(4:6,:);
 
 %% offset in skin to make it identical to FT measurements at calibrationtime
 fc_zDelta = (mean(fc_z_calib - (fc_calib(3,:) - f_calib_delta(3)*ones(1,length(tCalib)))));
@@ -175,7 +151,7 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
 
 
     %% plotting raw and corrected data
-    if(plots == 0)
+    if(strcmp(plots,'makePlots') == 1)
         figure(1);
             % 
             subplot(2,2,1);
@@ -302,7 +278,7 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
         a = aPerfect;
         omega = omegaPerfect;
         
-        if(plots == 0)
+        if(strcmp(plots,'makePlots') == 1)
             figure(5);
                 subplot(2,1,1); hold on;
                 plot(t,a,'lineWidth',2.0);
@@ -329,12 +305,10 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
        fcPerfect =   0.5*fgPerfect;
        foPerfect = -fcPerfect; %fakeF_o * ones(1,size(fo,2));
        
-       %fcPerfect =  model.m.*model.B0_g * ones(1,size(fc,2));
-
        fczPerfect = fcPerfect(3,:);
        
        
-       if(plots == 0)
+       if(strcmp(plots,'makePlots') == 1)
         
            figure(2);
             subplot(2,2,3);
@@ -370,30 +344,45 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
        
     end
 
-  yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
+  
     tMeas = t;
-%a(:,1)
-%a(:,1) - model.g*euler2dcm(model.phi0)*model.gRot
     % model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);[0,0.5*pi,0]']; %% corresponds to -9.81 accln on Z
-    model.x0 = [zeros(3,1);zeros(3,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);model.phi0]; %% corresponds to -9.81 accln on Z
+   
+    switch(measurementType)
+        case 'withoutSkin'
+            fprintf('\n setting up withoutSkin measurement\n');            
+            model.x0 = [zeros(3,1);zeros(3,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);model.phi0];     
+            yMeas = [a;omega';fo;muo;fc;muc]';
+        case 'withSkin'
+            fprintf('\n setting up withSkin measurement\n');            
+            model.x0 = [zeros(3,1);zeros(3,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);model.phi0]; 
+            yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
+        case 'dualState'
+            fprintf('\n setting up dualState measurement\n');            
+            K0 = eye(3)*model.kIni;
+            model.x0 = [zeros(3,1);zeros(3,1);fo(:,1);muo(:,1);fc(:,1);muc(:,1);model.phi0;reshape(K0,9,1)]; 
+            yMeas = [a;omega';fo;muo;fc;muc;fc_z]';
+        otherwise
+            disp('ERROR : Measurement Type Unknown');
+    end
+    
+    
 
     %% testing forces and torques
     
-    fprintf('Force test \n');
-   
-    fprintf('[  fc   fo   m*B_R_G*G_g fo+m*B_g-fc ] ');
-    [fc(:,1) fo(:,1) model.m* euler2dcm(model.phi0)*model.G_g -fc(:,1)+fo(:,1)+model.m* euler2dcm(model.phi0)*model.G_g ]
-    
-    
-    fprintf('Momment test\n');
-    fprintf('[  muc   muo  ]');
-    [muc(:,1) muo(:,1)]
-    fprintf('Acceleration test \n');
-    fprintf(' [ accl , gyrs] ');
-    
-    [a(1:3,1)  omega(1,1:3)'] 
-    
-    disp('loaded measurement data');
+%     fprintf('Force test \n');
+%    
+%     fprintf('[  fc   fo   m*B_R_G*G_g fo+m*B_g-fc ] ');
+%     [fc(:,1) fo(:,1) model.m* euler2dcm(model.phi0)*model.G_g -fc(:,1)+fo(:,1)+model.m* euler2dcm(model.phi0)*model.G_g ]%          
+%     fprintf('Momment test\n');
+%     fprintf('[  muc   muo  ]');
+%     [muc(:,1) muo(:,1)]
+%     fprintf('Acceleration test \n');
+%     fprintf(' [ accl , gyrs] ');
+%     
+%     [a(1:3,1)  omega(1,1:3)'] 
+%     
+%     disp('loaded measurement data');
     
     
     

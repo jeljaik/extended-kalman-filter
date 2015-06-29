@@ -1,4 +1,4 @@
-function y = rigidBodyOutput(x,p,f_B_o_t,mu_B_o_t,f_B_c_t,mu_B_c_t)
+function y = measurement_dualState(x,p,f_B_o_t,mu_B_o_t,f_B_c_t,mu_B_c_t)
 
 % This piece of code computes the rigid body differential equations. The
 % equation is defined as follows:
@@ -27,8 +27,6 @@ else
     mu_B_c = mu_B_c_t;
 end
 
-%mu_B_2_y = mu_B_c(2,:);
-%mu_B_2_z = mu_B_c(3,:);
 f_B_c_z = f_B_c(3,1);
 
 phi     = x(19:21, 1);
@@ -37,12 +35,5 @@ m    = p.m;
 G_g    = p.G_g;
 
 dv_B     =          -(1/m)*S(omega_B) *(m*v_B) + (1/m) *( +f_B_o - f_B_c )+ B_R_G*G_g;
-% domega_B =   I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_t);
 
-%y  = [dv_B; omega_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
 y  = [(dv_B-B_R_G*G_g); omega_B; f_B_o; mu_B_o; f_B_c; mu_B_c; f_B_c_z];
-%y  = [R'*dv_B; omega_B; f_B_o; mu_B_o; f_B_c; mu_B_c; f_B_c_z];
-%y  = [dv_B; omega_B; f_B_o; mu_B_o; f_B_c; mu_B_c; f_B_c_z];
-%y  = [dv_B; f_B_1; f_B_2; mu_B_1;mu_B_2];
-
-% y  = [f_B; mu_B];

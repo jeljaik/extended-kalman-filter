@@ -1,7 +1,7 @@
 function plotResultsOutput_withSkin(dataBaseFolder,XUpt, XPred,P, tK, yM,source)
 
 if(nargin<2)
-    load(strcat(dataBaseFolder,'filter_result_data.mat'));
+    load(strcat(dataBaseFolder,'filteredResult.mat'));
     tK = tKalman;
     yM = yMeas;
     source = 2;
@@ -85,6 +85,7 @@ pT.ylabelText = {'E(\phi_x) rads',...
 cols = {'b','g','r'};
 plotFilterResultTimeSeries(tK(idx:end),XUpt(idx:end,:),[],P(:,:,idx:end),stateVar,pT,cols,[]);
 
+if(
 % FRI
 if(source==2)
      plot_FRI(XUpt,P,XPred, P,tK, idx,length(tK));%,'b',index+5+figPreN);

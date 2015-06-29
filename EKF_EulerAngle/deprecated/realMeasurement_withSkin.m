@@ -23,46 +23,8 @@ if (nargin<6)
     whichSkin = 'right';
 end
 
-%skin_data = importdata('./robotData/backwardTipping/dumperTippingSetup01/icub/skin/right_foot/data.log ');
-
-%% OFFSETS. 
-% Left leg
-FT2 = [-4.11735 111.148 -131.104 -13.423 1.36924 -1.04304];
-% LEft Foot
-FT3 = [-52.0296 -5.64247 -18.0923 -0.516052 9.91345 0.717567];
-% Right Leg
-FT4 = [-5.65084 -10.5031 -24.6174 1.95779 2.61084 0.0036913];
-% Right foot
-FT5 = [-17.4992 -0.910681 18.0613 -0.824831 3.32657 -0.252851];
-
-left_leg_ft_offset = FT2;
-right_leg_ft_offset = FT4;
-left_foot_ft_offset = FT3;
-right_foot_ft_offset = FT5;
-
-%%
-expPath     = ['./robotData/backwardTipping/dumperTippingSetup0' ...
-                num2str(numberOfExperiment) '/icub/'];
-leg_choice  = whichLeg;
-skin_choice = whichSkin;
-
-% Leg F/T analog sensor
-leg_ft_data   = importdata(strcat(expPath,leg_choice,'_leg/analog:o/data.log'));
-% Foot F/T analog sensor
-foot_ft_data  = importdata(strcat(expPath,leg_choice,'_foot/analog:o/data.log'));
-% Foot skin data
-skin_data     = importdata(strcat(expPath,'skin/',skin_choice,'_foot/data.log'));
-% Inertial sensor attached to the foot (right)
-inertial_data = importdata(strcat(expPath,'inertial/data.log'));
-
-
-if(strcmp(leg_choice,'left')==1)
-    leg_ft_offset = left_leg_ft_offset;
-    foot_ft_offset = left_foot_ft_offset;
-else
-    leg_ft_offset = right_leg_ft_offset;
-    foot_ft_offset = right_foot_ft_offset;
-end
+ [leg_ft_data,foot_ft_data,skin_data, inertial_data] = prepareRealData();
+ [transformations] = obtainTransformations();
  
 %% Rototranslation definitions
 % leg to ankle
@@ -309,6 +271,6 @@ omega = (omegaCentered).*(pi/180);
            
             %ixx="0.00253893" ixy="-4.51893e-06" ixz="-0.000903578" iyy="0.00407487" iyz="3.68679e-05" izz="0.00208378
     
-    model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);zeros(3,1)];
+    model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);model.phi0];
 
 end
