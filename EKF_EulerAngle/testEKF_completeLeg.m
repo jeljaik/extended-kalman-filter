@@ -50,7 +50,8 @@ addpath(utilities, symb, ellipses,dynFuncs,plotFuncs,skinFuncs)
 % 2 - withSkin measurements and noCompliance in model
 % 3 - withSkin measurements and withCompliance in model (dualState)
 
-numOfExperiments = 1:3;
+%numOfExperiments = 1:3;
+numOfExperiments = 3;
 measurementSuffix = {'withoutSkin','withSkin','dualState'}; 
 processSuffix = {'withoutCompliance','withoutCompliance','dualState'};
 n       = [21,21,30];         % state dimension - (translational vel, rotational vel, w_o, w_c, RPY angle)
@@ -60,30 +61,20 @@ m       = [18,19,19 ];         % output dimension
 %setup.dtInvDyn = 0.00001;
 setup.dtForDyn = 0.0001; % EKF forward dynamics computation time step
 setup.dtKalman = 0.01; % EKF computation time step (discretisation)
-setup.kIni = 1.75; % initial stiffness (defined but not used for all experiments)
-setup.t_min = 5.0; % time until which to calibrate
+
+
+setup.t_min = 4.5; % time until which to calibrate
 setup.t_max = 7.5; % Max time in dataset until which to filter
-setup.plots = 'noPlots';
+setup.measurementPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
+setup.filterOutputPlots = 'noPlots';
 setup.skipSteps = 50; % no of steps to skip for diplaying kalman execution time in loop
 
-kalmanQParams = cell(3);
-%% params for experiment 1 
-% process model variances
-% param ordering : [a_Q, omega_Q,	f_Q,	mu_Q,	phi_Q,	k_Q]
-kalmanQParams{1} = [4.0,	10.0,	5.0,	8.0,	0.5,	0.0075];  
-kalmanQParams{2} = [4.0,    10.0,   5.0,    8.0,    0.5,    0.0075]; 
-kalmanQParams{3} = [4.0,    10.0,   5.0,    8.0,    0.5,    0.0075]; 
+[kalmanQParams,kalmanRParams,kIni] = setupCovariancesForExperiments();
 setup.kalmanQParams = kalmanQParams;
-
-% measurement model variances
-% param ordering : [f_R,    mu_R,   a_R,    omega_R,    skin_R]
-kalmanRParams{1} = [1.5,    2.75,   1.25,   4.5,        25.75];    
-kalmanRParams{2} = [1.5,    2.75,   1.25,   4.5,        25.75];
-kalmanRParams{3} = [1.5,    2.75,   1.25,   4.5,        25.75];
-
 setup.kalmanRParams = kalmanRParams;
+setup.kIni = kIni; % initial stiffness (defined but not used for all experiments)
 for expID = numOfExperiments
-
+    
     fprintf('\nProcessing measurement %s with process %s\n-------------\n\n',measurementSuffix{expID},processSuffix{expID});
    
         clearvars -except numOfExperiments measurementSuffix processSuffix expID n m setup
@@ -137,7 +128,7 @@ for expID = numOfExperiments
     % realKalman.sigma_skin = 25.75;
 
 
-    [yMeas,tMeas,model,RData] = realMeasurement_completeLeg(model.dtKalman,model,model.plots,t_min,t_max,measurementSuffix{expID},7,'right','right');
+    [yMeas,tMeas,model,RData] = realMeasurement_completeLeg(model.dtKalman,model,model.measurementPlots,t_min,t_max,measurementSuffix{expID},7,'right','right');
     T = tMeas(end);
     tKalman = tMeas;
     
@@ -235,8 +226,11 @@ for expID = numOfExperiments
         close all;
     end
 
-     save(strcat(dataBaseFolder,'filteredResult.mat'),'tKalman','yMeas','Xupdt','Xhat','P');
-     plotAndSaveFigs(dataBaseFolder,plotFigBaseFolder);
+    save(strcat(dataBaseFolder,'filteredResult.mat'),'tKalman','yMeas','Xupdt','Xhat','P');
+    if(strcmp(setup.filterOutputPlots,'makePlots') == 1)
+        plotAndSaveFigs(dataBaseFolder,plotFigBaseFolder); 
+    end
+     
      if(expID<3)
         fprintf('\nPress any key to continue to next experiment\n');
         pause;
@@ -244,6 +238,7 @@ for expID = numOfExperiments
      
 end
 
+run('compareEKF_completeLeg.m');
 %Smoother
 %fprintf('\n\n------------------\n\n starting EKSmoother\n');
 
