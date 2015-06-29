@@ -85,7 +85,7 @@ pT.ylabelText = {'E(\phi_x) rads',...
 cols = {'b','g','r'};
 plotFilterResultTimeSeries(tK(idx:end),XUpt(idx:end,:),[],P(:,:,idx:end),stateVar,pT,cols,[]);
 
-if(
+    
 % FRI
 if(source==2)
      plot_FRI(XUpt,P,XPred, P,tK, idx,length(tK));%,'b',index+5+figPreN);
