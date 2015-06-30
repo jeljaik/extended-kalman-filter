@@ -1,4 +1,4 @@
-function wn = forwardDynamics( x0, model)
+function wn = paramDynamics( x0, model)
 
 % [n, ~]           = size(x0);
 % M                = zeros(n,n);

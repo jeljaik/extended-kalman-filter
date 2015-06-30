@@ -379,9 +379,9 @@ omega = (transforms.B_R_imu*omegaCentered')'.*(pi/180);
 %  
 %     PHI = kron(model.phi0.',eye(3));
 %     K0 = pinv(PHI)*(muo(:,1) - muc(:,1));
-    K0 = ones(9,1);
-    model.K = reshape(K0,3,3);
     
+    model.K = 1.65*eye(3);
+    K0 = reshape(model.K,9,1);
     
 %a(:,1)
 %a(:,1) - model.g*euler2dcm(model.phi0)*model.gRot

@@ -47,14 +47,14 @@ skinFuncs   = genpath('./skinFunctions');
 addpath(utilities, symb, ellipses,dynFuncs,plotFuncs,skinFuncs)
 
 %% Measurement model and its derivative
-f_func     = @forwardDynamics;
+f_func     = @forwardDynamics; %process model of the state variable
 b_func     = @backwardDynamics;
-k_func     = @paramDynamics;
-%h_func     = 
+k_func     = @paramDynamics; %parameter dynamics, basically dK = 0 
+
 df_dx_func = @derivativeForwardDynamics;
 dk_dw_func = @derivativeParamDynamics;
 dh_dx_func = @outputDerivatives;
-dc_dw_func = @paramOutputs;
+dc_dw_func = @paramOutputs; %parameter output jacoobian C = H* do(f)/do(w)
 db_dx_func = @derivativeBackwardDynamics;
 h_func = @(x,model)rigidBodyOutput(x,model, [],[],[],[]);
 
@@ -63,7 +63,7 @@ source = 2; % 1 : sim data, 2 : real-data
 %T       = 2;        % estimation time span
 n       = 21;         % state dimension - (translational vel, rotational vel, w_o, w_c, RPY angle)
 m       = 19;         % output dimension
-p       = 9;
+p       = 9;           %parameter dimension
 
 %% Kalman Parameters
 % RealSensor parameters
@@ -81,17 +81,15 @@ realKalman.omega_Q  = 10.0;%4.0;%4.75;
 realKalman.f_Q  = 5.0;%0.5;%6.5;
 realKalman.mu_Q = 8.0;%2.5;%6.5; 
 realKalman.phi_Q = 0.5;%1.5;%2.50;
-realKalman.K_Q = 1.0;
 
-%realKalman.P = 0.001*diag([10*ones(6,1); 400*ones(6,1); 10*ones(6,1);20*ones(3,1)]);
-%realKalman.P =5.0* diag([300*ones(3,1);50*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1);10*ones(3,1); 50*ones(3,1)]);
-%realKalman.P =250*diag([5.0*ones(3,1);5.0*ones(3,1); 10.0*ones(3,1);10.0*ones(3,1); 5.0*ones(3,1);5.0*ones(3,1); 1.0*ones(3,1)]);
+realKalman.K_Q = 0.45; %stiffness noice covariance 
+
+
+% State covariance matrix
 realKalman.P = 150*diag([realKalman.a_Q*ones(3,1);realKalman.omega_Q*ones(3,1);realKalman.f_Q*ones(3,1);realKalman.mu_Q*ones(3,1);realKalman.f_Q*ones(3,1);realKalman.mu_Q*ones(3,1);realKalman.phi_Q*ones(3,1)]);
-%realKalman.P = realKalman.P- 1*ones(size(realKalman.P)) + 5*rand(size(realKalman.P));
-
+%Parameter covariance matrix
 realKalman.P_param =  diag(ones(9,1));
 
-%P = diag([simKalman.sigma_a.*ones(1,3),simKalman.sigma_f.*ones(1,3), simKalman.sigma_f.*ones(1,3), simKalman.sigma_u.*ones(1,3), simKalman.sigma_u.*ones(1,3)]);
 
 %% Model Parameters
 model.dtInvDyn = 0.00001;
@@ -109,24 +107,23 @@ kalman = realKalman;
 
 
 %% KALMAN FILTER IMPLEMENTATION
+%Process noise covariance for the state filter
 Q  = diag([kalman.a_Q*ones(3,1);
            kalman.omega_Q*ones(3,1);
            kalman.f_Q*ones(6,1); 
            kalman.mu_Q*ones(6,1); 
            kalman.phi_Q*ones(3,1)]);
-%Q = Q - 25*rand(size(Q));
+
+%Parameter noise covariance for the parameter filter filter
 Q_param = diag(kalman.K_Q*ones(9,1));
 
 
-%if(~exist('RData'))       
+
+%Measurement noice covariances
     R =diag([kalman.sigma_a.*ones(1,3), kalman.sigma_omega.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3), kalman.sigma_f.*ones(1,3), kalman.sigma_u.*ones(1,3),kalman.sigma_skin.*ones(1,1)]);
     R_param = diag(ones(19,1));
 
-%else 
-%    disp('Using real data covariance matrix');
-%    RData(19,19) = 35.63;
-%    R = RData;
-%end
+%Iniitializing state and parameter covariances
 Ph = kalman.P;
 Pl = kalman.P_param;
 % Initializing estimate
@@ -160,8 +157,13 @@ for i = 1:length(tKalman)
         h_func, [], model);
     
     
-    %PARAMETER update
+    %PARAMETER update : uses a function ekf_updateparam1, derivd from the function ekf_update1
+    % can be significantly improved
     % function [M,P,K,MU,S,LH] = ekf_updateparam1(X,M,P,y,H,C,R,h,V,param)
+    % X : state estimate from the state filter
+    % M : parameter estimate
+    % H : State Measurement jacobian
+    % C : Parameter Measurement Jacobian
     [wh, Pl] = ekf_updateparam1(xh,wh,Pl,yMeas(i,:)',dh_dx_func,dc_dw_func,R_param,h_func, [], model);
     
     
@@ -172,6 +174,7 @@ for i = 1:length(tKalman)
     Wupdt(i,:) = wh;
     wAfterUpdate = wh;
     
+    %Symmetrizing the covariances
     Ph = (Ph + Ph')/2;
     Pl = (Pl + Pl')/2;
     pAfterUpdate = Ph;
@@ -179,8 +182,10 @@ for i = 1:length(tKalman)
     
     % Prediction step update
     %PARAMETER prediction
+    %uses function ekf_predictparam1 accepts state, parameter inputs
     [wh, Pl] = ekf_predictparam1(xh,wh, Pl,dk_dw_func,Q_param,k_func,[], model);
     model.K = reshape(wh,3,3);
+    
     % [xn, Pn] = predictStepKF(Xhat(i-1,:)', P(:,:,i-1),          A, Q, model);
     [xh, Ph] =  ekf_predict1(xh, Ph, df_dx_func, Q, f_func, [], model);
     
@@ -189,21 +194,7 @@ for i = 1:length(tKalman)
 %     
     Xhat(i,:) = xh;
     P(:,:,i)  = Ph;
-    if(mod(i,25)==0)
-        fprintf('Step processing time :');
-        disp(toc());
-        fprintf('pred fo muo\n');
-        disp(Xupdt(i,7:9));
-        fprintf('expect fo muo\n');
-        disp(Xhat(i,7:9));
-        
-        fprintf('pred K\n');
-        disp(Wupdt(i,:));
-        fprintf('expect K\n');
-        disp(What(i,:));
-        
-    end
-   % pause;
+       % pause;
     
 end
 
