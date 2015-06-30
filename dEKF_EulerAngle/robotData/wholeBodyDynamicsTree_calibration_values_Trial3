@@ -1,0 +1,289 @@
+||| clearing context
+||| adding context [wholeBodyDynamicsTree]
+||| configuring
+||| no policy found
+||| default config file specified as default.ini
+||| checking [/home/icub/naveen2015/default.ini] (pwd)
+||| checking [/home/icub/.config/yarp/robots/iCubGenova01] (robot YARP_CONFIG_HOME)
+||| checking [/home/icub/.local/share/yarp/robots/iCubGenova01] (robot YARP_DATA_HOME)
+||| found /home/icub/.local/share/yarp/robots/iCubGenova01
+||| checking [/etc/yarp/robots/iCubGenova01] (robot YARP_CONFIG_DIRS)
+||| checking [/usr/local/src/robot/yarp/build-x86_64/share/yarp/robots/iCubGenova01] (robot YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/icub-main/build-x86_64/share/iCub/robots/iCubGenova01] (robot YARP_DATA_DIRS)
+||| found /usr/local/src/robot/icub-main/build-x86_64/share/iCub/robots/iCubGenova01
+||| checking [/usr/local/src/robot/wysiwyd/main/build/share/wysiwyd/robots/iCubGenova01] (robot YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/iCubContrib/share/ICUBcontrib/robots/iCubGenova01] (robot YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/codyco-superbuild/build-x86_64/install/share/codyco/robots/iCubGenova01] (robot YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/yarp/build-x86_64/share/yarp/config/path.d] (robot path.d YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/icub-main/build-x86_64/share/iCub/config/path.d] (robot path.d YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/wysiwyd/main/build/share/wysiwyd/config/path.d] (robot path.d YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/iCubContrib/share/ICUBcontrib/config/path.d] (robot path.d YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/codyco-superbuild/build-x86_64/install/share/codyco/config/path.d] (robot path.d YARP_DATA_DIRS)
+||| checking [/home/icub/.local/share/yarp/robots/iCubGenova01/default.ini] (robot)
+||| checking [/usr/local/src/robot/icub-main/build-x86_64/share/iCub/robots/iCubGenova01/default.ini] (robot)
+||| checking [/home/icub/.config/yarp/contexts/wholeBodyDynamicsTree] (context YARP_CONFIG_HOME)
+||| checking [/home/icub/.local/share/yarp/contexts/wholeBodyDynamicsTree] (context YARP_DATA_HOME)
+||| checking [/etc/yarp/contexts/wholeBodyDynamicsTree] (context YARP_CONFIG_DIRS)
+||| checking [/usr/local/src/robot/yarp/build-x86_64/share/yarp/contexts/wholeBodyDynamicsTree] (context YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/icub-main/build-x86_64/share/iCub/contexts/wholeBodyDynamicsTree] (context YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/wysiwyd/main/build/share/wysiwyd/contexts/wholeBodyDynamicsTree] (context YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/iCubContrib/share/ICUBcontrib/contexts/wholeBodyDynamicsTree] (context YARP_DATA_DIRS)
+||| checking [/usr/local/src/robot/codyco-superbuild/build-x86_64/install/share/codyco/contexts/wholeBodyDynamicsTree] (context YARP_DATA_DIRS)
+||| found /usr/local/src/robot/codyco-superbuild/build-x86_64/install/share/codyco/contexts/wholeBodyDynamicsTree
+||| checking [/usr/local/src/robot/codyco-superbuild/build-x86_64/install/share/codyco/contexts/wholeBodyDynamicsTree/default.ini] (context)
+||| found /usr/local/src/robot/codyco-superbuild/build-x86_64/install/share/codyco/contexts/wholeBodyDynamicsTree/default.ini
+yarp: Port /wholeBodyDynamicsTree/rpc:i active at tcp://10.0.0.15:10249
+yarp: Port /wholeBodyDynamicsTree/skin_contacts:i active at tcp://10.0.0.15:10250
+icubWholeBodySensors: initializing with 32 encoders 0 pwm sensors 6 F/T sensors 1 IMUs 
+yarp: Port /wholeBodyDynamicsTree/torso/rpc:o active at tcp://10.0.0.15:10251
+yarp: Port /wholeBodyDynamicsTree/torso/command:o active at tcp://10.0.0.15:10252
+yarp: Port /wholeBodyDynamicsTree/torso/state:i active at tcp://10.0.0.15:10253
+yarp: Sending output from /wholeBodyDynamicsTree/torso/rpc:o to /icub/torso/rpc:i using tcp
+yarp: Sending output from /wholeBodyDynamicsTree/torso/command:o to /icub/torso/command:i using tcp
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/torso/state:o to /wholeBodyDynamicsTree/torso/state:i using udp
+yarp: created device <remote_controlboard>. See C++ class RemoteControlBoard for documentation.
+yarp: Port /wholeBodyDynamicsTree/head/rpc:o active at tcp://10.0.0.15:10254
+yarp: Port /wholeBodyDynamicsTree/head/command:o active at tcp://10.0.0.15:10255
+yarp: Port /wholeBodyDynamicsTree/head/state:i active at tcp://10.0.0.15:10256
+yarp: Sending output from /wholeBodyDynamicsTree/head/rpc:o to /icub/head/rpc:i using tcp
+yarp: Sending output from /wholeBodyDynamicsTree/head/command:o to /icub/head/command:i using tcp
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/head/state:o to /wholeBodyDynamicsTree/head/state:i using udp
+yarp: created device <remote_controlboard>. See C++ class RemoteControlBoard for documentation.
+yarp: Port /wholeBodyDynamicsTree/left_arm/rpc:o active at tcp://10.0.0.15:10257
+yarp: Port /wholeBodyDynamicsTree/left_arm/command:o active at tcp://10.0.0.15:10258
+yarp: Port /wholeBodyDynamicsTree/left_arm/state:i active at tcp://10.0.0.15:10259
+yarp: Sending output from /wholeBodyDynamicsTree/left_arm/rpc:o to /icub/left_arm/rpc:i using tcp
+yarp: Sending output from /wholeBodyDynamicsTree/left_arm/command:o to /icub/left_arm/command:i using tcp
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/left_arm/state:o to /wholeBodyDynamicsTree/left_arm/state:i using udp
+yarp: created device <remote_controlboard>. See C++ class RemoteControlBoard for documentation.
+yarp: Port /wholeBodyDynamicsTree/right_arm/rpc:o active at tcp://10.0.0.15:10260
+yarp: Port /wholeBodyDynamicsTree/right_arm/command:o active at tcp://10.0.0.15:10261
+yarp: Port /wholeBodyDynamicsTree/right_arm/state:i active at tcp://10.0.0.15:10262
+yarp: Sending output from /wholeBodyDynamicsTree/right_arm/rpc:o to /icub/right_arm/rpc:i using tcp
+yarp: Sending output from /wholeBodyDynamicsTree/right_arm/command:o to /icub/right_arm/command:i using tcp
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/right_arm/state:o to /wholeBodyDynamicsTree/right_arm/state:i using udp
+yarp: created device <remote_controlboard>. See C++ class RemoteControlBoard for documentation.
+yarp: Port /wholeBodyDynamicsTree/left_leg/rpc:o active at tcp://10.0.0.15:10263
+yarp: Port /wholeBodyDynamicsTree/left_leg/command:o active at tcp://10.0.0.15:10264
+yarp: Port /wholeBodyDynamicsTree/left_leg/state:i active at tcp://10.0.0.15:10265
+yarp: Sending output from /wholeBodyDynamicsTree/left_leg/rpc:o to /icub/left_leg/rpc:i using tcp
+yarp: Sending output from /wholeBodyDynamicsTree/left_leg/command:o to /icub/left_leg/command:i using tcp
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/left_leg/state:o to /wholeBodyDynamicsTree/left_leg/state:i using udp
+yarp: created device <remote_controlboard>. See C++ class RemoteControlBoard for documentation.
+yarp: Port /wholeBodyDynamicsTree/right_leg/rpc:o active at tcp://10.0.0.15:10266
+yarp: Port /wholeBodyDynamicsTree/right_leg/command:o active at tcp://10.0.0.15:10267
+yarp: Port /wholeBodyDynamicsTree/right_leg/state:i active at tcp://10.0.0.15:10268
+yarp: Sending output from /wholeBodyDynamicsTree/right_leg/rpc:o to /icub/right_leg/rpc:i using tcp
+yarp: Sending output from /wholeBodyDynamicsTree/right_leg/command:o to /icub/right_leg/command:i using tcp
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/right_leg/state:o to /wholeBodyDynamicsTree/right_leg/state:i using udp
+yarp: created device <remote_controlboard>. See C++ class RemoteControlBoard for documentation.
+yarp: Port /wholeBodyDynamicsTree/ftSens3_0:i active at tcp://10.0.0.15:10269
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/left_arm/analog:o to /wholeBodyDynamicsTree/ftSens3_0:i using udp
+yarp: Port /wholeBodyDynamicsTree/ftSens4_0:i active at tcp://10.0.0.15:10270
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/right_arm/analog:o to /wholeBodyDynamicsTree/ftSens4_0:i using udp
+yarp: Port /wholeBodyDynamicsTree/ftSens5_0:i active at tcp://10.0.0.15:10271
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/left_leg/analog:o to /wholeBodyDynamicsTree/ftSens5_0:i using udp
+yarp: Port /wholeBodyDynamicsTree/ftSens5_1:i active at tcp://10.0.0.15:10272
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/left_foot/analog:o to /wholeBodyDynamicsTree/ftSens5_1:i using udp
+yarp: Port /wholeBodyDynamicsTree/ftSens6_0:i active at tcp://10.0.0.15:10273
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/right_leg/analog:o to /wholeBodyDynamicsTree/ftSens6_0:i using udp
+yarp: Port /wholeBodyDynamicsTree/ftSens6_1:i active at tcp://10.0.0.15:10274
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/right_foot/analog:o to /wholeBodyDynamicsTree/ftSens6_1:i using udp
+yarp: Port /wholeBodyDynamicsTree/imu2_0:i active at tcp://10.0.0.15:10275
+yarp: Datagram packet size set to 65000
+yarp: Receiving input from /icub/inertial to /wholeBodyDynamicsTree/imu2_0:i using udp
+RemoteControlBoard is ENABLING the writeStrict option for all commands
+RemoteControlBoard is ENABLING the writeStrict option for all commands
+RemoteControlBoard is ENABLING the writeStrict option for all commands
+RemoteControlBoard is ENABLING the writeStrict option for all commands
+RemoteControlBoard is ENABLING the writeStrict option for all commands
+RemoteControlBoard is ENABLING the writeStrict option for all commands
+Launching wholeBodyDynamicsThread with name : wholeBodyDynamicsTree and robotName icub and period 10
+yarp: Port /wholeBodyDynamicsTree/right_arm/Torques:o active at tcp://10.0.0.15:10276
+yarp: Port /wholeBodyDynamicsTree/left_arm/Torques:o active at tcp://10.0.0.15:10277
+yarp: Port /wholeBodyDynamicsTree/right_leg/Torques:o active at tcp://10.0.0.15:10278
+yarp: Port /wholeBodyDynamicsTree/left_leg/Torques:o active at tcp://10.0.0.15:10279
+yarp: Port /wholeBodyDynamicsTree/right_wrist/Torques:o active at tcp://10.0.0.15:10280
+yarp: Port /wholeBodyDynamicsTree/left_wrist/Torques:o active at tcp://10.0.0.15:10281
+yarp: Port /wholeBodyDynamicsTree/torso/Torques:o active at tcp://10.0.0.15:10282
+yarp: Port /wholeBodyDynamicsTree/head/Torques:o active at tcp://10.0.0.15:10283
+yarp: Port /wholeBodyDynamicsTree/contacts:o active at tcp://10.0.0.15:10284
+yarp: Port /wholeBodyDynamicsTree/right_arm/endEffectorWrench:o active at tcp://10.0.0.15:10285
+yarp: Port /wholeBodyDynamicsTree/left_arm/endEffectorWrench:o active at tcp://10.0.0.15:10286
+yarp: Port /wholeBodyDynamicsTree/right_leg/endEffectorWrench:o active at tcp://10.0.0.15:10287
+yarp: Port /wholeBodyDynamicsTree/left_leg/endEffectorWrench:o active at tcp://10.0.0.15:10288
+yarp: Port /wholeBodyDynamicsTree/right_arm/cartesianEndEffectorWrench:o active at tcp://10.0.0.15:10289
+yarp: Port /wholeBodyDynamicsTree/left_arm/cartesianEndEffectorWrench:o active at tcp://10.0.0.15:10290
+yarp: Port /wholeBodyDynamicsTree/right_leg/cartesianEndEffectorWrench:o active at tcp://10.0.0.15:10291
+yarp: Port /wholeBodyDynamicsTree/left_leg/cartesianEndEffectorWrench:o active at tcp://10.0.0.15:10292
+yarp: Port /wholeBodyDynamicsTree/base:o active at tcp://10.0.0.15:10293
+TreePart: 1 torso
+Links: 
+Local link 0 is global link 0
+Local link 1 is global link 1
+Local link 2 is global link 3
+Local link 3 is global link 2
+Local link 4 is global link 26
+Joints: 
+Local dof id 0 is global dof 0
+Local dof id 1 is global dof 1
+Local dof id 2 is global dof 2
+
+Part with ID 1 has index in local part vector0
+TreePart: 2 head
+Links: 
+Local link 0 is global link 4
+Local link 1 is global link 5
+Local link 2 is global link 6
+Local link 3 is global link 7
+Joints: 
+Local dof id 0 is global dof 3
+Local dof id 1 is global dof 4
+Local dof id 2 is global dof 5
+
+Part with ID 2 has index in local part vector1
+TreePart: 3 left_arm
+Links: 
+Local link 0 is global link 8
+Local link 1 is global link 9
+Local link 2 is global link 11
+Local link 3 is global link 12
+Local link 4 is global link 13
+Local link 5 is global link 14
+Local link 6 is global link 15
+Local link 7 is global link 10
+Local link 8 is global link 16
+Joints: 
+Local dof id 0 is global dof 6
+Local dof id 1 is global dof 7
+Local dof id 2 is global dof 8
+Local dof id 3 is global dof 9
+Local dof id 4 is global dof 10
+Local dof id 5 is global dof 11
+Local dof id 6 is global dof 12
+
+Part with ID 3 has index in local part vector2
+TreePart: 4 right_arm
+Links: 
+Local link 0 is global link 17
+Local link 1 is global link 18
+Local link 2 is global link 20
+Local link 3 is global link 21
+Local link 4 is global link 22
+Local link 5 is global link 23
+Local link 6 is global link 24
+Local link 7 is global link 19
+Local link 8 is global link 25
+Joints: 
+Local dof id 0 is global dof 13
+Local dof id 1 is global dof 14
+Local dof id 2 is global dof 15
+Local dof id 3 is global dof 16
+Local dof id 4 is global dof 17
+Local dof id 5 is global dof 18
+Local dof id 6 is global dof 19
+
+Part with ID 4 has index in local part vector3
+TreePart: 5 left_leg
+Links: 
+Local link 0 is global link 27
+Local link 1 is global link 28
+Local link 2 is global link 30
+Local link 3 is global link 31
+Local link 4 is global link 32
+Local link 5 is global link 34
+Local link 6 is global link 29
+Local link 7 is global link 33
+Local link 8 is global link 35
+Joints: 
+Local dof id 0 is global dof 20
+Local dof id 1 is global dof 21
+Local dof id 2 is global dof 22
+Local dof id 3 is global dof 23
+Local dof id 4 is global dof 24
+Local dof id 5 is global dof 25
+
+Part with ID 5 has index in local part vector4
+TreePart: 6 right_leg
+Links: 
+Local link 0 is global link 36
+Local link 1 is global link 37
+Local link 2 is global link 39
+Local link 3 is global link 40
+Local link 4 is global link 41
+Local link 5 is global link 43
+Local link 6 is global link 38
+Local link 7 is global link 42
+Local link 8 is global link 44
+Joints: 
+Local dof id 0 is global dof 26
+Local dof id 1 is global dof 27
+Local dof id 2 is global dof 28
+Local dof id 3 is global dof 29
+Local dof id 4 is global dof 30
+Local dof id 5 is global dof 31
+
+Part with ID 6 has index in local part vector5
+
+[INFO] wholeBodyDynamicsThread::calibrateOffset called with code all
+[INFO] wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 0 is 0 0 0 0 0 0
+[INFO] wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 1 is 0 0 0 0 0 0
+[INFO] wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 2 is 0 0 0 0 0 0
+[INFO] wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 3 is 0 0 0 0 0 0
+[INFO] wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 4 is 0 0 0 0 0 0
+[INFO] wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 5 is 0 0 0 0 0 0
+wholeBodyDynamicsThread::calibrateOffset all called successfully, starting calibration.
+wholeBodyDynamicsThread started
+
+
+[INFO] wholeBodyDynamicsThread: complete calibration at system time : 26-09-2014 01:08:13
+[INFO] wholeBodyDynamicsThread: new calibration for FT 0 is 75.5619 -7.17054 230.294 -0.566311 -4.87369 0.194929
+[INFO] wholeBodyDynamicsThread: new calibration for FT 1 is 131.044 -5.64942 94.3141 0.166518 -1.98315 -0.0280711
+[INFO] wholeBodyDynamicsThread: new calibration for FT 2 is -5.92958 1.11395 -162.082 -2.26835 3.85642 -0.120984
+[INFO] wholeBodyDynamicsThread: new calibration for FT 3 is -2.26981 18.1601 -167.394 -2.27812 2.2938 -0.310047
+[INFO] wholeBodyDynamicsThread: new calibration for FT 4 is -68.8359 -3.9948 -94.808 0.0925443 5.03673 -0.667878
+[INFO] wholeBodyDynamicsThread: new calibration for FT 5 is 43.3747 -61.4208 -100.463 0.335672 6.22272 -1.85829
+wholeBodyDynamicsTree: double support calibration for allrequested
+wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport called with code all
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 0 is 75.5619 -7.17054 230.294 -0.566311 -4.87369 0.194929
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 1 is 131.044 -5.64942 94.3141 0.166518 -1.98315 -0.0280711
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 2 is -5.92958 1.11395 -162.082 -2.26835 3.85642 -0.120984
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 3 is -2.26981 18.1601 -167.394 -2.27812 2.2938 -0.310047
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 4 is -68.8359 -3.9948 -94.808 0.0925443 5.03673 -0.667878
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 5 is 43.3747 -61.4208 -100.463 0.335672 6.22272 -1.85829
+wholeBodyDynamicsThread::calibrateOffset all called successfully, starting calibration.
+wholeBodyDynamicsThread: new calibration for FT 0 is 75.594 -7.16053 230.176 -0.566831 -4.87001 0.192374
+wholeBodyDynamicsThread: new calibration for FT 1 is 131.083 -5.66526 94.2068 0.166921 -1.97958 -0.0276702
+wholeBodyDynamicsThread: new calibration for FT 2 is -6.80814 15.6911 -41.8068 -4.62421 1.63173 -0.898597
+wholeBodyDynamicsThread: new calibration for FT 3 is -15.1469 13.096 -44.1138 0.30103 -0.406419 -1.2199
+wholeBodyDynamicsThread: new calibration for FT 4 is -60.9461 -13.3928 22.4748 3.47944 -0.157395 0.247571
+wholeBodyDynamicsThread: new calibration for FT 5 is 36.2129 -57.6593 15.7812 0.450078 -2.05478 0.245422
+wholeBodyDynamicsThread::waitCalibrationDone() returning: calibration finished with success
+wholeBodyDynamicsTree: double support calibration for allrequested
+wholeBodyDynamicsThread::calibrateOffsetOnDoubleSupport called with code all
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 0 is 75.594 -7.16053 230.176 -0.566831 -4.87001 0.192374
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 1 is 131.083 -5.66526 94.2068 0.166921 -1.97958 -0.0276702
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 2 is -6.80814 15.6911 -41.8068 -4.62421 1.63173 -0.898597
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 3 is -15.1469 13.096 -44.1138 0.30103 -0.406419 -1.2199
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 4 is -60.9461 -13.3928 22.4748 3.47944 -0.157395 0.247571
+wholeBodyDynamicsThread::calibrateOffset: current calibration for FT 5 is 36.2129 -57.6593 15.7812 0.450078 -2.05478 0.245422
+wholeBodyDynamicsThread::calibrateOffset all called successfully, starting calibration.
+wholeBodyDynamicsThread: new calibration for FT 0 is 75.6429 -7.20555 230.156 -0.566925 -4.8699 0.191715
+wholeBodyDynamicsThread: new calibration for FT 1 is 131.16 -5.6665 94.0382 0.170326 -1.97745 -0.0277323
+wholeBodyDynamicsThread: new calibration for FT 2 is -22.2328 13.9645 -36.131 -4.74764 3.41884 0.465537
+wholeBodyDynamicsThread: new calibration for FT 3 is -32.5968 9.29053 -43.6647 -0.263895 7.49295 1.01212
+wholeBodyDynamicsThread: new calibration for FT 4 is -73.4027 -13.5056 8.65726 4.23091 2.87257 -0.440615
+wholeBodyDynamicsThread: new calibration for FT 5 is 26.8764 -58.3145 2.70195 0.775052 4.53119 -1.37388
+wholeBodyDynamicsThread::waitCalibrationDone() returning: calibration finished with success

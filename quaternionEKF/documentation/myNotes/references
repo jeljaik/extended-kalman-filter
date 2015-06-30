@@ -1,0 +1,37 @@
+% This file was created with JabRef 2.10b2.
+% Encoding: UTF-8
+
+
+@TechReport{Cucu2012,
+  Title                    = {Applying Kalman Filtering on a Quadruped Robot},
+  Author                   = {Lucian Cucu},
+  Institution              = {Ecole Polytechnique Federale de Lausanne},
+  Year                     = {2012},
+  Note                     = {Used for gyroscope calibration methods},
+
+  Owner                    = {jorhabib},
+  Timestamp                = {2015.03.09}
+}
+
+@Book{Grover1997,
+  Title                    = {Introduction to Random Signals and Applied Kalman Filtering},
+  Author                   = {Robert Grover Brown, Patrick Y. C. Hwang},
+  Publisher                = {John Whiley \& Sons},
+  Year                     = {1997},
+  Note                     = {The book I'm using to learn the basics of Kalman Filter and its implementation.},
+
+  Owner                    = {jorhabib},
+  Timestamp                = {2015.03.09}
+}
+
+@Article{Shuster1981,
+  Title                    = {Three-axis attitude determination for vector observations,},
+  Author                   = {M. D. Shuster and S. D. Oh},
+  Journal                  = {J. Guid. Control, vol. 4, no. 1, pp. 70–77,},
+  Year                     = {1981},
+  Note                     = {Paper in which the QUEST algorithm is described.},
+
+  Owner                    = {jorhabib},
+  Timestamp                = {2015.03.09}
+}
+

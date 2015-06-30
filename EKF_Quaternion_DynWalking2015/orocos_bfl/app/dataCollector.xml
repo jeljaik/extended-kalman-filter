@@ -1,0 +1,17 @@
+<application>
+	<name>dataCollector.xml</name>
+	<dependencies>
+		<port>/icub/inertial</port>
+	</dependencies>
+	<module>
+		<name>dataDumper</name>
+		<parameters>--name /dumper/icub/inertial --type bottle</parameters>
+		<node>/jorh</node>
+		<tag>data-dumper-icub-inertial</tag>
+	</module>
+	<connection>
+		<from>/icub/inertial</from>
+		<to>/dumper/icub/inertial</to>
+		<protocol>udp</protocol>
+	</connection>
+</application>
