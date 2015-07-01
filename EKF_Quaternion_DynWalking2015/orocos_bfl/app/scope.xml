@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<portscope rows="2" columns="1" carrier="mcast">
+    <plot gridx="0"
+          gridy="0"
+          hspan="1"
+          vspan="1"
+          title="Roll"
+          size="60"
+          minval="-10"
+          maxval="10"
+          bgcolor="LightSlateGrey">
+        <graph remote="/icub/inertial"
+               index="0"
+               color="Red"
+               title="Roll IMU"
+               type="lines"
+               size="3" />
+        <graph remote="/quaternionEKFModule/filteredOrientationEuler:o"
+               index="0"
+               color="Blue"
+               title="Roll quatEKF"
+               size="3"
+               type="lines" />
+    </plot>
+    <plot gridx="0"
+          gridy="1"
+          hspan="1"
+          vspan="1"
+          title="Pitch"
+          size="60"
+          minval="-8"
+          maxval="-28"
+          bgcolor="LightSlateGrey">
+        <graph remote="/icub/inertial"
+               index="1"
+               color="Red"
+               title="Roll IMU"
+               type="lines"
+               size="3" />
+        <graph remote="/quaternionEKFModule/filteredOrientationEuler:o"
+               index="1"
+               color="Blue"
+               title="Roll quatEKF"
+               size="3"
+               type="lines" />
+    </plot>
+</portscope>
