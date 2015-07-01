@@ -15,7 +15,8 @@ if(nargin<1)
     tMin = tK(1);
 end
 
-figPreN = figure()-1;
+fig = figure();
+figPreN = fig.Number-1;
 idx = 1; %Time 
 index = 0;
 %stateVar = 1; % State variable from the state vector.

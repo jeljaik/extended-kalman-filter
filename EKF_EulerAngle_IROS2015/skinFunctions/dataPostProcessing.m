@@ -58,6 +58,8 @@ if (strcmp(whichStiffVec,'forceTorque'))
     % Retrieve taxel positions
     taxelPos = load('Tmatrix.mat');
     taxelPos = taxelPos.ans;
+    % Taxel positions extracted from CAD
+    taxelPos = load('r_foot_pos.mat','-ascii');
 end
 
 
