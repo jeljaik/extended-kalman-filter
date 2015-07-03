@@ -1,29 +1,34 @@
-function [model,tMax,leg_ft,foot_ft,skin,inertial,transforms] = modelSensorParams_completeLeg(whichLeg,whichSkin,numberOfExperiment,t_max,measurementType,dataset)
+function [model,tMax,leg_ft,foot_ft,skin,inertial,transforms] = modelSensorParams_footWithoutlegFT(whichLeg,whichSkin,numberOfExperiment,t_max,measurementType,dataset)
 %% function returns the model parameters for treating the complete leg as a single rigid body. 
 %The function for now only returns the values corresponding to right leg
 
 
-model.m = 4.9580;
-
+% model.m = 4.9580;
+model.m = 0.761;
 
 %% obtaining mass-matrix from mexWBIModel (stored in utils)
 
-load('./utils/MIni','M_at_q0');
+% load('./utils/MIni','M_at_q0');
 
 %% TODO We need to extract foot's instead.
-Mjts = M_at_q0(7:end,7:end);            % Leg mass matrix 
-%MI_at_thigh = Mjts(14:16,14:16);
-
-%%% checkup if this is for left leg or right leg. Not entirely sure if it will be different
-%Tl = [0 1 0; 1 0 0 ; 0 0 -1];
-%% Transformation of the mass matrix to COM reference frame
-%Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
-MI_at_thigh_r = Mjts(20:22,20:22);
- Tl_r = [0 -1 0; 1 0 0 ; 0 0 1];
- Ic = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
+% Mjts = M_at_q0(7:end,7:end);            % Leg mass matrix 
+% %MI_at_thigh = Mjts(14:16,14:16);
+% 
+% %%% checkup if this is for left leg or right leg. Not entirely sure if it will be different
+% %Tl = [0 1 0; 1 0 0 ; 0 0 -1];
+% %% Transformation of the mass matrix to COM reference frame
+% %Ic = Tl*MI_at_thigh*Tl' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
+% MI_at_thigh_r = Mjts(20:22,20:22);
+%  Tl_r = [0 -1 0; 1 0 0 ; 0 0 1];
+%  Ic = Tl_r*MI_at_thigh_r*Tl_r' - S([0 0 -0.18102]')*S([0 0 -0.18102]')';
 
 % disp(Ic);
-model.I = Ic;
+% model.I = Ic;
+
+model.I = [0.00253893, -4.51893e-6, -0.000903578;...
+          -4.51893e-6,  0.00407487, 3.68679e-5;...
+          -0.000903578, 3.68679e-5, 0.00208378];
+           
 %model.x0 = [zeros(3,1);omega(1,:)';fo(:,1);muo(:,1);fc(:,1);muc(:,1);zeros(3,1)];
 model.phi0 = [0,0.5*pi,0]';
 %model.acclSign = -1;
@@ -68,9 +73,11 @@ right_foot_ft_offset = offsets.FT5;
 leg_choice  = whichLeg;
 skin_choice = whichSkin;
 
+
+
 % Leg F/T analog sensor
 if(strcmp(measurementType,'withoutlegFT')~=1 && strcmp(measurementType,'dualStateWithoutlegFT')~=1)
-    leg_ft_data   = importdata(strcat(expPath,leg_choice,'_leg/analog:o/data.log'));
+leg_ft_data   = importdata(strcat(expPath,leg_choice,'_leg/analog:o/data.log'));
 end
 % Foot F/T analog sensor
 foot_ft_data  = importdata(strcat(expPath,leg_choice,'_foot/analog:o/data.log'));
@@ -104,6 +111,7 @@ foot_ft_data(:,3:8) = foot_ft_data(:,3:8) - repmat(foot_ft_offset,size(foot_ft_d
 foot_ft.f = foot_ft_data(:,3:5);
 foot_ft.mu = foot_ft_data(:,6:8);
 
+
 skin.t = skin_data(:,2) - skin_data(1,2);
 skin.idx = skin_data(:,1) - skin_data(1,1);
 skin.data = skin_data(:,3:end);
@@ -119,14 +127,20 @@ tMax = min([foot_ft.t(end),skin.t(end),inertial.t(end),t_max]);
 end
 
 
-leg_p_B = [0 0 0.18102]';
-ankle_p_B = [0 0 -0.18102]';
+% leg_p_B = [0 0 0.18102]';
+% ankle_p_B = [0 0 -0.18102]';
 
 
-transforms.B_adjT_ankle = [eye(3) zeros(3) ; -eye(3)*S(ankle_p_B) eye(3) ];
+% leg to ankle
+leg_p_ankle = [0 0 0.4776]';%[0.4776 0 0]' ;
+% ankle to foot COM
+ankle_p_com = [0.024069 -0.000613931 0.0425846]';
+
+transforms.B_adjT_ankle = [eye(3) zeros(3) ; -eye(3)*S(ankle_p_com) eye(3) ];
 
 if(strcmp(measurementType,'withoutlegFT')~=1 && strcmp(measurementType,'dualStateWithoutlegFT')~=1)
-    transforms.B_adjT_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_B) eye(3) ];
+    transforms.ankle_adjT_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_ankle) eye(3) ];
+    transforms.B_adjT_leg = transforms.B_adjT_ankle * transforms.ankle_adjT_leg;
 end
 
 %Obtained generically through a function in the realMeasurement.m script
