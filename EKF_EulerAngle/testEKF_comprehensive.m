@@ -1,5 +1,3 @@
-
-
 clear
 close all
 clc
@@ -66,6 +64,7 @@ setup.t_min = 3.0; % time until which to calibrate
 setup.t_max = 6.0; % Max time in dataset until which to filter
 setup.measurementPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
 setup.filterOutputPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
+setup.comparePlots = 'makePlots';
 setup.skipSteps = 50; % no of steps to skip for diplaying kalman execution time in loop
 
 [kalmanQParams,kalmanRParams,kIni] = setupCovariancesForExperiments(experiment); 
@@ -303,7 +302,10 @@ processType = cellstr(['dualState';'dualState';'dualState';'dualState']);
 measurementType = cellstr(['dualStateWithoutlegFT';'dualStateWithoutlegFT';'dualStateWithoutlegFT';'dualStateWithoutlegFT']);
 plotDivide = cellstr(['false';'false';'false';'false']);
 legends = cellstr(['Firm   ';'1-layer';'2-layer';'3-layer']);
-comparePlots(experiment,whichDataset,trialNum,expID,processType,measurementType,plotDivide,legends)
+
+if(strcmp(setup.comparePlots,'makePlots') == 1)
+    comparePlots(experiment,whichDataset,trialNum,expID,processType,measurementType,plotDivide,legends);
+end
 % run('compareEKF_completeLeg.m');
 
 %Smoother

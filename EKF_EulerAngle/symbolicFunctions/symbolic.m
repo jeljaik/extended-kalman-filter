@@ -70,10 +70,22 @@ df_dx_dualState = [df_dx_withCompliance df_dw_withCompliance;...
 h_withSkin = [h_imu ; h_fto; h_ftc; h_skin];
 h_withoutSkin = [h_imu ; h_fto; h_ftc];
 
+h_withoutlegFT = [h_imu;h_ftc;h_skin];
+
+
+dh_dx_withoutlegFT = jacobian(h_withoutlegFT,x);
+dh_dw_withCompliance_withoutlegFT = jacobian(h_withoutlegFT,wK);
+dh_dx_dualStateWithoutlegFT = [dh_dx_withoutlegFT dh_dw_withCompliance_withoutlegFT];
+
 dh_dx_withSkin = jacobian(h_withSkin,x);
-dh_dx_withoutSkin = jacobian(h_withoutSkin,x);
 dh_dw_withCompliance = jacobian(h_withSkin,wK);
 dh_dx_dualState = [dh_dx_withSkin dh_dw_withCompliance];
+
+dh_dx_withoutSkin = jacobian(h_withoutSkin,x);
+
+
+
+
 
 model.I  = I_B;
 
@@ -86,9 +98,17 @@ matlabFunction(dh_dx_withSkin,'file',....
 %% WithoutCompliance, WithoutSkin
 matlabFunction(dh_dx_withoutSkin,'file',...
     './symbolicFunctions/outputsDerivatives_withoutSkin','vars',[x; dI; m; G_g]);
+%% WithoutCompliance, Without leg FT measurement
+
+matlabFunction(dh_dx_withoutlegFT,'file',...
+    './symbolicFunctions/outputsDerivatives_withoutlegFT','vars',[x; dI; m; G_g]);
+
 
 %% WithCompliance, WithSkin aka dualState
 matlabFunction(df_dx_dualState,'file',...
     './symbolicFunctions/dynamicsDerivatives_dualState','vars',[x; wK; dI; m; G_g]);
 matlabFunction(dh_dx_dualState,'file',...
     './symbolicFunctions/outputsDerivatives_dualState','vars',[x; wK;dI; m; G_g]);
+%% WithCompliance, Without leg FT measurement
+matlabFunction(dh_dx_dualStateWithoutlegFT,'file',...
+    './symbolicFunctions/outputsDerivatives_dualStateWithoutlegFT','vars',[x; wK;dI; m; G_g]);

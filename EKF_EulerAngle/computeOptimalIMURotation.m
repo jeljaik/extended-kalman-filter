@@ -2,7 +2,8 @@
 
 %imuDel1 = imuDel(1);
 %imuDel2 = imuDel(2);
-aPreProcMeanTest = [-0.1779   -9.8068    0.1441]';%-[  -0.1898   -9.8090    0.1452]';
+% aPreProcMeanTest = [-0.1779   -9.8068    0.1441]';%-[  -0.1898   -9.8090    0.1452]';
+aPreProcMeanTest = [-0.2987   -9.8061    0.0681]';%[-0.4059 -9.8023 0.0636]';%[-0.2987   -9.8061    0.0681]'; %[-0.4725 -9.7984 0.0129]';%[-0.2703   -9.8090    0.0521]'
 %omegaPreProcTest =  [-1.7197    0.8664    4.2135]';
 %omegaRising = [-3.2080    0.3657    4.7032]';%[-0.0396    0.0185   -0.0064]';
 omegaRisingPreProc= [ -0.9806    0.3700    2.5726]';
@@ -77,4 +78,4 @@ disp(com_R_imu * omegaRisingPreProc)
 fprintf('omegaRising - Offset : ');
 disp(com_R_imu * (omegaRisingPreProc - omegaOffset))
 
-save('./IMUOffset.mat','com_R_imu');
+ save('./IMUOffset_New.mat','com_R_imu');

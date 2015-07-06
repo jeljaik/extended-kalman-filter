@@ -66,9 +66,9 @@ a_pre_calib = acclSign*a_omega_pre_calib(:,4:6);
 omega_pre_calib = a_omega_pre_calib(:,7:9);
 
 %Proper sensor orientation with respect to the COM frame
-aPreProcMeanTest = mean(a_pre_calib',2);
-[com_R_imu] = optimalIMURotation(aPreProcMeanTest)
-transforms.B_R_imu =  com_R_imu;
+% aPreProcMeanTest = mean(a_pre_calib',2);
+% [com_R_imu] = optimalIMURotation(aPreProcMeanTest)
+% transforms.B_R_imu =  com_R_imu;
 
 omegaOffset = mean((omega_pre_calib'),2);
 

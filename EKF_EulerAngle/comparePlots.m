@@ -38,7 +38,7 @@ for i = idx : numPlots
 
 end
 
-figure();
+figure(1);
 for i = idx : numPlots
 if(strcmp(processType{i},'withoutCompliance')~=1)
     stateVar = 22:30;
@@ -55,6 +55,7 @@ ylabel('|K| Nm/rad');
 legend(legends');
 
 % % 
+figure(2);
 stateVar = 19:21;
 numSubFig=length(stateVar);
 

@@ -129,8 +129,8 @@ if(strcmp(measurementType,'withoutlegFT')~=1 && strcmp(measurementType,'dualStat
     transforms.B_adjT_leg = [eye(3) zeros(3) ; -eye(3)*S(leg_p_B) eye(3) ];
 end
 
-%Obtained generically through a function in the realMeasurement.m script
+%%Not Valid if uncommented -> %Obtained generically through a function in the realMeasurement.m script
 %rather than from file.
-% load('IMUOffset.mat','com_R_imu');
-% transforms.B_R_imu = com_R_imu;
+load('IMUOffset.mat','com_R_imu');
+transforms.B_R_imu = com_R_imu;
 end

@@ -1,4 +1,4 @@
-function y = measurement_dualState(x,p,f_B_o_t,mu_B_o_t,f_B_c_t,mu_B_c_t)
+function y = measurement_dualStateWithoutlegFT(x,p,f_B_o_t,mu_B_o_t,f_B_c_t,mu_B_c_t)
 
 % This piece of code computes the rigid body differential equations. The
 % equation is defined as follows:
