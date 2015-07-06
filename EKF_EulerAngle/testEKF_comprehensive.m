@@ -12,7 +12,7 @@ skinFuncs   = genpath('./skinFunctions');
 addpath(utilities, symb, ellipses,dynFuncs,plotFuncs,skinFuncs)
 
 %% Choice of dataset
-whichDataset = 'new' ; %options - 'old', 'new'
+whichDataset = 'old' ; %options - 'old', 'new'
 if(strcmp(whichDataset,'old')==1)
     trialNum = 7; 
 else if (strcmp(whichDataset,'new')==1)
@@ -21,7 +21,7 @@ else if (strcmp(whichDataset,'new')==1)
     end
 end
 %% Choice of estimation - wrenches acting on Leg COM or Foot COM
-experiment = 'foot'; %options - 'leg', 'foot'
+experiment = 'leg'; %options - 'leg', 'foot'
 
 %% basic experiment setup
 if(strcmp(experiment,'foot')==1)
@@ -46,7 +46,7 @@ if(strcmp(experiment,'leg')==1)
     % 5 - nolegFT measurements and Compliance in model
 
     %numOfExperiments = 1:5;
-    numOfExperiments = 1:5;
+    numOfExperiments = 1:3;
     measurementSuffix = {'withoutSkin','withSkin','dualState','withoutlegFT','dualStateWithoutlegFT'}; 
     processSuffix = {'withoutCompliance','withoutCompliance','dualState','withoutCompliance','dualState'};
     n       = [21,21,30,21,30];         % state dimension - (translational vel, rotational vel, w_o, w_c, RPY angle)
@@ -61,7 +61,7 @@ setup.dtForDyn = 0.0001; % EKF forward dynamics computation time step
 setup.dtKalman = 0.01; % EKF computation time step (discretisation)
 
 setup.t_min = 3.0; % time until which to calibrate
-setup.t_max = 6.0; % Max time in dataset until which to filter
+setup.t_max = 7.5; % Max time in dataset until which to filter
 setup.measurementPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
 setup.filterOutputPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
 setup.comparePlots = 'makePlots';
@@ -232,23 +232,27 @@ for expID = numOfExperiments
 
     if(strcmp(experiment,'leg')==1)
         if(strcmp(whichDataset,'old')==1)
-            plotFigBaseFolder = sprintf('./plots/humanoids2015/leg/old/trial_%d/Exp_%d/',dataID,expID);
+%             plotFigBaseFolder = sprintf('./plots/humanoids2015/leg/old/trial_%d/Exp_%d/',dataID,expID);
             dataBaseFolder = sprintf('./data/humanoids2015/leg/old/trial_%d/Exp_%d/',dataID,expID);
+            plotFigBaseFolder = sprintf('./plots/humanoids2015/');
         end   
         if(strcmp(whichDataset,'new')==1)
-            plotFigBaseFolder = sprintf('./plots/humanoids2015/leg/new/trial_%d/Exp_%d/',dataID,expID);
+%             plotFigBaseFolder = sprintf('./plots/humanoids2015/leg/new/trial_%d/Exp_%d/',dataID,expID);
             dataBaseFolder = sprintf('./data/humanoids2015/leg/new/trial_%d/Exp_%d/',dataID,expID);
+            plotFigBaseFolder = sprintf('./plots/humanoids2015/');
         end   
     end
     
     if(strcmp(experiment,'foot')==1)
         if(strcmp(whichDataset,'old')==1)
-            plotFigBaseFolder = sprintf('./plots/humanoids2015/foot/old/trial_%d/Exp_%d/',dataID,expID);
+%             plotFigBaseFolder = sprintf('./plots/humanoids2015/foot/old/trial_%d/Exp_%d/',dataID,expID);
             dataBaseFolder = sprintf('./data/humanoids2015/foot/old/trial_%d/Exp_%d/',dataID,expID);
+            plotFigBaseFolder = sprintf('./plots/humanoids2015/');
         end
         if(strcmp(whichDataset,'new')==1)
             plotFigBaseFolder = sprintf('./plots/humanoids2015/foot/new/trial_%d/Exp_%d/',dataID,expID);
-            dataBaseFolder = sprintf('./data/humanoids2015/foot/new/trial_%d/Exp_%d/',dataID,expID);
+%             dataBaseFolder = sprintf('./data/humanoids2015/foot/new/trial_%d/Exp_%d/',dataID,expID);
+            plotFigBaseFolder = sprintf('./plots/humanoids2015/');
         end
     end
     
@@ -270,7 +274,7 @@ for expID = numOfExperiments
         plotAndSaveFigs(dataBaseFolder,plotFigBaseFolder); 
     end
      
-
+           
     
     if(expID<3)
         fprintf('\nPress any key to continue to next experiment\n\n');
@@ -279,10 +283,10 @@ for expID = numOfExperiments
      
 end
 end
-
+plotAndSaveHumanoidsFigs(plotFigBaseFolder); 
 %This function is used to compare various plots for different experiments.
 % Note the sequence of input vectors which reflects what you want to
-% compare. Also beware that all the input vectors are of the same length.
+% compare. Also beware that all the input vectors except variable 'compare' are of the same length.
 % experiment - 'leg', 'foot'
 % whichDataset - 'old', 'new'
 % trialNum - 1,2,3,4 (new), 7(old)
@@ -292,21 +296,24 @@ end
 % plotDivide - 'true','false' : true gives steady state and dynamic state
 % behavior individually
 % legends - as a vector of same length
+% compare - 'orientation','orientationvariance', 'stiffness' , 'FRI' , 'all'
+
 
 % comparePlots(experiment,whichDataset,trialNum,expID,processType,measurementType,plotDivide,legends)
-experiment = cellstr(['foot';'foot';'foot';'foot']);
-whichDataset = cellstr(['new';'new';'new';'new']);
-trialNum = [1;2;3;4];
-expID = [2;2;2;2];
-processType = cellstr(['dualState';'dualState';'dualState';'dualState']);
-measurementType = cellstr(['dualStateWithoutlegFT';'dualStateWithoutlegFT';'dualStateWithoutlegFT';'dualStateWithoutlegFT']);
-plotDivide = cellstr(['false';'false';'false';'false']);
-legends = cellstr(['Firm   ';'1-layer';'2-layer';'3-layer']);
-
-if(strcmp(setup.comparePlots,'makePlots') == 1)
-    comparePlots(experiment,whichDataset,trialNum,expID,processType,measurementType,plotDivide,legends);
-end
-% run('compareEKF_completeLeg.m');
+% experiment = cellstr(['foot';'foot';'foot';'foot']);
+% whichDataset = cellstr(['new';'new';'new';'new']);
+% trialNum = [1;2;3;4];
+% expID = [2;2;2;2];
+% processType = cellstr(['dualState';'dualState';'dualState';'dualState']);
+% measurementType = cellstr(['dualStateWithoutlegFT';'dualStateWithoutlegFT';'dualStateWithoutlegFT';'dualStateWithoutlegFT']);
+% plotDivide = cellstr(['false';'false';'false';'false']);
+% legends = cellstr(['Firm   ';'1-layer';'2-layer';'3-layer']);
+% compare = 'orientation'; 
+% 
+% 
+% if(strcmp(setup.comparePlots,'makePlots') == 1)
+%     comparePlots(experiment,whichDataset,trialNum,expID,processType,measurementType,plotDivide,legends,compare);
+% end
 
 %Smoother
 %fprintf('\n\n------------------\n\n starting EKSmoother\n');

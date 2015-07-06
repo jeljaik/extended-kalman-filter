@@ -1,4 +1,4 @@
-function comparePlots(experiment,whichDataset,trialNum,expID,processType,measurementType,plotDivide,legends)
+function comparePlots(experiment,whichDataset,trialNum,expID,processType,measurementType,plotDivide,legends,compare)
 
 idx = 1;
 %the input arguments should be lists/vectors of same length
@@ -35,18 +35,20 @@ for i = idx : numPlots
     XUpt{i} = Xupdt;
     XPred{i} = Xhat;
     tMin{i} = tK{i}(1);
-
+%     P
 end
 
-figure(1);
+figure();
 for i = idx : numPlots
 if(strcmp(processType{i},'withoutCompliance')~=1)
-    stateVar = 22:30;
-    K = XUpt{i}(:,stateVar);
-    K_norm = (K(:,1).^2 + K(:,2).^2 + K(:,3).^2 + K(:,4).^2 + K(:,5).^2 + K(:,6).^2 + K(:,7).^2 + K(:,8).^2 + K(:,9).^2 ).^0.5;
+    if(strcmp(compare,'stiffness') == 1 || strcmp(compare,'all')==1)
+        stateVar = 22:30;
+        K = XUpt{i}(:,stateVar);
+        K_norm = (K(:,1).^2 + K(:,2).^2 + K(:,3).^2 + K(:,4).^2 + K(:,5).^2 + K(:,6).^2 + K(:,7).^2 + K(:,8).^2 + K(:,9).^2 ).^0.5;
     
-    plot(tK{i}(:,idx:end),K_norm(idx:end,:));
-    hold on    
+        plot(tK{i}(:,idx:end),K_norm(idx:end,:));
+        hold on    
+    end
 end
 end
 title('Stiffness norm evolution');
@@ -55,7 +57,8 @@ ylabel('|K| Nm/rad');
 legend(legends');
 
 % % 
-figure(2);
+if(strcmp(compare,'orientation') == 1 || strcmp(compare,'all')==1)
+figure();
 stateVar = 19:21;
 numSubFig=length(stateVar);
 
@@ -78,8 +81,35 @@ for i = 1:numSubFig
 end
 end
 
+% 
+% if(strcmp(compare,'orientationvariance') == 1 || strcmp(compare,'all')==1)
+% figure();
+% stateVar = 19:21;
+% numSubFig=length(stateVar);
+% subFig = [numSubFig,1];
+% 
+% for i = 1:numSubFig
+%         subplot(subFig(1),subFig(2),i);
+%         
+%      for j = idx : numPlots  
+% 
+%            
+%         plot(tK{i}(:,idx:end),P(i,i,idx:end));
+%         xlabel('Time (s)');
+%         ylabel('E_\phi degs');
+%         hold on    
+%      end    
+%     title(strcat('Variance of orientation: ',measurementType{i}));
+%     legend(legends');
+% end
+% end
+
+
+
+
  
 % if(strcmp(plotDivide,'true')==1)
 %     steadyStateTime = 6.0050;
 %     steadyStateIdx = find(abs(tK(i) - steadyStateTime) < 0.001);
 % end
+end
