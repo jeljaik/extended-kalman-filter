@@ -12,5 +12,5 @@ function dh = wrapperOutputsDerivatives_dualState(Xhat, model)
         Xhat(22),Xhat(23),Xhat(24),... % K_B
         Xhat(25),Xhat(26),Xhat(27),... % K_B
         Xhat(28),Xhat(29),Xhat(30),... % K_B
-        model.I(1,1), model.I(1,2),model.I(1,3),model.I(2,2),model.I(2,3),model.I(3,3),model.m,model.G_g(1),model.G_g(2),model.G_g(3));
+        model.I(1,1), model.I(1,2),model.I(1,3),model.I(2,2),model.I(2,3),model.I(3,3),model.m,model.phi0(1),model.phi0(2),model.phi0(3), model.G_g(1),model.G_g(2),model.G_g(3));
 end

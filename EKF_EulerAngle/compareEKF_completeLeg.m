@@ -1,7 +1,7 @@
 clc;
 display('plotting comparison plots');
 close all;
-clear all;
+clear;
 % Loading compliance results
 dataBaseFolder = cell(3);
 

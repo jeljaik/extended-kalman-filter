@@ -85,7 +85,44 @@ pT.ylabelText = {'E(\phi_x) rads',...
 cols = {'b','g','r'};
 plotFilterResultTimeSeries(tK(idx:end),XUpt(idx:end,:),[],P(:,:,idx:end),stateVar,pT,cols,[]);
 
+
+% orientation just estimate plot
+stateVar = 19:21;
+pT.titleText = {'Expectation of Orientation',...
+                '',...
+                '',...
+                ''
+};
+pT.ylabelText = {'E(\phi_x) rads',...
+                 'E(\phi_y) rads',...
+                 'E(\phi_z) rads'
+};
+cols = {'b','g','r'};
+figure;
+subplot(3,1,1);
+plot(tK(idx:end),XUpt(idx:end,19),'color',cols{1});
+title('Just Orientation estimate');
+subplot(3,1,2);
+plot(tK(idx:end),XUpt(idx:end,20),'color',cols{2});
+subplot(3,1,3);
+plot(tK(idx:end),XUpt(idx:end,21),'color',cols{3});
+%plotFilterResultTimeSeries(tK(idx:end),XUpt(idx:end,:),[],P(:,:,idx:end),stateVar,pT,cols,[]);
+
     
+% plot stiffness norm evolution plot
+
+Knorm = zeros(size(tK));
+for(i = 1:9)
+    Knorm(idx:end) = Knorm(idx:end) + XUpt(idx:end,21+i)'.^2;
+end
+Knorm = Knorm.^0.5;
+
+figure;
+plot(tK(idx:end),Knorm(idx:end));
+title('stiffness norm');
+
+
+
 % FRI
 if(source==2)
      plot_FRI(XUpt,P,XPred, P,tK, idx,length(tK));%,'b',index+5+figPreN);

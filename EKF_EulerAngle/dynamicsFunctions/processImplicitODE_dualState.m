@@ -36,6 +36,7 @@ K = reshape(K_B,3,3);
 
 I_B  = p.I;
 m    = p.m;
+phi0 = p.phi0;
 
 G_g    = p.G_g;
 
@@ -62,7 +63,7 @@ end
 
 %% 
 dv_B     = - S(omega_B) * (m   * v_B    ) + (+f_B_t_o - f_B_t_c) + m.*B_R_G*G_g;
-domega_B = - S(omega_B) * (I_B * omega_B) +  (+mu_B_t_o - mu_B_t_c) + (K'*K*phi);
+domega_B = - S(omega_B) * (I_B * omega_B) +  (+mu_B_t_o - mu_B_t_c) - (K'*K)*(phi-phi0);
 
 df_B_o   =  zeros(3,1);  % random walk
 dmu_B_o  =  zeros(3,1);  % random walk

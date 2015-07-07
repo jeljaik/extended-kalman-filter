@@ -13,7 +13,7 @@ syms omega_Bx omega_By omega_Bz real
 syms mu_B_ox  mu_B_oy  mu_B_oz real
 syms mu_B_cx  mu_B_cy  mu_B_cz real
 syms phi1 phi2 phi3 real
-syms K_B w real
+syms K_B w phi0_1 phi0_2 phi0_3 real
 syms K_Bxx K_Bxy K_Bxz K_Byx K_Byy K_Byz K_Bzx K_Bzy K_Bzz real
 
 K_B = [...
@@ -40,9 +40,11 @@ phi     = [    phi1       phi2       phi3]';
 B_R_G       = euler2dcm(phi);
 G_g = [G_g1;G_g2;G_g3];
 
+phi0 = [phi0_1 ; phi0_2 ; phi0_3];
+
 dv_B     = -S(omega_B) * v_B + 1/m * f_B_o - 1/m*f_B_c + B_R_G*G_g;
 domega_B_withoutCompliance =  I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_o - mu_B_c);
-domega_B_withCompliance =  I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_o - mu_B_c) + (K_B'*K_B*phi);
+domega_B_withCompliance =  I_B \ (-S(omega_B) * (I_B * omega_B) + mu_B_o - mu_B_c) - (K_B'*K_B)*(phi - phi0);
 df_B_o   =  [0 0 0]';
 dmu_B_o  =  [0 0 0]';
 df_B_c   =  [0 0 0]';
@@ -89,6 +91,6 @@ matlabFunction(dh_dx_withoutSkin,'file',...
 
 %% WithCompliance, WithSkin aka dualState
 matlabFunction(df_dx_dualState,'file',...
-    './symbolicFunctions/dynamicsDerivatives_dualState','vars',[x; wK; dI; m; G_g]);
+    './symbolicFunctions/dynamicsDerivatives_dualState','vars',[x; wK; dI; m; phi0; G_g]);
 matlabFunction(dh_dx_dualState,'file',...
-    './symbolicFunctions/outputsDerivatives_dualState','vars',[x; wK;dI; m; G_g]);
+    './symbolicFunctions/outputsDerivatives_dualState','vars',[x; wK;dI; m;  phi0; G_g]);

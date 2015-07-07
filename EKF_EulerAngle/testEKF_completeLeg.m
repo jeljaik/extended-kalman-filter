@@ -51,7 +51,7 @@ addpath(utilities, symb, ellipses,dynFuncs,plotFuncs,skinFuncs)
 % 3 - withSkin measurements and withCompliance in model (dualState)
 
 %numOfExperiments = 1:3;
-numOfExperiments = 3;
+numOfExperiments = 3;%1:3;
 measurementSuffix = {'withoutSkin','withSkin','dualState'}; 
 processSuffix = {'withoutCompliance','withoutCompliance','dualState'};
 n       = [21,21,30];         % state dimension - (translational vel, rotational vel, w_o, w_c, RPY angle)
@@ -64,10 +64,10 @@ setup.dtKalman = 0.01; % EKF computation time step (discretisation)
 
 
 setup.t_min = 4.5; % time until which to calibrate
-setup.t_max = 7.5; % Max time in dataset until which to filter
+setup.t_max = 6.0;%7.5; % Max time in dataset until which to filter
 setup.measurementPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
-setup.filterOutputPlots = 'noPlots';
-setup.skipSteps = 50; % no of steps to skip for diplaying kalman execution time in loop
+setup.filterOutputPlots = 'makePlots';
+setup.skipSteps = 100; % no of steps to skip for diplaying kalman execution time in loop
 
 [kalmanQParams,kalmanRParams,kIni] = setupCovariancesForExperiments();
 setup.kalmanQParams = kalmanQParams;
@@ -229,16 +229,28 @@ for expID = numOfExperiments
     save(strcat(dataBaseFolder,'filteredResult.mat'),'tKalman','yMeas','Xupdt','Xhat','P');
     if(strcmp(setup.filterOutputPlots,'makePlots') == 1)
         plotAndSaveFigs(dataBaseFolder,plotFigBaseFolder); 
+        
+        %display only orientation
+        close(1);close(2);
+        close(3);%close(6);
+        close(7);
+        figure(4); subplot(3,1,1); axis tight;
+        subplot(3,1,2); axis tight;
+        subplot(3,1,3); axis tight;
+        
+        figure(5); subplot(3,1,1); axis tight;
+        subplot(3,1,2); axis tight;
+        subplot(3,1,3); axis tight;
     end
      
-     if(expID<3)
-        fprintf('\nPress any key to continue to next experiment\n');
-        pause;
-     end
+   %  if(expID<3)
+   %     fprintf('\nPress any key to continue to next experiment\n');
+   %     pause;
+   %  end
      
 end
 
-run('compareEKF_completeLeg.m');
+%run('compareEKF_completeLeg.m');
 %Smoother
 %fprintf('\n\n------------------\n\n starting EKSmoother\n');
 

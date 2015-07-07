@@ -43,7 +43,7 @@ fakeF_o = [0;0;0];
  model.kIni = kIniTemp;
  model.dtKalman = dtKalman;
 %% Rototranslation definitions
-
+model.phi0 = [0;0.5*pi;0];
 t = linspace(t_min,tMax,(tMax - t_min)/dtKalman);
 
 tCalib = linspace(0,t_min,(t_min)/dtKalman);
@@ -132,10 +132,10 @@ if(strcmp(measurementType,'dualState')~=1)
     muc = fc_muc(4:6,:) - mean(muc_calib,2)*ones(1,length(t));
 else
     %% leaving offsets as they are to have an initial compliance momment
-    %muo = fo_muo(4:6,:) + mu_calib_delta*ones(1,length(t));
-    %muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
-    muo = fo_muo(4:6,:);
-    muc = fc_muc(4:6,:);
+    muo = fo_muo(4:6,:) + mu_calib_delta*ones(1,length(t));
+    muc = fc_muc(4:6,:) - mu_calib_delta*ones(1,length(t));
+    %muo = fo_muo(4:6,:);
+    %muc = fc_muc(4:6,:);
 end
     
 fo = fo_muo(1:3,:) + f_calib_delta*ones(1,length(t));

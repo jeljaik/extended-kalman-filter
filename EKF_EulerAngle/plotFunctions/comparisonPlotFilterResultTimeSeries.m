@@ -12,13 +12,13 @@ end
 
 for i = 1:numSubFig
     subplot(subFig(1),subFig(2),i);
-    plot(t,x_nsnc(:,idx(i)),cols{i});
+    plot(t,x_nsnc(:,idx(i)),cols{1});
     hold on
-    plot(t,x_nc(:,idx(i)),'m');
+    plot(t,x_nc(:,idx(i)),cols{2});
     hold on
-    plot(t,x_c(:,idx(i)),'c');
+    plot(t,x_c(:,idx(i)),cols{3});
 %   shadedErrorBar(t,x(:,idx(i)),squeeze(2*sqrt(P(idx(i),idx(i),:)))',cols{i}, 1);
-    legend('NSNC','SNC','SC');
+    legend('a','b','c');
     title(plotText.titleText{i});
     xlabel(plotText.xlabelText{i});
     ylabel(plotText.ylabelText{i});
