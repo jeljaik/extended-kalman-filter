@@ -1,5 +1,5 @@
 
-function [yMeas,tMeas,model,R] = realMeasurement(dtKalman, model, plots, t_min, t_max, measurementType,numberOfExperiment ,whichLeg, whichSkin,dataset,experiment)
+function [yMeas,tMeas,model,R] = realMeasurement_comprehensive(dtKalman, model, plots, t_min, t_max, measurementType,numberOfExperiment ,whichLeg, whichSkin,dataset,experiment)
 % REALMEASUREMENT_WITHSKIN loads data from the backward tipping experiments
 %   including the feet skin to post-process these data.
 %
@@ -40,10 +40,10 @@ fakeF_o = [0;0;0];
    %% new model parameters from robot 
  kIniTemp = model.kIni;
  if(strcmp(experiment,'leg')==1)
-    [model,tMax,leg_ft,foot_ft,skin,inertial,transforms] = modelSensorParams_completeLeg(whichLeg,whichSkin,numberOfExperiment,t_max,measurementType,dataset);
+    [model,tMax,leg_ft,foot_ft,skin,inertial,transforms] = modelSensorParams_completeLeg_comprehensive(whichLeg,whichSkin,numberOfExperiment,t_max,measurementType,dataset);
  end
  if(strcmp(experiment,'foot')==1)
-    [model,tMax,leg_ft,foot_ft,skin,inertial,transforms] = modelSensorParams_foot(whichLeg,whichSkin,numberOfExperiment,t_max,measurementType,dataset);
+    [model,tMax,leg_ft,foot_ft,skin,inertial,transforms] = modelSensorParams_foot_comprehensive(whichLeg,whichSkin,numberOfExperiment,t_max,measurementType,dataset);
  end
  model.kIni = kIniTemp;
  model.dtKalman = dtKalman;
@@ -65,10 +65,6 @@ a_omega_pre_calib = interp1(inertial.t,inertial.data,tCalib);
 a_pre_calib = acclSign*a_omega_pre_calib(:,4:6);
 omega_pre_calib = a_omega_pre_calib(:,7:9);
 
-%Proper sensor orientation with respect to the COM frame
-% aPreProcMeanTest = mean(a_pre_calib',2);
-% [com_R_imu] = optimalIMURotation(aPreProcMeanTest)
-% transforms.B_R_imu =  com_R_imu;
 
 omegaOffset = mean((omega_pre_calib'),2);
 

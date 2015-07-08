@@ -67,7 +67,7 @@ setup.filterOutputPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
 setup.comparePlots = 'makePlots';
 setup.skipSteps = 50; % no of steps to skip for diplaying kalman execution time in loop
 
-[kalmanQParams,kalmanRParams,kIni] = setupCovariancesForExperiments(experiment); 
+[kalmanQParams,kalmanRParams,kIni] = setupCovariancesForExperiments_comprehensive(experiment); 
 setup.kalmanQParams = kalmanQParams;
 setup.kalmanRParams = kalmanRParams;
 setup.kIni = kIni; % initial stiffness (defined but not used for all experiments)
@@ -137,7 +137,7 @@ for expID = numOfExperiments
     % realKalman.sigma_skin = 25.75;
 
     
-        [yMeas,tMeas,model,RData] = realMeasurement(model.dtKalman,model,model.measurementPlots,t_min,t_max,measurementSuffix{expID},dataID,'right','right',whichDataset,experiment);
+        [yMeas,tMeas,model,RData] = realMeasurement_comprehensive(model.dtKalman,model,model.measurementPlots,t_min,t_max,measurementSuffix{expID},dataID,'right','right',whichDataset,experiment);
  
         T = tMeas(end);
         tKalman = tMeas;

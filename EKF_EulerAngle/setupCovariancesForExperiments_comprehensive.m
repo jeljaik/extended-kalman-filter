@@ -1,4 +1,4 @@
-function [kalmanQParams,kalmanRParams,kIni] = setupCovariancesForExperiments(experiment);
+function [kalmanQParams,kalmanRParams,kIni] = setupCovariancesForExperiments_comprehensive(experiment);
 
 
 %% params for experiment 1 
