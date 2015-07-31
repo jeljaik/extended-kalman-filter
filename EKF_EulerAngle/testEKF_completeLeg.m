@@ -64,7 +64,7 @@ setup.dtKalman = 0.005; % EKF computation time step (discretisation)
 
 
 setup.t_min = 4.5; % time until which to calibrate
-setup.t_max = 7.5;%7.5; % Max time in dataset until which to filter
+setup.t_max = 7.54;%7.5; % Max time in dataset until which to filter
 setup.measurementPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
 setup.filterOutputPlots = 'makePlots';
 setup.skipSteps = 100; % no of steps to skip for diplaying kalman execution time in loop
