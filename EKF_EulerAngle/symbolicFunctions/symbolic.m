@@ -51,7 +51,6 @@ df_B_c   =  [0 0 0]';
 dmu_B_c  =  [0 0 0]';
 dphi     =  (Tomega_dphi(phi))\omega_B;
 
-
 h_imu = [(dv_B - B_R_G*G_g); omega_B];
 h_fto = [f_B_o; mu_B_o];
 h_ftc = [f_B_c; mu_B_c];

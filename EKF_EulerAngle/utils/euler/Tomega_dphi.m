@@ -1,7 +1,4 @@
 function [ T ] = Tomega_dphi( phi, t )
-%TOMEGA_DPHI Returns T from dphi = T*omega where 'omega' is angular
-% velocity and 'dphi' is the time derivative of a ZYZ Euler angle vector.
-%
 % TOMEGA_DPHI(PHI) Returns the transformation matrix used to convert the
 % time derivative of Phi into angular velocity omega.
 %

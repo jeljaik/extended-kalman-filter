@@ -51,7 +51,7 @@ addpath(utilities, symb, ellipses,dynFuncs,plotFuncs,skinFuncs)
 % 3 - withSkin measurements and withCompliance in model (dualState)
 
 %numOfExperiments = 1:3;
-numOfExperiments = 3;%1:3;
+numOfExperiments = 2;%[2,3];%1:3;
 measurementSuffix = {'withoutSkin','withSkin','dualState'}; 
 processSuffix = {'withoutCompliance','withoutCompliance','dualState'};
 n       = [21,21,30];         % state dimension - (translational vel, rotational vel, w_o, w_c, RPY angle)
@@ -62,10 +62,11 @@ m       = [18,19,19 ];         % output dimension
 setup.dtForDyn = 0.0001; % EKF forward dynamics computation time step
 setup.dtKalman = 0.01; % EKF computation time step (discretisation)
 
+setup.dataSource = 1;%3; % source 1 - old dataset, 2 - only foot dataset, 3 - compliant dataset 
 
-setup.t_min = 4.5; % time until which to calibrate
-setup.t_max = 6.0;%7.5; % Max time in dataset until which to filter
-setup.measurementPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
+setup.t_min = 0.5; % time until which to calibrate
+setup.t_max = 7.5;%7.5; % Max time in dataset until which to filter
+setup.measurementPlots = 'makePlots'; % options - 'makePlots' , 'noPlots'
 setup.filterOutputPlots = 'makePlots';
 setup.skipSteps = 100; % no of steps to skip for diplaying kalman execution time in loop
 
@@ -137,10 +138,16 @@ for expID = numOfExperiments
         case 'withoutCompliance'
             Q  = diag([kalman.a_Q*ones(3,1);
                kalman.omega_Q*ones(3,1);
-               kalman.f_Q*ones(6,1); 
-               kalman.mu_Q*ones(6,1); 
+               kalman.f_Q*ones(3,1); 
+               kalman.mu_Q*ones(3,1);
+               kalman.f_Q*ones(3,1); 
+               kalman.mu_Q*ones(3,1);
                kalman.phi_Q*ones(3,1)]);
-           kalman.P = 15*diag([kalman.a_Q*ones(3,1);kalman.omega_Q*ones(3,1);kalman.f_Q*ones(3,1);kalman.mu_Q*ones(3,1);kalman.f_Q*ones(3,1);kalman.mu_Q*ones(3,1);kalman.phi_Q*ones(3,1)]);
+           kalman.P = 0*diag([kalman.a_Q*ones(3,1);
+                               kalman.omega_Q*ones(3,1);
+                               kalman.f_Q*ones(3,1);kalman.mu_Q*ones(3,1);
+                               kalman.f_Q*ones(3,1);kalman.mu_Q*ones(3,1);
+                               kalman.phi_Q*ones(3,1)]);
         case 'dualState'
             Q  = diag([kalman.a_Q*ones(3,1);
                kalman.omega_Q*ones(3,1);
@@ -194,8 +201,8 @@ for expID = numOfExperiments
     
     %% EKF execution
     for i = 1:length(tKalman)
-         tic;
 
+        tic;
          % Update step
         [xh, Ph] = ekf_update1(xh , Ph, yMeas(i,:)', dh_dx_func, R,h_func, [], model);
         Xupdt(i,:) = xh;
@@ -214,8 +221,8 @@ for expID = numOfExperiments
     end
 
     
-    plotFigBaseFolder = sprintf('./plots/humanoids2015/Exp_%d/',expID);
-    dataBaseFolder = sprintf('./data/humanoids2015/Exp_%d/',expID);
+    plotFigBaseFolder = sprintf('./plots/iros2015_final/Dta_%d_Exp_%d/',setup.dataSource,expID);
+    dataBaseFolder = sprintf('./data/iros2015_final/Data_%d_Exp_%d/',setup.dataSource,expID);
 
     if(~exist(dataBaseFolder))
         mkdir(dataBaseFolder);
@@ -230,17 +237,24 @@ for expID = numOfExperiments
     if(strcmp(setup.filterOutputPlots,'makePlots') == 1)
         plotAndSaveFigs(dataBaseFolder,plotFigBaseFolder); 
         
-        %display only orientation
-        close(1);close(2);
-        close(3);%close(6);
-        close(7);
-        figure(4); subplot(3,1,1); axis tight;
-        subplot(3,1,2); axis tight;
-        subplot(3,1,3); axis tight;
+        figure;
+        plot(tKalman,Xhat(:,19:21));
+        legend('x','y','z');
+       axis tight;
+        % a = axis();
+       % axis([a(1) 6.5 -2 5]);
         
-        figure(5); subplot(3,1,1); axis tight;
-        subplot(3,1,2); axis tight;
-        subplot(3,1,3); axis tight;
+        %display only orientation
+      %  close(1);close(2);
+      %  close(3);%close(6);
+      %  close(7);
+      %  figure(4); subplot(3,1,1); axis tight;
+      %  subplot(3,1,2); axis tight;
+      %  subplot(3,1,3); axis tight;
+        
+      %  figure(5); subplot(3,1,1); axis tight;
+      %  subplot(3,1,2); axis tight;
+      %  subplot(3,1,3); axis tight;
     end
      
    %  if(expID<3)

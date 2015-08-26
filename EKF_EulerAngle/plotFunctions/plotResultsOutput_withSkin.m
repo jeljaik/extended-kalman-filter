@@ -110,18 +110,18 @@ plot(tK(idx:end),XUpt(idx:end,21),'color',cols{3});
 
     
 % plot stiffness norm evolution plot
+if(size(XUpt,2)>21)
+    Knorm = zeros(size(tK));
+    for(i = 1:9)
+        Knorm(idx:end) = Knorm(idx:end) + XUpt(idx:end,21+i)'.^2;
+    end
+    Knorm = Knorm.^0.5;
 
-Knorm = zeros(size(tK));
-for(i = 1:9)
-    Knorm(idx:end) = Knorm(idx:end) + XUpt(idx:end,21+i)'.^2;
+    figure;
+    plot(tK(idx:end),Knorm(idx:end));
+    title('stiffness norm');
+
 end
-Knorm = Knorm.^0.5;
-
-figure;
-plot(tK(idx:end),Knorm(idx:end));
-title('stiffness norm');
-
-
 
 % FRI
 if(source==2)

@@ -69,6 +69,5 @@ df_B_c   =  zeros(3,1); %df_B_t_2;%u_t;       %zeros(length(u_t),1);
 dmu_B_c  =  zeros(3,1); %dmu_B_t_2;%0.5*v_t;   %zeros(length(v_t),1)
     
 
-dphi = Tomega_dphi(phi)\omega_B;
-
+dphi = Tomega_dphi(phi)\omega_B; 
 dxdt   = [dv_B; domega_B; df_B_o; dmu_B_o; df_B_c; dmu_B_c; dphi];

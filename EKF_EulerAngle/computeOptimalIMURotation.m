@@ -1,80 +1,75 @@
-%function T = acclTest(imuDel)
+% script computing the IMU-Body CoM rototranslation
+% Assumes that IMU is attached to ankle with small variations about z and y axes
+% Given the pre processing mean of the Accelerometer readings, the desired
+% rototranslation is computed by : 
+% com_R_imu = argmin || com_R_imu*a_imu - [0,0,-9.8]' ||
+% obviously it assumes the optimal rototranslation to the CoM frame will
+% give a calibration dataset mean acceleration that is identical to
+% [0;0;-9.8]
+% Arguments : 
+% dataset - For direct loading saved rotation, 1 for old dataset, 2 - for new dataset, empty for recomputation 
 
-%imuDel1 = imuDel(1);
-%imuDel2 = imuDel(2);
-aPreProcMeanTest = [-0.1779   -9.8068    0.1441]';%-[  -0.1898   -9.8090    0.1452]';
-%omegaPreProcTest =  [-1.7197    0.8664    4.2135]';
-%omegaRising = [-3.2080    0.3657    4.7032]';%[-0.0396    0.0185   -0.0064]';
-omegaRisingPreProc= [ -0.9806    0.3700    2.5726]';
-omegaOffset = [ -1.7742   -0.2684   3.1137]';
+function [com_R_imu] = computeOptimalIMURotation( datasetAge,aCalib, plots, verboseMode)
+tic;
+fName = sprintf('IMUOffset_data%d.mat',datasetAge);
+if (nargin == 1 && exist(fName,'file')~=0)
+   load(fName);
+   fprintf('Loading com_R_imu from pre computed matrix\n');
+else
 
-imuDel1 = 0.25*pi;%0.5*pi-0.35*pi;%-0.1*pi
-imuDel2 = 0.0;%0.01*pi;%0.005*pi;
+    fprintf('Computing com_R_imu from calibration average accelerometer measurement\n');
 
-angle1 = pi/2;
-angle2 = 1.5*pi;
-angle3 = pi/2;
-
-delRange = -0.1*pi:0.001*pi:0.1*pi;%-pi : 0.01*pi : 0;%-0.5*pi : 0.01*pi : 0.5*pi;
-%diffG = zeros(length(delRange),length(delRange),3);
-T = zeros(length(delRange), length(delRange));
-ctr1=1;
-ctr2=1;
-for ctr1 = 1:length(delRange)%imuDel1 = delRange
-    %ctr2 = 1;
-    for ctr2 = 1:length(delRange)
-        imuDel1 = delRange(ctr1);
-        imuDel2 = delRange(ctr2);
-        com_R_imu = euler2dcm([angle1+imuDel1,angle2+imuDel2,angle3]);
-
-        a = (com_R_imu) * aPreProcMeanTest;
-
-        %model.gRot = [-1;0;0];
-        model.phi0 = [0,0.5*pi,0]';
-        model.g  = -euler2dcm(model.phi0)'*[0 0 9.8]';
-        %model.g = 9.81;
-
-        diffG = a - [0 0 9.8]';%model.g*euler2dcm(model.phi0)*model.gRot;
-        T(ctr1,ctr2) = diffG(1).^2+diffG(2).^2;
-      %  ctr2 = ctr2+1;        
+    %% setting up parameter ranges
+    % angles assigned from intiution on IMU attachment to ankle
+    angle1 = pi/2; angle2 = -pi/2;   angle3 = -pi/2;
+    delRange = -0.1*pi:0.001*pi:0.1*pi;
+    
+    Jsurf = zeros(length(delRange), length(delRange));
+    
+    %% Iterating through the parameter range computing cost function
+    for ctr1 = 1:length(delRange)
+        for ctr2 = 1:length(delRange)
+            imuDel1 = delRange(ctr1);imuDel2 = delRange(ctr2);
+            com_R_imu = euler2dcm([angle1+imuDel1,angle2+imuDel2,angle3])';
+            a = (com_R_imu) * aCalib;
+            J = norm(a - [0 0 -9.8]');%model.g*euler2dcm(model.phi0)*model.gRot;
+            Jsurf(ctr1,ctr2) = J;%diffG(1).^2+diffG(2).^2;
+        end
+        
+%         if(strcmp(verboseMode,'on')==1)
+%             if(mod(ctr1,5) == 0)
+%                 fprintf('%d..',ctr1);
+%             end
+%             if(mod(ctr1,40) == 0)
+%                 fprintf('\n');
+%             end
+%         end
     end
-    %ctr1 = ctr1+1;
-    if(mod(ctr1,4) == 0)
-        fprintf('%d, ',ctr1);
+
+    if(strcmp(plots,'MakePlots') == 1)
+        figure;
+        surf(delRange,delRange,Jsurf);
     end
-    if(mod(ctr1,32) == 0)
-        fprintf('\n ');
+    
+    [min_val,idx]=min(Jsurf(:));
+    [row,col]=ind2sub(size(Jsurf),idx);
+
+    com_R_imu = euler2dcm([angle1+delRange(row),angle2+delRange(col),angle3])';
+    
+    
+    if(strcmp(verboseMode,'on')==1)
+        fprintf('com_R_imu : \n');
+        disp(com_R_imu);
+        
+        aDiff = (com_R_imu) * aCalib - [0; 0 ; -9.8];
+    
+        fprintf('aDiff : \n');
+        disp(aDiff);
+        fprintf(' Processing time : %d secs\n',toc());
     end
+    
+    %% saving computed result in local folder
+    save(sprintf('./IMUOffset_data%d.mat',datasetAge),'com_R_imu');
+   end
+
 end
-
-%figure;
-%surf(delRange,delRange,diffG(:,:,1).^2+diffG(:,:,2).^2);
-%
-%T = diffG(:,:,1).^2+diffG(:,:,2).^2;
-%[t1,id1]=min(T) 
-%[t2,id2]=min(t1)
-
-figure;
-surf(delRange,delRange,T);
-%surf(delRange,delRange,diffG(:,:,2));
-%plot(delRange,diffG(1:2,:));
-
-[min_val,idx]=min(T(:))
-[row,col]=ind2sub(size(T),idx)
-
-com_R_imu = euler2dcm([angle1+delRange(row),angle2+delRange(col),angle3])
-
-aDiff = (com_R_imu) * aPreProcMeanTest- [0; 0 ; 9.8];%model.g*euler2dcm(model.phi0)*model.gRot;
-fprintf('aDiff : ');
-disp(aDiff)
-
-%fprintf('omegaRawMean : ');
-%disp(com_R_imu * omegaRawMean)
-fprintf('omegaOffset:');
-disp(com_R_imu * omegaOffset);
-fprintf('omegaRising : ');
-disp(com_R_imu * omegaRisingPreProc)
-fprintf('omegaRising - Offset : ');
-disp(com_R_imu * (omegaRisingPreProc - omegaOffset))
-
-save('./IMUOffset.mat','com_R_imu');
