@@ -60,13 +60,13 @@ m       = [18,19,19 ];         % output dimension
 %% Model Parameters common across experiments
 %setup.dtInvDyn = 0.00001;
 setup.dtForDyn = 0.0001; % EKF forward dynamics computation time step
-setup.dtKalman = 0.01; % EKF computation time step (discretisation)
+setup.dtKalman = 0.005; % EKF computation time step (discretisation)
 
 setup.dataSource = 1;%3; % source 1 - old dataset, 2 - only foot dataset, 3 - compliant dataset 
 
-setup.t_min = 0.5; % time until which to calibrate
-setup.t_max = 7.5;%7.5; % Max time in dataset until which to filter
-setup.measurementPlots = 'makePlots'; % options - 'makePlots' , 'noPlots'
+setup.t_min = 4.5; % time until which to calibrate
+setup.t_max = 7.54;%7.5; % Max time in dataset until which to filter
+setup.measurementPlots = 'noPlots'; % options - 'makePlots' , 'noPlots'
 setup.filterOutputPlots = 'makePlots';
 setup.skipSteps = 100; % no of steps to skip for diplaying kalman execution time in loop
 
@@ -156,7 +156,7 @@ for expID = numOfExperiments
                kalman.phi_Q*ones(3,1);
                kalman.K_Q*ones(9,1)
                ]);
-           kalman.P = 15*diag([kalman.a_Q*ones(3,1);kalman.omega_Q*ones(3,1);kalman.f_Q*ones(3,1);kalman.mu_Q*ones(3,1);kalman.f_Q*ones(3,1);...
+           kalman.P = 25*diag([kalman.a_Q*ones(3,1);kalman.omega_Q*ones(3,1);kalman.f_Q*ones(3,1);kalman.mu_Q*ones(3,1);kalman.f_Q*ones(3,1);...
                kalman.mu_Q*ones(3,1);kalman.phi_Q*ones(3,1);kalman.K_Q*ones(9,1)]);
     end 
 
@@ -245,12 +245,13 @@ for expID = numOfExperiments
        % axis([a(1) 6.5 -2 5]);
         
         %display only orientation
-      %  close(1);close(2);
-      %  close(3);%close(6);
-      %  close(7);
-      %  figure(4); subplot(3,1,1); axis tight;
-      %  subplot(3,1,2); axis tight;
-      %  subplot(3,1,3); axis tight;
+
+     %   close(1);close(2);
+     %   close(3);%close(6);
+     %   close(7);
+        figure(4); subplot(3,1,1); axis tight;
+        subplot(3,1,2); axis tight;
+        subplot(3,1,3); axis tight;
         
       %  figure(5); subplot(3,1,1); axis tight;
       %  subplot(3,1,2); axis tight;

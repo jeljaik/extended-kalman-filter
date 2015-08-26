@@ -8,16 +8,16 @@ function [] = plot_FRI(XUpt, PUpt,XPred,PPred,tK, idx,idEnd,col,figIn)
     subplot(2,1,1);
     plot(tK,pfri_expect(:,1),'b','LineWidth',2.0); hold on;
     plot(tK,pfri_predict(:,1),'r','LineWidth',2.0);
-    
-    ylabel('Estimate FRI_z');
+    axis tight;
+    ylabel('E[P_{o_z}]');
     xlabel('Time t(sec)');
     
     subplot(2,1,2);
     plot(tK,pfri_expect(:,2),'b','LineWidth',2.0); hold on;
     plot(tK,pfri_predict(:,2),'r','LineWidth',2.0);
-    
-    xlabel('Estimate FRI_y');
-    ylabel('Time t(sec)');
+    axis tight;
+    ylabel('E[P_{o_y}]');
+    xlabel('Time t(sec)');
     
 %     subplot(3,1,3);
 %     plot(tK,pfri_expect(:,3),'b','LineWidth',2.0); hold on;
@@ -35,12 +35,12 @@ function [] = plot_FRI(XUpt, PUpt,XPred,PPred,tK, idx,idEnd,col,figIn)
 
     %hold on;
     %ellipse(squeeze(2*sqrt(ellipse(pfri_covariance(end,1,1)))),squeeze(2*sqrt(ellipse(pfri_covariance(end,2,2)))),0,pfri_expect(end,1),pfri_expect(end,2),'r');
-    axis tight;
-    hold on;
+   % axis tight;
+    %hold on;
 
-    ylabel('Estimate FRI_z (m)');
-    xlabel('Time t(sec)');
-    set(gca,'FontSize',12);
+    %ylabel('Estimate FRI_z (m)');
+    %xlabel('Time t(sec)');
+    %set(gca,'FontSize',12);
 
 
 
