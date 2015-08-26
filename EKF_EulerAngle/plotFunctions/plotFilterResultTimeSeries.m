@@ -1,4 +1,4 @@
-function [ output_args ] = plotFilterResultTimeSeries( t, x, y, P,idx, plotText,cols,subFig )
+function [ output_args ] = plotFilterResultTimeSeries( t, x, y, P,idx, plotText,cols,subFig)%, sysX )
 %PLOTFILTERRESULTTIMESERIES PLotting a time series composed of a state of a
 %filtered system. Requires the full state definition and the covariance.
 %Can be passed on or several state indices.
@@ -12,12 +12,14 @@ end
 
 for i = 1:numSubFig
     subplot(subFig(1),subFig(2),i);
-    shadedErrorBar(t,x(:,idx(i)),squeeze(2*sqrt(P(idx(i),idx(i),:)))',cols{i}, 1);
-    
-    if(~isempty(y))
-        hold on
-        plot(t, y(:,idx(i)), '--k','linewidth',2);
-    end
+%     shadedErrorBar(t,x(:,idx(i)),squeeze(2*sqrt(P(idx(i),idx(i),:)))',cols{i}, 1);
+    plot(t,x(:,idx(i)),cols{i});    
+%     hold on
+%     plot(t,sysX(:,idx(i)), '-- m','linewidth',1)
+%     if(~isempty(y))
+%         hold on
+%         plot(t, y(:,idx(i)), '--k','linewidth',2);
+%     end
     title(plotText.titleText{i});
     xlabel(plotText.xlabelText{i});
     ylabel(plotText.ylabelText{i});

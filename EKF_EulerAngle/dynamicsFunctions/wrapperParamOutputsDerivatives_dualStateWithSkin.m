@@ -1,7 +1,7 @@
-function dh = wrapperOutputsDerivatives_withoutSkin(Xhat, model)
+function dh = wrapperParamOutputsDerivatives_dualStateWithSkin(Xhat, model)
 
     
-        dh = outputsDerivatives_withoutSkin(...
+        dh = paramoutputsDerivatives_dualStateWithSkin(...
         Xhat(1) ,Xhat(2) ,Xhat(3),...  % v
         Xhat(4) ,Xhat(5) ,Xhat(6),...  % w
         Xhat(7) ,Xhat(8) ,Xhat(9),...  % f_o
