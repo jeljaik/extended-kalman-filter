@@ -2,10 +2,15 @@
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}        % standard LaTeX graphics tool
 \usepackage{amsmath}
-
+\usepackage{amsfonts}
+\usepackage{framed}
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable}
 \DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\sensor}{\mathbf{s}}
+\DeclareMathOperator{\world}{\mathbf{w}}
 % Title Page
-\title{Notes on Quaternion-based EKF Orientation Estimation for a Mobile Phone }
+\title{Notes on Quaternion-based Extended Kalman Filter Orientation Estimation}
 \author{Jorhabib Eljaik Gomez}
 \date{}
 
@@ -20,6 +25,8 @@
 In all of the followig versions of the filter, we will assume the following:
 
 \begin{itemize}
+ \item $x$ - State vector.
+ \item $q$ - Quaternion vector.
  \item The process to be estimated is random and can be modeled as:
  $x_{k+1} = \phi_k x_k + w_k$.
  \item The measurement (observation) of the process respects the linear relationship $z_k = H_k x_k + v_k$.
@@ -44,7 +51,7 @@ Covariance matrices for the $w_k$ and $v_k$ vectors at time $t_k$ are given by $
 Here goes a summarized explanation of the Kalman Filter.
 \begin{figure}[!ht]
  \centering
- \includegraphics[width=0.5\textwidth]{./fig/kalman_loop.png}
+ \includegraphics[width=0.9\textwidth]{./fig/kalman_loop.png}
  % kalman_loop.png: 1157x570 pixel, 72dpi, 40.82x20.11 cm, bb=0 0 1157 570
  \caption{Kalman filter algorithm. Extracted from Introduction to Random Signals and Applied Kalman Filtering.}
  \label{fig:kalmanLoop}
@@ -53,173 +60,243 @@ Here goes a summarized explanation of the Kalman Filter.
 \subsection{Sensors Calibration}
 This is a very delicate and important issue that needs to be addressed. Good summarized information can be found in \cite{Cucu2012} and the selected choice described here.
 
-\section{Simplified Version (Gyroscope and Accelerometer)}
-In this simplified version we have the following description of the process:
-\begin{itemize}
- \item \textbf{State Space Model:} The state is the orientation of the sensor local frame \cal{\{S\}} with respect to the earth-fixed world reference frame \cal{\{W\}} corresponding to the east-north-up system (y-axis pointing north, z-axis pointing up). This orientation is what we want to estimate, and to do so, we will use the angular velocity provided by the gyroscope as input to the system, while the measurement equation will come from the model of the accelerometer such that:
+\newpage
 
-\begin{align}
- x_k &= q^w_{s_k} \\
- u_k &= \omega^s_k \\
- z_k &= f(a^s_{k})
-\end{align}
+\section*{Quaternion-based Kalman Filter. A Detailed Description.}
+by Jorhabib Eljaik G. \newline \\
+The goal of this Kalman Filter is to estimate the orientation of the body (sensor) reference $\{\sensor\}$ with respect to the Earth-fixed (world) reference frame\footnote{Defined as a right-handed co-ordinate system with the positive $x$ axis pointing to the local magnetic North, positive $z$ pointing up and $y$ according to the right handed system} $\{\world\}$ in the quaternion representation (in radians), i.e.~$q^{\world}_{\sensor}$. This representation is chosen to avoid the singularities that may be incurred when using local parametrizations such as Euler Angles (e.g. when the pitch approaches $\pm90^{\circ}$). The usage of this representation however, complicates a bit the mathematical description of the filter. In this report we present a detailed description of a proper yet fairly simple implementation. 
+We start with a simplified version of the filter where only a triad of gyroscopes and accelerometers will be used along with a simple model of the process representing solely the orientation to be estimated. In this way, the state of the Kalman Filter will be the quaternion-based orientation of the body in the world reference frame $\{\world\}$, i.e.
+\begin{equation}
+  x = q^{\world}_{\sensor}
+\end{equation}
+Where $q = [q_1 \quad q_v]$, $q_1 \in \mathbb{R}$, $q_v \in \mathbb{R}^3$ and $||q|| = 1$. The reference frame has been chosen in the world for comparison reasons, since the orientation estimate of the MTx inertial measurement unit (IMU) used to acquire sensor readings (accelerometer and gyro) is also expressed in the world reference frame, and can be our ground truth. Another motivation to compare against it is the fact that its estimation is also done through a Kalman Filter (as stated in the documentation) and with some of the assumptions present in this work.
 
-In the previous equations $q^w_{s_k}$ stands for the quaternion in $rad$ at time $k$, representing the orientation between the sensor and the world reference frame (quaternions in this document have the following structure: $q = [q_{\text{real}} \quad q_{\text{vec}}]$), $\omega^s_k$ the angular velocity in $rad/s$ in the sensor reference frame while $f(a^s_{k})$ is actually the rotated gravity acceleration in \{W\} felt by the accelerometer in $m/s^2$. Recall that the accelerometer measures the acceleration acting \textbf{on} itself in its local reference frame \{S\}. We will assume also that the gravity acceleration \textbf{felt} by the accelerometer at rest in \{W\} is constant and equal to $g^w = [0 \quad 0 \quad 9.81]^T$ and that the body does not move too fast. 
-
-\begin{figure}[h]
+\begin{figure}[ht!]
  \centering
- \includegraphics[width=0.4\textwidth]{./fig/axis_device.png}
- % axis_device.png: 225x269 pixel, 90dpi, 6.35x7.59 cm, bb=0 0 180 215
- \label{fig:phone_frame}
- \caption{Local sensor frame \{S\}}
+ \includegraphics[width=0.5\textwidth]{./fig/MixCoordSys.png}
+ % MixCoordSys.png: 365x315 pixel, 90dpi, 10.30x8.89 cm, bb=0 0 292 252
+ \label{fig:coordsys}
+ \caption{Earth-fixed (world) reference frame $\{\world\}$ and local sensor reference frame $\{\sensor\}$. $R(q^{\world}_{\sensor})$ denotes the quaternion-based rotation matrix that rotates a vector in $\{\sensor\}$ into $\{\world\}$. }
 \end{figure}
 
 
-\item \textbf{System Dynamics:} Since our state vector consists only of the quaternion $q^w_{s_k}$, its dynamics are given by the derivate of the quaternion, i.e. $\dot{q}^w_s = \frac{1}{2}\Omega(\omega^s)q^w_s$ in continuous time. Assuming that the angular velocity remains constant over the integration time, the previus equation can be transformed into a discretized update equation of the form $q^w_{s_{k+1}} = \Phi_k q^w_{s_k}$ where $\Phi_k = e^{F\Delta T}$ and $F$ the transition matrix $\frac{1}{2}\Omega(\omega^s)$. Including the gyro noise $w$ with probability distribution $\cal{N}$ $(0,Q_c)$ and following a Taylor series expansion we get:
+\subsection{\textbf{Discrete Time Process Model}} 
+[$x_{k+1} = Ax_k + w_k$]. This model is obtained starting off the continuous time equations relating the quaternion orientation with its derivative resulting in the following differential equation \cite{Trawny2005}: 
+ \begin{equation}
+  \dot{q}^{\world}_{\sensor}(t) = \frac{1}{2}\Omega(\omega^{\sensor}(t))q^{\world}_{\sensor}(t)
+  \label{Eq:diffEq}
+ \end{equation}
+ From now on, let us forget about the super and subscript identifying the reference frames for this quaternion for the sake of clarity, and let us work out Eq.~\ref{Eq:diffEq} in order to obtain the more cannonical equation of the process model. In the previous equation $\omega$ is the \textbf{actual} angular velocity in body coordinates. The relationship between this angular velocity and the one measured by a gyroscope $\omega^m$ with zero-mean normal additive noise $\epsilon_k$ at time $k$ is given by:
+  \begin{equation}
+   \omega_k = \omega^m_k + \epsilon_k
+  \end{equation} 
+  
+  Let us then call $\Omega(\omega)$ the ``derivative matrix'' which appears in the multiplication of a matrix by a quaternion and has the same structure:
+  \begin{equation}
+  \Omega(\omega)=
+     \left[\begin{array}{cc}
+         0      & -\omega^T  \\
+       \omega   & -S(\omega)
+    \end{array}  \right]
+  \end{equation}
 
-\begin{align}
- q^w_{s_{k+1}} &= e^{\frac{1}{2}\Omega(\omega^s_k + w_k)\Delta T} q^w_{s_k} \\
-         &= (I_{4\times 4} + \frac{1}{2}\Omega(\omega^s_k)\Delta T)q^w_{s_k} + \frac{\Delta T}{2}\Xi(q^w_{s_k})w_k
-\end{align}
+  The discrete-time solution to Eq.~\ref{Eq:diffEq} is known to be: 
+ \begin{equation}
+  q_{k+1} = \Phi_k q_k
+  \label{Eq:transitionEq}
+ \end{equation}
+ Under the assumption that $\omega$ is constant over the integration time ($T_s$), thus making $\Omega$ independent of time, the differential equation becomes time-invariant and a closed form solution can be obtained resulting in the so-called ``zeroth order quaternion integrator" \cite{Trawny2005}, thus: 
+ \begin{equation}
+  \Phi_k = \text{exp}\left( \frac{1}{2}\Omega({\omega})T_s \right)
+ \end{equation}
+  Using the Taylor expansion of this matrix exponential along with the power properties of matrix $\Omega(\omega)$, you get the common Taylor series expansions of the $sine$ and $cos$ functions and taking the first order approximation (as $\omega \rightarrow 0$) we finally obtain \cite{Trawny2005}:
+  \begin{equation}
+   \Phi_k = I_{4\times4} + \frac{T_s}{2}\Omega({\omega})
+  \end{equation}
+  In this simplified case of the filter, since we are not estimating $\omega$, but measuring it with the gyroscope which is subject to error and bias, the transition matrix that uses $\omega_m$ instead of $\omega$ will differ from $\Phi_k$ by $\Delta\Phi_k$, that is: 
+  
+  \begin{equation}
+   \Phi^m_k = \Phi_k + \Delta\Phi_k
+   \label{Eq:measuredPhi}
+  \end{equation}
+  
+  $\Delta\Phi_k$ is called the Error Matrix which according to \cite{Choukroun2003} can be expressed as its matrix power series first order term only, or from the first order approximations of $\Phi^m_k$ and $\Phi_k$, such that:
+  \begin{align}
+   \Phi^m_k - \Phi_k &= (I_{4\times4} + \frac{1}{2}\Omega(\omega^m_k)T_s) - (I_{4\times4} + \frac{1}{2}\Omega({\omega_k})T_s) \\
+                     &= \frac{1}{2}\Omega(\omega^m_k - \omega_k)T_s \\
+                     &= \frac{1}{2}\Omega(\epsilon_k)T_s = E_k T_s
+  \end{align}
+  Where $\epsilon_k$ is the gyro measurement noise vector, thus: 
+  \begin{equation}
+   \Delta{\Phi_k} \simeq E_k T_s
+  \end{equation}
+  
+  Where 
+  \begin{equation}
+  E_k = \frac{1}{2}\left[ \begin{array}{cc}
+                           0      & -\epsilon^T_k  \\
+                           \epsilon_k & -S(\epsilon_k) \\
+                          \end{array}  \right]
+  \end{equation}
+  
+  And $S(\epsilon_k)$ the skew-symmetric matrix:
+  \begin{equation}
+    S(\epsilon_k) = \left[ \begin{array}{ccc}
+                                0       &  -\epsilon_{k_3} & \epsilon_{k_2}  \\
+                          \epsilon_{k_3}  &        0       & -\epsilon_{k_1} \\
+                          -\epsilon_{k_2} &   \epsilon_{k_1} &       0       
+                         \end{array} \right]
+  \end{equation}
+  
+  Hence, from Eq.~\ref{Eq:measuredPhi}
+  \begin{align}
+   \Phi_k &= \Phi^m_k - \Delta \Phi_k \\
+   \Phi_k &= \Phi^m_k - E_k T_s
+  \end{align}
+  Substituting in Eq.~\ref{Eq:transitionEq}
+  \begin{align}
+   q_{k+1} &= \Phi_k q_k \\
+   q_{k+1} &= (\Phi^m_k - E_k T_s)q_k \\
+   q_{k+1} &= \Phi^m_k q_k - T_s E_k q_k \label{Eq:transitionEq2}
+  \end{align}
+  In \cite{Choukroun2003} it is explained how the term $E_k q_k$ can be further expanded taking advantage of the properties of the matrix $E_k$, which when pre-multiplying a quaternion respects the following property ($\Omega(\omega)$ and $E_k$ have the same structure!):
+  
+  \begin{tcolorbox}
+   Given $\Omega(x) = \left[\begin{array}{cc}
+                               0   & -x^T \\
+                               x   & -S(x)
+                            \end{array}\right]$
+  and $\Xi(q) = \left[\begin{array}{c}
+                   -q^T_v \\
+                   q_1 I_{3\times3} + S(q_v)
+                 \end{array}\right]$ \newline
+    \begin{equation}
+     \centering
+     \Omega(x)q = \Xi(q)x
+     \label{Eq:propertyXi}
+    \end{equation}
+    \begin{center}
+      $\forall~x \in \mathbb{R}^3$
+    \end{center}
+  \end{tcolorbox}
 
-Where the operators $\Omega$ and $\Xi$ are:
+  Thus, Eq.~\ref{Eq:transitionEq2} can be further expressed as:
+  \begin{equation}
+   q_{k+1} = \Phi^m_k q_k - \frac{T_s}{2} \Xi(q_k)\epsilon_k
+  \end{equation}
+  Taking $x = \epsilon$ and $q=q_k$.
+  Finally, the \textbf{Process Model} is: 
+  \begin{tcolorbox}
+   \begin{equation}
+    x_{k+1} = q_{k+1} = \Phi^m_k q_k + w_k
+    \label{Eq:processModel}
+   \end{equation}
+   Where: 
+   \begin{align}
+    \Phi^m_k &= I_{4\times4} + \frac{T_s}{2}\Omega(\omega^m_k) \\
+    w_k      &= -\frac{T_s}{2}\Xi(q_k)\epsilon_k \label{Eq:noiseVecEq}\\
+    \Xi(q_k) &= \left[\begin{array}{c}
+                -q^T_v \\
+                q_1 I_{3\times3} + S(q_v)
+               \end{array}\right]
+   \end{align}
+   The zero-mean gyro noise vector $\epsilon_k$ is normally distributed, i.e. $\epsilon \sim \mathcal{N}(0,\sigma_g)$
+   \begin{equation}
+    \Sigma^{g}_k = \sigma^2_{g} I_{3\times3}
+   \end{equation}
+   With process covariance matrix given by:
+     \begin{equation}
+      Q^w_k = E(w_k w^T_k) = \left(\frac{T_s}{2}\right)^2 \Xi_k \Sigma^{g}_k \Xi^T_k
+     \end{equation}
+  \end{tcolorbox}
+  
+  Remember that $T_s$ must be kept small, as well as $\epsilon_k$ since these assumptions allowed for the approximation of $\Delta \Phi_k$, the Error Transition Matrix first order approximation. 
+  The fact that the process noise vector $w_k$ is state dependent can be addressed by substituting $q_k$ in Eq.~\ref{Eq:noiseVecEq} with the most recent estimate as done in \cite{Choukroun2003} or \cite{Sabatini2006}.
 
-\begin{equation}
- \Omega(\omega^s_k) = \left[\begin{matrix}
-                      0	        &  -(\omega^s_k)^T\\
-                   \omega^s_k   &  -S(\omega^s_k)
-z                  \end{matrix}\right]
-\end{equation}
+  \subsection{Measurement Model}
+  [$z_{k} = h(x_{k+1}) + v_{k}$]. This model is constituted by the accelerometer only, neglecting its bias and scaling factors or body acceleration. The latter assumption is also done in many commercial IMUs as the one used to compare our results. The measurement model in the body frame:
+  
+  \begin{equation}
+   z_{k} = h(q^{\world}_{\sensor_{k+1}}) + v_{k}
+  \end{equation}
+   \begin{tcolorbox}
+   \begin{equation}
+    z_{k} = \underbrace{R(q^{\world}_{\sensor_{k+1}})^T}_{\text{$R^{\sensor}_{\world}$}} g^\world + v_{k} 
+   \end{equation}
+   \label{Eq:measEq}
+   \end{tcolorbox}
+  
+  Where $R(q^{\world}_{\sensor_{k+1}})$ is the rotation matrix representing the orientation of the sensor reference frame with respect to the world frame. This rotation matrix is a function of the quaternion orientation. $g^\world$ is the gravity vector (as it would be measured by the accelerometer) in Earth coordinates and is considered constant and equal to $[0~0~9.8]^T$. The covariance matrix of the measurement model is assumed constant and equal to:
+  \begin{equation}
+   \Sigma^{a}_{k} = \sigma^2_a I_{3\times3}
+  \end{equation}
+  
+  \subsection{Filter design}
+  The measurement model described by Eq.~\ref{Eq:measEq} is non-linear in $q$. To fully describe the filter we further need to linearize $h(q^{\world}_{\sensor_{k+1}})$. Notice that the process model given by Eq.~\ref{Eq:processModel} is already linear in $q$.
+  
+  \begin{figure}[ht!]
+ \centering
+ \includegraphics[width=\textwidth]{./fig/kalman_loop.png}
+ % kalman_loop.png: 1157x570 pixel, 72dpi, 40.82x20.11 cm, bb=0 0 1157 570
+ \caption{Recursive Kalman Filter. This is only for reference on the linear Kalman Filter. The notation used here does not reflect the one used in this notes. Extracted from \cite{Grover1996}}
+ \label{fig:kalmanLoop}
+\end{figure}
 
-\begin{equation} 
- \Xi(q^w_{s_k}) = \left[\begin{matrix}
-                   [-q^w_{s_k}]^T_{vec} \\
-                    [q^w_{s_k}]_{real} I_{3\times3} + S([q^w_{s_k}]_{vec})
-                  \end{matrix}\right]
-\end{equation}
+  To linearize Eq.~\ref{Eq:measEq} we proceed to compute the Jacobian of $h(q)$, evaluated at the most recent estimate of $q$. Let us recall here that $R(q^{\world}_{\sensor})$ can be expressed in terms of the quaternion as:
+  \begin{equation}
+   R(q^{\world}_{\sensor}) = \left[\begin{array}{ccc}
+               2q^2_1-1+2q^2_2 & 2q_2q_3 - 2q_1q_4 & 2q_2q_4 + 2q_1q_3 \\
+               2q_2q_3+2q_1q_4 & 2q^2_1-1+2q^2_3 & 2q_3q_4-2q_1q_2 \\
+               2q_2q_4-2q_1q_3 & 2q_3q_4+2q_1q_2 & 2q^2_1-1+2q^2_4
+              \end{array}\right]
+  \end{equation}
 
-$\Delta T = t_{k+1} - t_k$ and $S(v)$ is the skew symmetric operator:
+  The observation matrix is then defined by the following Jacobian:
+  \begin{align}
+   H_{k+1} &= \left.\frac{\partial h}{\partial q} \right|_{x_{k+1|k}} \\
+           &= \left.\frac{\partial}{\partial q} R(q^{\world}_{\sensor})^T g^{\world}\right|_{x_{k+1|k}}
+  \end{align}
 
-\begin{equation}
- S(v) = \left[\begin{matrix}
-               0    &  -v_z  &   v_y\\
-               v_z  &   0    &  -v_x\\
-              -v_y  &   v_x  &    0 
-              \end{matrix}\right]
-\end{equation}
+  Where
+  \begin{equation}
+  \frac{\partial}{\partial q} R(q^{\world}_{\sensor}) =\left[\begin{array}{cccc}
+                                                \frac{\partial}{\partial q_1} R(q) & \frac{\partial}{\partial q_2} R(q) & \frac{\partial}{\partial q_3} R(q) & \frac{\partial}{\partial q_4} R(q)
+                                               \end{array}\right]
+  \end{equation}
 
+  with
+  \begin{align}
+   \frac{\partial}{\partial q_1} R &= 2\left[ \begin{array}{ccc}
+                                               2q_1 & -q_4 &  q_3 \\
+                                               q_4  & 2q_1 & -q_2 \\
+                                               -q_3 & q_2  & 2q_1
+                                              \end{array}\right] \\
+   \frac{\partial}{\partial q_2} R &= 2\left[ \begin{array}{ccc}
+                                               2q_2 & q_3 & q_4 \\
+                                               q_3  & 0   & -q_1 \\
+                                               q_4  & q_1 & 0
+                                              \end{array}\right] \\
+   \frac{\partial}{\partial q_3} R &= 2\left[ \begin{array}{ccc}
+                                               0    & q_2  & q_1 \\
+                                               q_2  & 2q_3 & q_4 \\
+                                              -q_1  & q_4  & 0
+                                              \end{array}\right] \\
+   \frac{\partial}{\partial q_4} R &= 2\left[ \begin{array}{ccc}
+                                               0    & -q_1  & q_2 \\
+                                               q_1  &  0    & q_3 \\
+                                               q_2  & q_3   & 2q_4
+                                              \end{array}\right]                                               
+  \end{align}
 
-
-\item \textbf{Sensor Fusion Model: } Let us recall the discrete Kalman filter structure given by the process and sensor equations as:
-\begin{align}
- x_{k+1} &= \phi_k x_k + w_k\\
- z_k     &= H_k x_k + v_k
-\end{align}
-
-Given the system dynamics previously described, the continuous state model was:
-\begin{equation}
-  \dot{x} = \underbrace{\frac{1}{2} S(\omega_k + w_k)}_{F} x
-\end{equation}
-
-Where $F$ is the transition matrix. 
-
-The accelerometer can be modeled using the following equation,
-
-\begin{equation}
- y_{k_a} = Q^T(q_k)(g^o + F_k) + v^a_k
-\end{equation}
-
-Where $g^0$ is the nominal gravity vector and measurement noise $v^a_k$
-
-While the magnetometer can be modeled using the following equation,
-
-\begin{equation}
- y_{k_m} = Q^T(q_k)m^0 + v^m_k
-\end{equation}
-
-Where $m^0$ is the earth magnetic field in world coordinates, or nominal magnetic field and given by $m^0 = (0 \quad \sqrt{m^2_x + m^2_y} \quad m_z)^T$
-
-Then, following discretization the Kalman model can be written as:
-\begin{align}
- x_{k+1} &= \underbrace{\left(I + \frac{1}{2}S(\omega_k)\Delta T\right)}_{\phi_k} x_k + \underbrace{\frac{\Delta T}{2}\bar{S}(q_k)w_k }_{w'_k}\\ 
- z_{k}   &=  Q^T(q_k)(g^o + F_k) + v^a_k
-\end{align}
-
-This equation is also known as the Zeroth Order Quaternion Integrator, which assumes constant angular velocity over the integration period $\Delta T$. A very detailed derivation can be found in Section 1.6.1 in \cite{Trawny2005}.
-
-The measurement model contains so far only the accelerometer. Also, assuming quaternions of the form $q = [q_{real} \quad q_x \quad q_y \quad q_z]^T$. 
-
-\begin{equation}
- S(\omega) = \left[
- \begin{matrix}
-  0 	   & -\omega_x & -\omega_y & -\omega_z\\
-  \omega_x & 0	       &  \omega_z & -\omega_y\\
-  \omega_y & -\omega_z &  0	   &  \omega_x\\
-  \omega_z &  \omega_y & -\omega_x &  0
- \end{matrix}\right]
-\end{equation}
-
-and 
-
-\begin{equation}
- \bar{S}(q) = \left[
- \begin{matrix}
-  -q_1 & -q_2 & -q_3 \\
-   q_0 & -q_3 &  q_2 \\
-   q_3 &  q_0 & -q_1 \\
-  -q_2 &  q_1 &  q_0
- \end{matrix}\right]
-\end{equation}
-
-Where $F_k$ will be assumed to be zero. The measurement equation however must be linearized! Once linearized, we can obtain also $H_k$. The measurement equation for the accelerometer can be linearized by taking its Jacobian and evaluating at the most recent estimate. However, as done in \cite{Ligorio2013}, the linearized measurement matrix $H_k$ can be obtained as:
-
-\begin{align}
- H_k = \Psi(q_k, g^0) &= \frac{\partial}{\partial q_k}  \left( q_k \otimes \bar{g}^0 \otimes q^{-1}_k \right)\\
-                      &= \bar{S}_R(q_k) \bar{S}_R(g^0)^T + \bar{S}^T_L(q_k) \bar{S}_L(g^0)^T \left[\begin{matrix} -I_3 & 0 \\0  & 1 
-			     \end{matrix}\right]
-\end{align}
-
-Where
-
-\begin{equation}
- S_L = \left[\begin{matrix}
-	       q_4 &  q_3 & -q_2 & q_1\\
-	      -q_3 &  q_4 &  q_1 & q_2\\
-	       q_2 & -q_1 &  q_4 & q_3\\
-	      -q_1 & -q_2 & -q_3 & q_4
-	     \end{matrix}\right]
-\end{equation}
-
-\begin{equation}
-  S_R = \left[\begin{matrix}
-	       q_4 & -q_3 &  q_2 & q_1\\
-	       q_3 &  q_4 & -q_1 & q_2\\
-	      -q_2 &  q_1 &  q_4 & q_3\\
-	      -q_1 & -q_2 & -q_3 & q_4
-	     \end{matrix}\right]
-\end{equation}
-
-And corresponding measurement noise covariance matrix 
-\begin{equation}
- R_k = \Sigma_a
-\end{equation}
-
-Where $\Sigma_a = I_4 \sigma_v^2$.
-
-In this way, we finally obtain the linearized measurement equations such that
-\begin{equation}
- z_k = H_k q_k 
-\end{equation}
-
-
-There is also another possibility, which consists in using accelerometer and magnetometer readings as inputs to the QUEST \cite{Shuster1981} algorithm to produce what will be called the \emph{computed quaternion} which is then presented to the Kalman Filter as measurements, greatly simplifying its implementation \cite{Shuster1981}. A method using QUEST will be presented later in Section \ref{sect:questSection}. 
-
-NOTE: DON'T FORGET TO CHECK THAT ALL THE QUATERNION FUNCTIONS THAT I'M USING CONSIDER THE QUATERNION IN THE SAME WAY. THE REAL PART COULD BE AT THE BEGINNING OR AT THE END OF THE VECTOR. 
-
-
-\end{itemize}
+  At this point we have all the elements necessary to implement an Extended Kalman Filter with linearized measurement equations. The C++ implementation of this filter has been done with a modified version of the open source \emph{Bayesian Filtering Library} (BFL).
+  
+ \newpage
 
 \section{Estimating Orientation and Gyro Bias}
+
+\section{Multiplicative Kalman Filter}
+The Kalman Filter explained in Section \ref{sec:KalmanFilter} is known as a \emph{Direct Kalman Filter} 
+
 
 \section{Simplified Version Using the QUaternionESTimator algorithm (QUEST)}
 \label{sect:questSection}
@@ -240,12 +317,6 @@ Where $J$ is the loss function to be minimized, $k$ is the index for observation
 Depending on how noisy measurements are, the harder it becomes to minimize this loss function. 
 
 QUEST is just one efficient way to perform this minimization and will be described next. Many spacecraft attitude systems use this method to fuse the unit vector giving the direction to the sun or a star and the unit vector in the direction of the Earth's magnetic field. In this particular implementation we intend to do the same, with the gravity vector given by the accelerometer and the Earth's magnetic field direction provided by the magnetometer.
-
-\subsection{QUEST}
-
-\section{Multiplicative Kalman Filter}
-The Kalman Filter explained in Section \ref{sec:KalmanFilter} is known as a \emph{Direct Kalman Filter} 
-
 
 \section{Bayesian Interpretation of the Kalman Filter}
 The Kalman Filter can be seen as a special case of the sequential state estimation problem in iterative Bayesian filtering. In recursive Bayesian estimation, two assumptions are used to derive the recursive Bayesian filter: i) The state follows a first-order Markov process, meaning $p(x_n | x_{0:n-1}) = p(x_n | x_{n-1})$, ii) The observations are independent of the given states. From Bayes rule it can be obtained that the \textbf{conditional pdf} of $x_n$  is:
@@ -269,9 +340,9 @@ Kalman Filtering can be reduced to a Maximum A Posteriori (MAP) solution to
 after calculating the means and covariances of the previously listed terms, i.e.
 \begin{equation}
 \begin{aligned}
- \E[y_n|x_n]        &= G_n x_n\\
+ E[y_n|x_n]        &= G_n x_n\\
  Cov[y_n|x_n]       &= \Sigma_v\\
- \E[x_n|y_{0:n-1}]   &= Fx_{n-1}\\
+ E[x_n|y_{0:n-1}]   &= Fx_{n-1}\\
  Cov[x_n|y_{0:n-1}] &= Cov[x_n - \hat{x}_{n|n-1}]
 \end{aligned}
 \end{equation}
@@ -286,8 +357,8 @@ And pdfs:
 
 We can now obtain an expression for the posterior $p(x_n|y_{0:n})$ as:
 \begin{multline}
- p(x_n|y_{0:n}) \propto A \exp\left(\frac{1}{2} (y_n - G_n x_n)^T) \Sigma^{-1}_v (y_n - G_n x_n) \\
-		 \left.- \frac{1}{2}(x_n - \hat{x}_{n|n-1})^T P^{-1}_{n,n-1}(x_n - \hat{x}_{n|n-1}\right)
+ p(x_n|y_{0:n}) \propto A \exp\left(\frac{1}{2} (y_n - G_n x_n)^T)\Sigma^{-1}_v (y_n - G_n x_n) \right.\\
+		\left.- \frac{1}{2}(x_n - \hat{x}_{n|n-1})^T P^{-1}_{n,n-1}(x_n - \hat{x}_{n|n-1}\right)
 \end{multline}
 
 Where $A_1 = 2\pi^{-N_y/2}|\Sigma_v|^{-1/2}$, $A_2 = 2\pi^{-N_x/2}|P_{n,n-1}|^{-1/2}$ and $A=A_1 A_2$. 
