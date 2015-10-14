@@ -1,0 +1,8 @@
+\section{Installing the skin on the iCub}
+\subsection{Ethernet-based robot}
+Initial experiments are being done with the right foot only, for which the following description will concern just that foot.
+\begin{itemize}
+  \item Assuming local (experimental) changes, \texttt{cd} into \texttt{ICUB\_DIR/share/iCub/} \texttt{ICUB\_DIR/share/iCub/robots/iCubGenova02/hardware/skin}. In the file \texttt{right\_leg-ems11-inertial\_mtb.xml} in group \texttt{GENERAL} set \\ \texttt{param name=enabledGyroscopes} to \texttt{r\_foot\_1} and \texttt{r\_foot\_2}.\\
+  \item The port that will be opened can be set in \texttt{ICUB\_DIR/share/iCub/ro\-bots/iCubGeno\-va02/wrappers/skin}. By default it is \texttt{right\_leg/iner\-tialMTB}
+  \item In the port previously reported you will find readings from all accelerometers and gyroscopes that have been activated. The ID number for \texttt{r\_foot\_1} is $32$ (8 + \texttt{eoas\_inertial\_pos\_offsetright}) and for \texttt{r\_foot\_2} is $33$ (9 + \texttt{eoas\_inertial\_pos\_offsetright}). These numbers can be obtained from the \texttt{eOas\_inertial\_position\_t} enumeration type in which \texttt{eoas\_inertial\_pos\_offsetright} is $24$ while \texttt{eoas\_inertial\_pos\_offsetleft} is $0$
+\end{itemize}
